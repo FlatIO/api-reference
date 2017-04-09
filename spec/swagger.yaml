@@ -34,10 +34,10 @@ info:
 
     # SDKs
 
-    Our team maintain the following SDKs:
-      - [https://github.com/FlatIO/api-client-python](Python)
-      - [https://github.com/FlatIO/api-client-js](JavaScript (Node.js and Browser))
-      - [https://github.com/FlatIO/api-client-php](PHP)
+    Our team maintains the following SDKs:
+      - [Python](https://github.com/FlatIO/api-client-python)
+      - [JavaScript (Node.js and Browser)](https://github.com/FlatIO/api-client-js)
+      - [PHP](https://github.com/FlatIO/api-client-php)
 
     # Authentication
     The Flat API supports OAuth2, you can request API credentials [on our website](https://flat.io/developers). We provide two types of credentials:
