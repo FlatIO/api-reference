@@ -32,6 +32,11 @@ info:
 
     By using this API, and especially on the behalf of a user account, you must accept, respect and enforce our [Terms of Service and Privacy Policy](https://flat.io/legal).
 
+    # SDKs
+
+    Our team maintain the following SDKs:
+      - [https://github.com/FlatIO/api-client-python](Python)
+
     # Authentication
     The Flat API supports OAuth2, you can request API credentials [on our website](https://flat.io/developers). We provide two types of credentials:
 
@@ -406,7 +411,6 @@ paths:
       tags: [Score]
       security:
       - OAuth2:
-        - scores.readonly
         - scores
       summary: Add a new collaborator
       description: |
@@ -451,7 +455,6 @@ paths:
       security:
       - OAuth2:
         - scores.readonly
-        - scores
       summary: Get a collaborator
       description: |
         Get the information about a collaborator (User or Group).
@@ -921,6 +924,7 @@ paths:
       tags: [User, Score]
       security:
       - OAuth2:
+        - scores
         - scores.readonly
       summary: List user's scores
       description: |
