@@ -1,0 +1,1901 @@
+# A Swagger 2.0 (a.k.a. OpenAPI) definition of the Flat API
+#
+# This is used for generating API documentation and the types used by the API clients.
+#
+# Some style notes:
+# - This file is used by ReDoc, which allows GitHub Flavored Markdown in
+#   descriptions.
+# - There is no maximum line length, for ease of editing and pretty diffs.
+
+swagger: '2.0'
+
+info:
+  title: Flat API
+  description: |
+    # Introduction
+    The Flat API allows you to easily extend the abilities of the [Flat Platform](https://flat.io), with a wide range of use cases including the following:
+
+       - Creating and importing new music scores using MusicXML or MIDI files
+       - Browsing, updating, copying, exporting the user's scores (for example in MP3, WAV or MIDI)
+       - Managing educational resources with Flat for Education: creating & updating the organization accounts, the classes, rosters and assignments.
+
+    The Flat API is built on HTTP. Our API is RESTful It has predictable resource URLs. It returns HTTP response codes to indicate errors. It also accepts and returns JSON in the HTTP body. The [schema](/swagger.yaml) of this API follows the [OpenAPI Initiative (OAI) specification](https://www.openapis.org/), you can use and work with [compatible Swagger tools](http://swagger.io/open-source-integrations/).
+
+    You can use your favorite HTTP/REST library for your programming language to use Flat's API. This specification and reference is [available on Github](https://github.com/FlatIO/api-reference).
+
+    # Beta
+    Please note that this public API is currently in beta and subject to change.
+
+    Our whole platform and apps are based on this API, however not all the endpoints are available publicly yet. Feel free to [contact us](mailto:developers@flat.io) if you have any questions, feedback or features requests.
+
+    We don't offer any guarantees during this beta period. By using this API, you agree to update your app in a timely fashion in response to any beta-period changes that are rolled out.
+
+    By using this API, and especially on the behalf of a user account, you must accept, respect and enforce our [Terms of Service and Privacy Policy](https://flat.io/legal).
+
+    # Authentication
+    The Flat API supports OAuth2, you can request API credentials [on our website](https://flat.io/developers). We provide two types of credentials:
+
+      - **Account Access Tokens**: Simple access tokens that allow to try and use this API **with your own account**. This is a great solution to create private apps.
+      - **OAuth2 Credentials**: If you plan to use the Flat API **on the behalf of mutliple users** or make this app public, request OAuth2 Credentials.
+
+    <!-- ReDoc-Inject: <security-definitions> -->
+
+    ### OAuth2 Authorization page
+
+    The Authorization page (`https://flat.io/auth/oauth`) supports all the standard parameters from the **Authorization Code** flow ([RFC6749/4.1.1](https://tools.ietf.org/html/rfc6749#section-4.1.1)) and the **Implicit** flow ([RFC6749/4.2.1](https://tools.ietf.org/html/rfc6749#section-4.2.1)). Here is a summary of the parameters available, including non-standard and optional parameters. All of them can be passed as query string when redirecting the end-user to the authorization page.
+
+    Property name  | Required | Values and Description
+    ---------------|----------|-----------------------
+    `client_id`    | Required | The client id (aka key) from the couple key/secret provided by Flat
+    `response_type`| Required | We support `code` (**Authorization Code** flow, [RFC6749/4.1.1](https://tools.ietf.org/html/rfc6749#section-4.1.1)) and `token`, [RFC6749/4.2.1](https://tools.ietf.org/html/rfc6749#section-4.2.1)). It is strongly advised to use the Authorization Code flow for any server-side usage and the Implicit flow for any client-side (e.g. JavaScript) usage.
+    `scope`        | Required | You must provide a list of scopes listed above and granted for your app, separated with a space.
+    `redirect_uri` | Required | Determines where the response is sent. The value of this parameter must exactly match the value specified in your App Credentials settings.
+    `state`        | Optional | An opaque string that is round-tripped in the protocol; that is to say, it is returned as a URI parameter in the Basic flow, and in the URI #fragment in the Implicit flow.
+    `access_type`  | Optional, only available for the Authorization Code flow | The acceptable values are `online` and `offline`. When specifying `offline`, the API will return a refresh token during the access token exchange.
+
+    ### OAuth2 tokens revocation
+
+    This OAuth2 API supports token revocation ([RFC 7009](http://tools.ietf.org/html/rfc7009)) at the following endpoint: `https://api.flat.io/oauth/invalidate_token`.
+
+    # CORS
+    This API features Cross-Origin Resource Sharing (CORS) implemented in compliance with [W3C spec](https://www.w3.org/TR/cors/). And that allows cross-domain communication from the browser.
+    All responses have a wildcard same-origin which makes them completely public and accessible to everyone, including any code on any site.
+
+    # Rate Limiting
+    For authenticated requests, you can make up to 5,000 requests per hour.
+    For unauthenticated requests, the rate limit allows you to make up to 500 requests per hour. Unauthenticated requests are associated with your IP address, and not the user or app making requests.
+    You can contact us if you need [extra quota](https://flat.io/developers).
+    To protect our quality of service, additional rate limits may apply to some API calls or actions.
+
+    You can check the returned HTTP headers of any API request to see your current rate limit status:
+    ```bash
+    curl -i https://api.flat.io/v2/me
+    HTTP/1.1 200 OK
+    Date: Sat, 25 Mar 2017 17:06:20 GMT
+    X-RateLimit-Limit: 5000
+    X-RateLimit-Remaining: 4999
+    X-RateLimit-Reset: 1490465178
+    ```
+
+    The headers tell you everything you need to know about your current rate limit status:
+
+    Header name | Description
+    ------------|------------
+    `X-RateLimit-Limit` | The maximum number of requests that the consumer is permitted to make per hour.
+    `X-RateLimit-Remaining` | The number of requests remaining in the current rate limit window. This value can be negative if you try to go over the allowed quota.
+    `X-RateLimit-Reset` | The time at which the current rate limit window resets in [UTC epoch seconds](http://en.wikipedia.org/wiki/Unix_time).
+
+    If you need the time in a different format, any modern programming language can get the job done. For example, if you open up the console on your web browser, you can easily get the reset time as a JavaScript Date object.
+
+    ```javascript
+    new Date(1490465178 * 1000).toString()
+    'Sat Mar 25 2017 19:06:18 GMT+0100 (CET)'
+    ```
+
+    Once you go over the rate limit you will receive an error response:
+    ```bash
+    curl -i https://api.flat.io/v2/me
+    HTTP/1.1 403 Forbidden
+    X-RateLimit-Limit: 5000
+    X-RateLimit-Remaining: 0
+    X-RateLimit-Reset: 1490465829
+
+    {
+      "message": "API rate limit exceeded for xx.xxx.xxx.xx",
+      "code": "API_RATE_LIMIT_EXCEEDED"
+    }
+    ```
+  version: 2.0.0
+  termsOfService: https://flat.io/legal
+  contact:
+    name: Flat
+    url: https://flat.io/support
+    email: developers@flat.io
+  x-logo:
+    url: https://flat.io/img/logo-white.svg
+
+host: api.flat.io
+basePath: /v2
+schemes:
+- https
+consumes:
+- application/json
+produces:
+- application/json
+
+securityDefinitions:
+  OAuth2:
+    type: oauth2
+    description: |
+      OAuth 2.0 authentication for your app or. Please only request the most restrictive and needed scopes. Using some of the scopes may require an additional review from our team. The Flat API supports **authorization code** and **implicit** flows.
+    authorizationUrl: https://flat.io/auth/oauth
+    tokenUrl: https://api.flat.io/oauth/access_token
+    flow: accessCode
+    scopes:
+      account.public_profile: |
+        Provides access to the basic person's public profile. Education profiles may be anonymized with this scope, you can request the scope `education_profile` to access to the a basic education account profile.
+      account.education_profile: |
+        Provides access to the basic person's education profile and public organization information.
+      scores.readonly: |
+        Allows read-only access to all a user's scores. You won't need this scope to read public scores.
+      scores.social: |
+        Allow to post comments and like scores
+      scores: |
+        Full, permissive scope to access all of a user's scores.
+
+tags:
+- name: Account
+  x-displayName: Flat Account
+  description: |
+    These API endpoints are related to the Flat account you are currently using. When using an OAuth2 access token, you can use [`GET /me`](#operation/getAuthenticatedUser) to get information about the account.
+- name: Score
+  x-displayName: Music scores
+  description: |
+    Sheet music is the main API object type available for all Flat account.
+
+    Here is a typical lifecycle for a music score document on Flat:
+      - An end user can **create a music score** or **import a document** using our [web interface](https://flat.io) or a third-party website/app (e.g. Google Drive) using this API (see [`POST /v2/scores`](#operation/createScore). The creation and import of music scores can be done with this single API endpoint. This one currently supports the [MusicXML](http://www.musicxml.com/) (compressed or not) and [MIDI](https://www.midi.org/specifications).
+      - The scores from a single account can **be listed** with [`GET /users/{user}/scores`](#operation/getUserScores) as well of scores shared with a specific group with [`GET /groups/{group}/scores`](#operation/getGroupScores).
+      - The metadata of a single score can be retrieved with [`GET /scores/{score}`](#operation/getScore).
+      - Scores on Flat have **one or multiple revisions**: creating a new score will create a first revision. These **revisions can be listed** using [`GET /scores/{score}/revisions`](#operation/getScoreRevisions) and a specific **revision data can be downloaded** with [`GET /scores/{score}/revisions/{revision}/{format}`](#operation/getScoreRevisionData). New revisions can be created using our [sheet music editor](https://flat.io) or using [`POST /scores/{score}/revisions`](#operation/createScoreRevision) (this endpoint has similar parameters than during the score creation). The last revision of a document may not directly reflect the really last version of a music score: recent modifications can be made offline or not yet consolidated into a new revision. In average, a new revision is created every 100 modifications made with our editor.
+      - Scores can be **shared publicly** by changing the privacy option with [`POST /scores/{score}`](#operation/editScore), or **individually shared** using the different collaborators API endpoints (see [`POST /scores/{score}/collaborators`](#operation/addScoreCollaborator)).
+- name: User
+  description: Flat users
+paths:
+  /me:
+    get:
+      tags: [Account]
+      security:
+      - OAuth2:
+        - account.public_profile
+        - account.education_profile
+      summary: Get current user profile
+      description: |
+        Get details about the current authenticated User.
+      operationId: getAuthenticatedUser
+      responses:
+        200:
+          description: Current user details
+          schema:
+            $ref: '#/definitions/UserDetails'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+
+  /scores:
+    post:
+      tags: [Score]
+      security:
+      - OAuth2:
+        - scores
+      summary: Create a new score
+      operationId: createScore
+      description: |
+        Use this API method to **create a new music score in the current User account**. You will need a MusicXML 3 (`vnd.recordare.musicxml` or `vnd.recordare.musicxml+xml`) or a MIDI (`audio/midi`) file to create the new Flat document.
+
+        This API call will automatically create the first revision of the document, the score can be modified by the using our web application or by uploading a new revision of this file (`POST /v2/scores/{score}/revisions/{revision}`).
+
+        The currently authenticated user will be granted owner of the file and will be able to add other collaborators (users and groups).
+      parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/ScoreCreation'
+      responses:
+        200:
+          description: Score created
+          schema:
+            $ref: '#/definitions/ScoreDetails'
+        400:
+          description: Bad score creation request
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        402:
+          description: Account overquota
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+
+  /scores/{score}:
+    get:
+      tags: [Score]
+      security:
+      - OAuth2:
+        - scores
+        - scores.readonly
+      summary: Get a score's metadata
+      description: |
+        Get the details of a score identified by the `score` parameter in the URL.
+        The currently authenticated user must have at least a read access to the document to use this API call.
+      operationId: getScore
+      parameters:
+      - $ref: '#/parameters/score'
+      responses:
+        200:
+          description: Score details
+          schema:
+            $ref: '#/definitions/ScoreDetails'
+        402:
+          description: Account overquota and this document is out of the granted quota
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        403:
+          description: Not granted to access to this score
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        404:
+          description: Score not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+    put:
+      tags: [Score]
+      security:
+      - OAuth2:
+        - scores
+      summary: Edit a score's metadata
+      description: |
+        This API method allows you to change the metadata of a score document (e.g. its `title` or `privacy`), all the properties are optional.
+
+        To edit the file itself, create a new revision using the appropriate method (`POST /v2/scores/{score}/revisions/{revision}`).
+      operationId: editScore
+      parameters:
+      - $ref: '#/parameters/score'
+      - name: body
+        in: body
+        schema:
+          $ref: '#/definitions/ScoreModification'
+      responses:
+        200:
+          description: Score details
+          schema:
+            $ref: '#/definitions/ScoreDetails'
+        402:
+          description: Account overquota
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        403:
+          description: Not granted to access to this score
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        404:
+          description: Score not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+    delete:
+      tags: [Score]
+      security:
+      - OAuth2:
+        - scores
+      summary: Delete a score
+      description: |
+        This API call will schedule the deletion of the score, its revisions, and whole history.
+        The user calling this API method must have the `aclAdmin` rights on this document to process this action.
+        The score won't be accessible anymore after calling this method and the user's quota will directly be updated.
+      operationId: deleteScore
+      parameters:
+      - $ref: '#/parameters/score'
+      responses:
+        204:
+          description: The score has been removed
+        403:
+          description: Not granted to manage this score
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        404:
+          description: Score not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+
+  /scores/{score}/fork:
+    post:
+      tags: [Score]
+      security:
+      - OAuth2:
+        - scores
+      summary: Fork a score
+      description: |
+        This API call will make a copy of the last revision of the specified score and create a new score. The copy of the score will have a privacy set to `private`.
+
+        When using a [Flat for Education](https://flat.io/edu) account, the inline and contextualized comments will be accessible in the child document.
+      operationId: forkScore
+      parameters:
+      - $ref: '#/parameters/score'
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/ScoreFork'
+      responses:
+        200:
+          description: Score details
+          schema:
+            $ref: '#/definitions/ScoreDetails'
+        402:
+          description: Account overquota
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        403:
+          description: Not granted to access to this score
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        404:
+          description: Score not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+
+  /scores/{score}/collaborators:
+    get:
+      tags: [Score]
+      security:
+      - OAuth2:
+        - scores.readonly
+        - scores
+      summary: List the collaborators
+      description: |
+        This API call will list the different collaborators of a score and their rights on the document. The returned list will at least contain the owner of the document.
+
+        Collaborators can be a single user (the object `user` will be populated) or a group (the object `group` will be populated).
+      operationId: getScoreCollaborators
+      parameters:
+      - $ref: '#/parameters/score'
+      responses:
+        200:
+          description: List of collaborators
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ScoreCollaborator'
+        402:
+          description: Account overquota
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        403:
+          description: Not granted to access to this score
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        404:
+          description: Score not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+    post:
+      tags: [Score]
+      security:
+      - OAuth2:
+        - scores.readonly
+        - scores
+      summary: Add a new collaborator
+      description: |
+        Share a score with a single user or a group. This API call allows to add, invite and update the collaborators of a document.
+        - To add an existing Flat user to the document, specify its unique identifier in the `user` property.
+        - To invite an external user to the document, specify its email in the `userEmail` property.
+        - To add a Flat group to the document, specify its unique identifier in the `group` property.
+        - To update an existing collaborator, process the same request with different rights.
+      operationId: addScoreCollaborator
+      parameters:
+      - $ref: '#/parameters/score'
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/ScoreCollaboratorCreation'
+      responses:
+        200:
+          description: The newly added collaborator metadata
+          schema:
+            $ref: '#/definitions/ScoreCollaborator'
+        402:
+          description: Account overquota
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        403:
+          description: Not granted to manage this score
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        404:
+          description: Score not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+
+  /scores/{score}/collaborators/{collaborator}:
+    get:
+      tags: [Score]
+      security:
+      - OAuth2:
+        - scores.readonly
+        - scores
+      summary: Get a collaborator
+      description: |
+        Get the information about a collaborator (User or Group).
+      operationId: getScoreCollaborator
+      parameters:
+      - $ref: '#/parameters/score'
+      - $ref: '#/parameters/scoreCollaborator'
+      responses:
+        200:
+          description: Collaborator information
+          schema:
+            $ref: '#/definitions/ScoreCollaborator'
+        402:
+          description: Account overquota
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        403:
+          description: Not granted to access to this score
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        404:
+          description: Score or collaborator not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+    delete:
+      tags: [Score]
+      security:
+      - OAuth2:
+        - scores
+      summary: Delete a collaborator
+      description: |
+        Remove the specified collaborator from the score
+      operationId: removeScoreCollaborator
+      parameters:
+      - $ref: '#/parameters/score'
+      - $ref: '#/parameters/scoreCollaborator'
+      responses:
+        204:
+          description: The collaborator has been removed
+        403:
+          description: Not granted to manage this score
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        404:
+          description: Score or collaborator not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+  /scores/{score}/comments:
+    post:
+      tags: [Score]
+      security:
+      - OAuth2:
+        - scores.social
+        - scores
+      summary: Post a new comment
+      description: |
+        Post a document or a contextualized comment on a document.
+
+        Please note that this method includes an anti-spam system for public scores. We don't guarantee that your comments will be accepted and displayed to end-user. Comments are be blocked by returning a `403` HTTP error and hidden from other users when the `spam` property is `true`.
+      operationId: postScoreComment
+      parameters:
+      - $ref: '#/parameters/score'
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/ScoreCommentCreation'
+      responses:
+        200:
+          description: The new comment
+          schema:
+            $ref: '#/definitions/ScoreComment'
+        402:
+          description: Account overquota
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        403:
+          description: Not granted to access to this score, to post a comment, or your API call triggered our spam filter.
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        404:
+          description: Score not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+    get:
+      tags: [Score]
+      security:
+      - OAuth2:
+        - scores.readonly
+        - scores.social
+        - scores
+      summary: List comments
+      description: This method lists the different comments added on a music score (documents and inline) sorted by their post dates.
+      operationId: getScoreComments
+      parameters:
+      - $ref: '#/parameters/score'
+      responses:
+        200:
+          description: The comments of the score
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ScoreComment'
+        402:
+          description: Account overquota
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        403:
+          description: Not granted to access to this score
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        404:
+          description: Score not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+  /scores/{score}/comments/{comment}:
+    put:
+      tags: [Score]
+      security:
+      - OAuth2:
+        - scores.social
+        - scores
+      summary: Update an existing comment
+      operationId: updateScoreComment
+      parameters:
+      - $ref: '#/parameters/score'
+      - $ref: '#/parameters/scoreComment'
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/ScoreCommentUpdate'
+      responses:
+        200:
+          description: The edited comment
+          schema:
+            $ref: '#/definitions/ScoreComment'
+        402:
+          description: Account overquota
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        403:
+          description: Not granted to access to this score or not the original comment creator
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        404:
+          description: Score not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+    delete:
+      tags: [Score]
+      security:
+      - OAuth2:
+        - scores.social
+        - scores
+      summary: Delete a comment
+      operationId: deleteScoreComment
+      parameters:
+      - $ref: '#/parameters/score'
+      - $ref: '#/parameters/scoreComment'
+      responses:
+        204:
+          description: The comment has been deleted
+        403:
+          description: Not granted to access to this score or not the original comment creator
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        404:
+          description: Score or comment not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+  /scores/{score}/comments/{comment}/resolved:
+    put:
+      tags: [Score]
+      security:
+      - OAuth2:
+        - scores.social
+        - scores
+      summary: Mark the comment as resolved
+      operationId: markScoreCommentResolved
+      parameters:
+      - $ref: '#/parameters/score'
+      - $ref: '#/parameters/scoreComment'
+      responses:
+        204:
+          description: The comment has been marked as resolved
+        403:
+          description: Not granted to mark this comment as resolved
+        404:
+          description: Score or comment not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+    delete:
+      tags: [Score]
+      security:
+      - OAuth2:
+        - scores.social
+        - scores
+      summary: Mark the comment as unresolved
+      operationId: markScoreCommentUnresolved
+      parameters:
+      - $ref: '#/parameters/score'
+      - $ref: '#/parameters/scoreComment'
+      responses:
+        204:
+          description: The comment has been unmarked as resolved
+        403:
+          description: Not granted to unmark this comment as resolved
+        404:
+          description: Score or comment not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+
+  /scores/{score}/revisions:
+    get:
+      tags: [Score]
+      security:
+      - OAuth2:
+        - scores
+        - scores.readonly
+      summary: List the revisions
+      description: |
+        When creating a score or saving a new version of a score, a revision is created in our storage. This method allows you to list all of them, sorted by last modification.
+
+        Depending the plan of the account, this list can be trunked to the few last revisions.
+      operationId: getScoreRevisions
+      parameters:
+      - $ref: '#/parameters/score'
+      responses:
+        200:
+          description: List of revisions
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ScoreRevision'
+        402:
+          description: Account overquota
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        403:
+          description: Not granted to access to this score
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        404:
+          description: Score not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+    post:
+      tags: [Score]
+      security:
+      - OAuth2:
+        - scores
+      summary: Create a new revision
+      description: |
+        Update a score by uploading a new revision for this one.
+      operationId: createScoreRevision
+      parameters:
+      - $ref: '#/parameters/score'
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/ScoreRevisionCreation'
+      responses:
+        200:
+          description: The new created revision metadata
+          schema:
+            $ref: '#/definitions/ScoreRevision'
+        402:
+          description: Account overquota
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        403:
+          description: Not granted to modify this score
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        404:
+          description: Score not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+
+  /scores/{score}/revisions/{revision}:
+    get:
+      tags: [Score]
+      security: []
+      summary: Get a score revision
+      description: |
+        When creating a score or saving a new version of a score, a revision is created in our storage. This method allows you to get a specific
+        revision metadata.
+      operationId: getScoreRevision
+      parameters:
+      - $ref: '#/parameters/score'
+      - $ref: '#/parameters/scoreRevision'
+      responses:
+        200:
+          description: Revision metadata
+          schema:
+            $ref: '#/definitions/ScoreRevision'
+        402:
+          description: Account overquota
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        403:
+          description: Not granted to access to this score
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        404:
+          description: Score not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+
+  /scores/{score}/revisions/{revision}/{format}:
+    get:
+      tags: [Score]
+      security: []
+      summary: Get a score revision data
+      description: |
+        Retrieve the file corresponding to a score revision (the following formats are available: Flat JSON/Adagio JSON `json`, MusicXML
+        `mxl`/`xml`, MP3 `mp3`, WAV `wav`, MIDI `midi`, or a tumbnail of the first page `thumbnail.png`).
+      operationId: getScoreRevisionData
+      parameters:
+      - $ref: '#/parameters/score'
+      - $ref: '#/parameters/scoreRevision'
+      - name: format
+        in: path
+        description: The format of the file you will retrieve
+        type: string
+        enum: [json, mxl, xml, mp3, wav, midi, thumbnail.png]
+        required: true
+      - name: onlyCached
+        in: query
+        description: |
+          Only return files already generated and cached in Flat's production
+          cache. If the file is not availabe, a 404 will be returned
+        type: boolean
+      - name: parts
+        in: query
+        type: string
+        description: |
+          An optional a set of parts to be exported. This parameter must be
+          specified with a list of integers. For example "1,2,5".
+      produces:
+      - application/json
+      - application/vnd.recordare.musicxml+xml
+      - application/vnd.recordare.musicxml
+      - audio/mp3
+      - audio/wav
+      - audio/midi
+      - image/png
+      responses:
+        200:
+          description: Revision metadata
+        402:
+          description: Account overquota
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        403:
+          description: Not granted to access to this score
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        404:
+          description: Score or associated file not found
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+  /users/{user}:
+    get:
+      tags: [User]
+      security:
+      - OAuth2:
+        - account.public_profile
+        - account.education_profile
+      summary: Get a public user profile
+      description: |
+        Get a public profile of a Flat User.
+      operationId: getUser
+      parameters:
+      - name: user
+        in: path
+        description: |
+          This route parameter is the unique identifier of the user. You can specify an email instead of an unique identifier. If you are executing this request authenticated, you can use `me` as a value instead of the current User unique identifier to work on the current authenticated user.
+        type: string
+        required: true
+      responses:
+        200:
+          description: The user public details
+          schema:
+            $ref: '#/definitions/UserPublic'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+  /users/{user}/likes:
+    get:
+      tags: [User, Score]
+      security:
+      - OAuth2:
+        - account.public_profile
+      summary: List liked scores
+      operationId: gerUserLikes
+      parameters:
+      - $ref: '#/parameters/user'
+      - name: ids
+        in: query
+        description: Return only the identifiers of the scores
+        type: boolean
+      responses:
+        200:
+          description: List of liked scores
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ScoreDetails'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+  /users/{user}/scores:
+    get:
+      tags: [User, Score]
+      security:
+      - OAuth2:
+        - scores.readonly
+      summary: List user's scores
+      description: |
+        Get the list of scores owned by the User
+      operationId: getUserScores
+      parameters:
+      - $ref: '#/parameters/user'
+      - name: parent
+        in: query
+        type: string
+        description: Filter the score forked from the score id `parent`
+      responses:
+        200:
+          description: The user scores
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ScoreDetails'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+
+  /groups/{group}/scores:
+    get:
+      tags:
+      - Group
+      - Score
+      security: []
+      summary: List group's scores
+      description: |
+        Get the list of scores shared with a group.
+      operationId: getGroupScores
+      parameters:
+      - name: group
+        in: path
+        description: Unique identifier of the group
+        type: string
+        required: true
+      - name: parent
+        in: query
+        type: string
+        description: Filter the score forked from the score id `parent`
+      responses:
+        200:
+          description: The group's scores
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ScoreDetails'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+
+parameters:
+  score:
+    name: score
+    in: path
+    description: |
+      Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
+    type: string
+    required: true
+  scoreRevision:
+    name: revision
+    in: path
+    description: |
+      Unique identifier of a score revision. You can use `last` to fetch the information related to the last version created.
+    type: string
+    required: true
+  scoreCollaborator:
+    name: collaborator
+    in: path
+    description: |
+      Unique identifier of a **collaborator permission**, or unique identifier of a **User**, or unique identifier of a **Group**
+    type: string
+    required: true
+  scoreComment:
+    name: comment
+    in: path
+    description: |
+      Unique identifier of a sheet music comment
+    type: string
+    required: true
+  user:
+    name: user
+    in: path
+    description: |
+      Unique identifier of a Flat user. If you authenticated, you can use `me` to refer to the current user.
+    type: string
+    required: true
+definitions:
+  FlatLocales:
+    type: string
+    description: The user language
+    enum: [en, es, fr, it, pl, ro, nl]
+    default: en
+  OrganizationRoles:
+    type: string
+    description: User's Organization Role (for Edu users only)
+    enum: [admin, billing, teacher, user]
+  ClassRoles:
+    type: string
+    description: User's Class Role (for Edu users only)
+    enum: [teacher, student]
+  UserBasics:
+    type: object
+    discriminator: userType
+    properties:
+      id:
+        type: string
+        description: The user unique identifier
+      username:
+        type: string
+        description: The user name (unique for the organization)
+      name:
+        description: A displayable name for the user
+        type: string
+      printableName:
+        type: string
+        description: The name that can be directly printed (name or username)
+      picture:
+        description: User pictue
+        type: string
+      isPowerUser:
+        description: User license status. 'True' if user is an individual Power user
+        type: boolean
+    example:
+      id: '000000000000000000000001'
+      username: flat
+      name: Flat Team
+      printableName: Flat Team
+      picture: https://flat.io/img/logo_flat.svg
+      isPowerUser: true
+
+  UserPublicSummary:
+    description: Public User details summary
+    allOf:
+    - $ref: '#/definitions/UserBasics'
+    - type: object
+      properties:
+        organization:
+          type: string
+          description: Organization ID (for Edu users only)
+        organizationRole:
+          $ref: '#/definitions/OrganizationRoles'
+        classRole:
+          $ref: '#/definitions/ClassRoles'
+        htmlUrl:
+          type: string
+          description: Link to user profile (for Indiv. users only)
+    example:
+      id: '000000000000000000000001'
+      username: flat
+      name: Flat Team
+      printableName: Flat Team
+      picture: https://flat.io/img/logo_flat.svg
+      isPowerUser: true
+      organization: '0000000000000000000000042'
+      organizationRole: admin
+      classRole: teacher
+      htmlUrl: https://flat.io/flat
+
+  UserPublic:
+    description: Public User details
+    allOf:
+    - $ref: '#/definitions/UserPublicSummary'
+    - type: object
+      properties:
+        bio:
+          type: string
+          description: User's biography
+        registrationDate:
+          type: string
+          format: date-time
+          description: Date the user signed up
+        likedScoresCount:
+          type: integer
+          description: Number of the scores liked by the user
+        followersCount:
+          type: integer
+          description: Number of followers the user have
+        followingCount:
+          type: integer
+          description: Number of people the user follow
+        ownedPublicScoresCount:
+          type: integer
+          description: Number of public score the user have
+    example:
+      id: '000000000000000000000001'
+      username: flat
+      name: Flat Team
+      printableName: Flat Team
+      picture: https://flat.io/img/logo_flat.svg
+      isPowerUser: true
+      organization: '0000000000000000000000042'
+      organizationRole: admin
+      classRole: teacher
+      htmlUrl: https://flat.io/flat
+      bio: The Flat Team
+      registrationDate: '2015-01-19T00:22:02.387Z'
+      likedScoresCount: 1
+      followersCount: 4242
+      followingCount: 0
+      ownedPublicScoresCount: 10
+
+  UserDetails:
+    type: object
+    description: User details
+    allOf:
+    - $ref: '#/definitions/UserPublic'
+    - type: object
+      properties:
+        id:
+          type: string
+          description: Identifier of the user
+        type:
+          type: string
+          enum: [user, guest]
+          description: The type of account
+        privateProfile:
+          type: boolean
+          description: Tell either this user profile is private or not (individual accounts only)
+        locale:
+          $ref: '#/definitions/FlatLocales'
+
+
+  Group:
+    type: object
+    description: A group of users
+    properties:
+      id:
+        description: The unique identifier of the group
+        type: string
+      name:
+        description: The display name of the group
+        type: string
+      type:
+        description: |
+          The type of the group:
+          * `generic`: A group created by a Flat user
+          * `classTeachers`: A group created automaticaly by Flat that contains
+            the teachers of a class
+          * `classStudents`: A group created automaticaly by Flat that contains
+            the studnets of a class
+        enum: [generic, classTeachers, classStudents]
+        type: string
+      usersCount:
+        description: The number of users in this group
+        type: number
+      readOnly:
+        description: |
+          `True` if the group is set in read-only
+        type: boolean
+      organization:
+        description: |
+          If the group is related to an organization, this field will contain
+          the unique identifier of the organization
+        type: string
+      creationDate:
+        description: The creation date of the group
+        type: string
+        format: date-time
+    example:
+      id: '0000000000000000000000043'
+      name: 5th grade
+      type: classTeachers
+      userCount: 24
+      readOnly: true
+      organization: '0000000000000000000000042'
+      creationDate: '2015-01-19T00:22:02.387Z'
+
+  ScoreSummary:
+    type: object
+    description: A summary of the score details
+    properties:
+      id:
+        description: The unique identifier of the score
+        type: string
+      title:
+        description: The title of the score
+        type: string
+      privacy:
+        $ref: '#/definitions/ScorePrivacy'
+      user:
+        $ref: '#/definitions/UserPublicSummary'
+      htmlUrl:
+        description: The url where the score can be viewed in a web browser
+        type: string
+        format: url
+    example:
+      id: '000000000000000000000000'
+      title: My score
+      privacy: private
+      user:
+        id: '000000000000000000000001'
+        username: flat
+        name: Flat Team
+        printableName: Flat Team
+        picture: https://flat.io/img/logo_flat.svg
+      htmlUrl: https://flat.io/score/000000000000000000000000
+
+  ScoreDetails:
+    type: object
+    description: The score and all its details
+    allOf:
+    - $ref: '#/definitions/ScoreSummary'
+    - type: object
+      properties:
+        rights:
+          $ref: '#/definitions/ScoreRights'
+        collaborators:
+          description: The list of the collaborators of the score
+          type: array
+          items:
+            $ref: '#/definitions/ScoreCollaborator'
+        creationDate:
+          description: The date when the score was created
+          type: string
+          format: date-time
+        modificationDate:
+          description: The date of the last revision of the score
+          type: string
+          format: date-time
+        organization:
+          description: |
+            If the score has been created in an organization, the identifier of this organization. This property is especially used with the score privacy `organizationPublic`.
+          type: string
+        parentScore:
+          description: |
+            If the score has been forked, the unique identifier of the parent score.
+          type: string
+        instruments:
+          description: |
+            An array of the instrument identifiers used in the last version of the score. This is mainly used to display a list of the instruments in the Flat's UI or instruments icons. The format of the strings is `{instrument-group}.{instrument-id}`.
+          type: array
+          items:
+            type: string
+        googleDriveFileId:
+          description: |
+            If the user uses Google Drive and the score exists on Google Drive, this field will contain the unique identifier of the Flat score on Google Drive. You can access the document using the url: `https://drive.google.com/open?id={googleDriveFileId}`
+          type: string
+        likes:
+          $ref: '#/definitions/ScoreLikesCounts'
+        comments:
+          $ref: '#/definitions/ScoreCommentsCounts'
+        views:
+          $ref: '#/definitions/ScoreViewsCounts'
+    example:
+      id: '000000000000000000000000'
+      title: My score
+      privacy: private
+      user:
+        id: '000000000000000000000001'
+        username: flat
+        name: Flat Team
+        printableName: Flat Team
+        picture: https://flat.io/img/logo_flat.svg
+      htmlUrl: https://flat.io/score/000000000000000000000000
+      creationDate: '2017-01-15T20:03:25.771Z'
+      modificationDate: '2017-01-26T20:29:10.622Z'
+      instruments: [keyboards.grand-piano, woodwinds.oboe, woodwinds.clarinet]
+      rights:
+        aclRead: true
+        aclWrite: true
+        aclAdmin: true
+      collaborators:
+      - aclRead: true
+        aclWrite: true
+        aclAdmin: true
+        user:
+          id: '000000000000000000000001'
+          username: flat
+          name: Flat Team
+          printableName: Flat Team
+          picture: https://flat.io/img/logo_flat.svg
+      - aclRead: true
+        aclWrite: false
+        aclAdmin: false
+        group:
+          id: '0000000000000000000000043'
+          name: 5th grade
+          type: classTeachers
+          userCount: 24
+          readOnly: true
+          organization: '0000000000000000000000042'
+          creationDate: '2015-01-19T00:22:02.387Z'
+      likes:
+        total: 0
+        weekly: 0
+        monthly: 0
+      comments:
+        total: 0
+        unique: 0
+        weekly: 0
+        monthly: 0
+      views:
+        total: 0
+        weekly: 0
+        monthly: 0
+      organization: '000000000000000000000030'
+      parentScore: '000000000000000000000040'
+      googleDriveFileId: 0BCDEFAGA00000000000000
+
+  ScoreRights:
+    type: object
+    description: The rights of the current user on a score
+    properties:
+      aclRead:
+        description: |
+          `True` if the current user can read the current document
+      aclWrite:
+        description: |
+          `True` if the current user can modify the current document
+        type: boolean
+        default: false
+      aclAdmin:
+        description: |
+          `True` if the current user can manage the current document, i.e.
+          changing the document permissions and deleting the document
+        type: boolean
+        default: false
+    example:
+      aclRead: true
+      aclWrite: true
+      aclAdmin: true
+
+  ScoreCollaborator:
+    type: object
+    description: |
+      A collaborator of a score. The `userEmail` and `group` are only available if the requesting user is a collaborator of the related score (in this case these permissions will eventualy not be listed and exposed publicly).
+    properties:
+      id:
+        description: The unique identifier of the score permission
+        type: string
+      score:
+        description: The unique identifier of the score
+        type: string
+      user:
+        $ref: '#/definitions/UserPublic'
+      group:
+        $ref: '#/definitions/Group'
+      userEmail:
+        description: |
+          If the collaborator is not a user of Flat yet, this field will contain his email.
+        type: string
+      aclRead:
+        description: |
+          `True` if the related user can read the score. (probably true if the user has a permission on the document).
+        type: boolean
+        default: true
+      aclWrite:
+        description: |
+          `True` if the related user can modify the score.
+        type: boolean
+        default: false
+      aclAdmin:
+        description: |
+          `True` if the related user can can manage the current document, i.e. changing the document permissions and deleting the document
+        type: boolean
+        default: false
+    example:
+      id: '000000000000000000000031'
+      score: '000000000000000000000040'
+      userEmail: user@example.com
+      aclRead: true
+      aclWrite: true
+      aclAdmin: true
+
+  ScoreCollaboratorCreation:
+    type: object
+    description: |
+      A collaborator of a score. The `userEmail` and `group` are only available if the requesting user is a collaborator of the related score (in this case these permissions will eventualy not be listed and exposed publicly).
+    properties:
+      user:
+        description: The unique identifier of a Flat user
+        type: string
+      group:
+        description: The unique identifier of a Flat group
+        type: string
+      userEmail:
+        description: |
+          Fill this field to invite an individual user by email.
+        type: string
+      aclRead:
+        description: |
+          `True` if the related user can read the score. (probably true if the user has a permission on the document).
+        type: boolean
+        default: true
+      aclWrite:
+        description: |
+          `True` if the related user can modify the score.
+        type: boolean
+        default: false
+      aclAdmin:
+        description: |
+          `True` if the related user can can manage the current document, i.e. changing the document permissions and deleting the document
+        type: boolean
+        default: false
+    example:
+      userEmail: jdoe@flat.io
+      aclRead: true
+      aclWrite: true
+      aclAdmin: false
+
+  ScorePrivacy:
+    type: string
+    enum: [public, private, organizationPublic]
+    description: |
+      The score main privacy mode.
+
+      - `public`: The score is public on the Internet. This one can be accessible at the url `https://flat.io/score/{score}` and can be modified and administred by specified collaborators users.
+      - `private`: The score is private and can be only accessed, modified and administred by specified collaborators users.
+      - `organizationPublic`: _Available only with [Flat for Education](https://flat.io/edu)._ The score is public in the organization: users of the same organization can access to this one. The score can be modified and administred by specified collaborators users.
+
+      The score can also be individually shared to a set of users or groups using the different collaborators API methods.
+
+      When a file is synchronized from an external source (e.g. Google Drive) and the sharing options are changed on the source, Flat will chose the best privacy mode for the file.
+
+      When using a [Flat for Education](https://flat.io/edu) account, some of the modes may not be available if disabled by an administrator of the organization (e.g. by default the `public` mode is not available).
+
+  ScoreLikesCounts:
+    type: object
+    description: |
+      A computed version of the weekly, monthly and total of number of likes
+      for a score
+    properties:
+      total:
+        description: The total number of likes of the score
+        type: number
+      weekly:
+        description: The number of new likes during the last week
+        type: number
+      monthly:
+        description: The number of new likes during the last month
+        type: number
+    example:
+      total: 42
+      weekly: 10
+      monthly: 30
+
+  ScoreCommentsCounts:
+    type: object
+    description: |
+      A computed version of the total, unique, weekly and monthly number of
+      comments added on the documents (this doesn't include inline comments).
+    properties:
+      total:
+        description: The total number of comments added on the score
+        type: number
+      unique:
+        description: The unique (1/user) number of comments added on the score
+        type: number
+      weekly:
+        description: The weekly unique number of comments added on the score
+        type: number
+      monthly:
+        description: The monthly unique number of comments added on the score
+        type: number
+    example:
+      total: 42
+      unique: 35
+      weekly: 10
+      monthly: 30
+
+  ScoreViewsCounts:
+    type: object
+    description: |
+      A computed version of the total, weekly, and monthly number of views of
+      the score
+    properties:
+      total:
+        description: The total number of views of the score
+        type: number
+      weekly:
+        description: The weekly number of views of the score
+        type: number
+      monthly:
+        description: The monthly number of views of the score
+        type: number
+    example:
+      total: 42
+      weekly: 10
+      monthly: 30
+
+  ScoreRevisionStatistics:
+    type: object
+    description: |
+      The statistics related to the score revision (additions and deletions)
+    properties:
+      additions:
+        description: The number of additions operations in the last revision
+        type: number
+      deletions:
+        description: The number of deletions operations in the last revision
+        type: number
+    example:
+      additions: 24
+      deletions: 5
+
+  ScoreData:
+    type: string
+    description: |
+      The data of the score file. It must be a MusicXML 3 file (`vnd.recordare.musicxml` or `vnd.recordare.musicxml+xml`), a MIDI file (`audio/midi`) or a Flat.json (aka Adagio.json) file.
+
+      Binary payloads (`vnd.recordare.musicxml` and `audio/midi`) can be encoded in Base64, in this case the `dataEncoding` property must match the encoding used for the API request.
+    example: <score-partwise version="3.0"></score-partwise>
+
+  ScoreDataEncoding:
+    type: string
+    description: The optional encoding of the score data. This property must match the encoding used for the `data` property.
+    enum: [base64]
+
+  ScoreSource:
+    type: object
+    properties:
+      googleDrive:
+        description: |
+          If the score is a file on Google Drive, this field property must contain its identifier. To use this method, the Drive file must be public or the Flat Drive App must have access to the file.
+        type: string
+    example:
+      googleDrive: 0B-0000000000000001
+
+  ScoreCreation:
+    type: object
+    description: A new created score
+    required:
+    - privacy
+    properties:
+      title:
+        type: string
+        description: |
+          The title of the new score.
+
+          If this title is not specified, the API will try to (in this order):
+            - Use the name of the file for files from a specified `source` (e.g. Google Drive)
+            - Use the title contained in the file (e.g. [`movement-title`](https://usermanuals.musicxml.com/MusicXML/Content/EL-MusicXML-movement-title.htm) or [`credit-words`](https://usermanuals.musicxml.com/MusicXML/Content/EL-MusicXML-credit-words.htm) for [MusicXML](http://www.musicxml.com/) files).
+            - Set a default title (e.g. "New Music Score")
+
+          If the title is already used, the API will append the creation date after the title. If the title is too long, the API may trim this one.
+      privacy:
+        $ref: '#/definitions/ScorePrivacy'
+      data:
+        $ref: '#/definitions/ScoreData'
+      dataEncoding:
+        $ref: '#/definitions/ScoreDataEncoding'
+      source:
+        $ref: '#/definitions/ScoreSource'
+      googleDriveFolder:
+        type: string
+        description: |
+          If the user uses Google Drive and this properties is specified, the file will be created in this directory. The currently user creating the file must be granted to write in this directory.
+    example:
+      title: My new score
+      privacy: private
+      data: <score-partwise version="3.0"></score-partwise>
+      googleDriveFolder: 0B-0000000000000000
+
+  ScoreFork:
+    type: object
+    description: Options to fork the score
+  ScoreModification:
+    type: object
+    description: Edit the score metadata
+    properties:
+      privacy:
+        $ref: '#/definitions/ScorePrivacy'
+      title:
+        type: string
+        description: A new title of the score
+    example:
+      title: Edited title
+      privacy: private
+
+  ScoreRevision:
+    type: object
+    description: A score revision metadata
+    properties:
+      user:
+        type: string
+        description: The user identifier who created the revision
+      collaborators:
+        type: array
+        items:
+          type: string
+          description: |
+            The list of user identifier or collaborators who worked on this
+            revision. This is list is built from the history of the revision
+            specified during the creation of the revision.
+      creationDate:
+        type: string
+        format: date-time
+        description: The date when this revision was created
+      description:
+        type: string
+        description: A description associated to the revision
+      autosave:
+        type: boolean
+        description: |
+          True if this revision was automatically generated by Flat and not on
+          purpose by the user.
+      statistics:
+        $ref: '#/definitions/ScoreRevisionStatistics'
+    example:
+      user: '000000000000000000000020'
+      collaborators: ['000000000000000000000010', '000000000000000000000020']
+      description: New revision
+      creationDate: '2017-01-26T20:29:10.622Z'
+      autosave: true
+
+  ScoreRevisionCreation:
+    type: object
+    description: A new created revision
+    required:
+    - data
+    properties:
+      data:
+        $ref: '#/definitions/ScoreData'
+      dataEncoding:
+        $ref: '#/definitions/ScoreDataEncoding'
+      autosave:
+        type: boolean
+        description: |
+          Must be set to `true` if the revision was created automatically.
+      description:
+        type: string
+        description: A description associated to the revision
+    example:
+      data: <score-partwise version="3.0"></score-partwise>
+      history:
+      - id: 000000000000000000000090
+        userId: '000000000000000000000010'
+        fnc: action.AddMeasure
+        args:
+          previousUuid: 888cb742-2110-a050-ba71-28300ba6d61f
+          measureUuid: 0be9f739-3213-f312-bb0a-00ad0c787ef7
+      autosave: true
+      description: New revision
+
+  ScoreCommentContext:
+    type: object
+    description: |
+      The context of the comment (for inline/contextualized comments). A context will include all the information related to the location of the comment (i.e. score parts, range of measure, time position).
+    required:
+    - partUuid
+    - staffIdx
+    - measureUuids
+    - startTimePos
+    - stopTimePos
+    - startDpq
+    - stopDpq
+    properties:
+      partUuid:
+        type: string
+        description: The unique identifier (UUID) of the score part
+      staffIdx:
+        type: number
+        description: The identififer of the staff
+      measureUuids:
+        type: array
+        items:
+          type: string
+        description: The list of measure UUIds
+      startTimePos:
+        type: number
+      stopTimePos:
+        type: number
+      startDpq:
+        type: number
+      stopDpq:
+        type: number
+    example:
+      partUuid: 91982db7-2e6d-285e-7a19-76b4bd005b8b
+      staffIdx: 0
+      measureUuids:
+      - e6a6a60b-8710-f819-9a49-e907b19c6f1f
+      - da83d93c-e3a6-3c73-1bbe-15e5131d6437
+      - 056ec5eb-9213-df56-6ae8-d9b99673dc48
+      startDpq: 1
+      stopDpq: 1
+      startTimePos: 2
+      stopTimePos: 3
+
+  ScoreCommentCreation:
+    type: object
+    description: Creation of a comment
+    required:
+    - revision
+    - comment
+    properties:
+      revision:
+        type: string
+        description: |
+          The unique indentifier of the revision of the score where the comment was added
+      comment:
+        type: string
+        description: |
+          The comment text that can includes mentions using the following format: `@[id:username]`.
+      rawComment:
+        type: string
+        description: |
+          A raw version of the comment, that can be displayed without the mentions. If you use mentions, this property must be set.
+      mentions:
+        description: The list of user identifiers mentioned in this comment
+        type: array
+        items:
+          type: string
+      replyTo:
+        type: string
+        description: |
+          When the comment is a reply to another comment, the unique identifier of the parent comment
+      context:
+        $ref: '#/definitions/ScoreCommentContext'
+    example:
+      revision: '000000000000000000000010'
+      comment: '@[000000000000000000000000:flat] Great work!'
+      rawComment: '@flat: Great work!'
+      mentions: ['000000000000000000000000']
+      replyTo: '000000000000000000000000'
+      context:
+        partUuid: 91982db7-2e6d-285e-7a19-76b4bd005b8b
+        staffIdx: 0
+        measureUuids:
+        - e6a6a60b-8710-f819-9a49-e907b19c6f1f
+        - da83d93c-e3a6-3c73-1bbe-15e5131d6437
+        - 056ec5eb-9213-df56-6ae8-d9b99673dc48
+        startDpq: 1
+        stopDpq: 1
+        startTimePos: 2
+        stopTimePos: 3
+
+  ScoreCommentUpdate:
+    type: object
+    description: Update of a comment
+    properties:
+      revision:
+        type: string
+        description: |
+          The unique indentifier of the revision of the score where the comment was added
+      comment:
+        type: string
+        minLength: 1
+        maxLength: 10000
+        description: |
+          The comment text that can includes mentions using the following format: `@[id:username]`.
+      rawComment:
+        type: string
+        minLength: 1
+        maxLength: 10000
+        description: |
+          A raw version of the comment, that can be displayed without the mentions. If you use mentions, this property must be set.
+      context:
+        $ref: '#/definitions/ScoreCommentContext'
+    example:
+      revision: '000000000000000000000011'
+      comment: '@[000000000000000000000000:flat] Great work!'
+      rawComment: '@flat: Great work!'
+      mentions: ['000000000000000000000000']
+      replyTo: '000000000000000000000000'
+      context:
+        partUuid: 91982db7-2e6d-285e-7a19-76b4bd005b8b
+        staffIdx: 0
+        measureUuids:
+        - e6a6a60b-8710-f819-9a49-e907b19c6f1f
+        - da83d93c-e3a6-3c73-1bbe-15e5131d6437
+        - 056ec5eb-9213-df56-6ae8-d9b99673dc48
+        startDpq: 1
+        stopDpq: 1
+        startTimePos: 2
+        stopTimePos: 3
+
+  ScoreComment:
+    type: object
+    description: Comment added on a sheet music
+    properties:
+      id:
+        type: string
+        description: The comment unique identifier
+      type:
+        type: string
+        description: The type of the comment
+        enum: [document, inline]
+      user:
+        type: string
+        description: The author unique identifier
+      score:
+        type: string
+        description: The unique identifier of the score where the comment was posted
+      revision:
+        type: string
+        description: The unique identifier of revision the comment was posted
+      replyTo:
+        type: string
+        description: |
+          When the comment is a reply to another comment, the unique identifier of the parent comment
+      date:
+        type: string
+        format: date-time
+        description: The date when the comment was posted
+      modificationDate:
+        type: string
+        format: date-time
+        description: The date of the last comment modification
+      comment:
+        type: string
+        description: |
+          The comment text that can includes mentions using the following
+          format: `@[id:username]`.
+      rawComment:
+        type: string
+        description: |
+          A raw version of the comment, that can be displayed without parsing
+          the mentions.
+      context:
+        $ref: '#/definitions/ScoreCommentContext'
+      mentions:
+        type: array
+        items:
+          type: string
+        description: The list of user identifier mentioned on the score
+      resolved:
+        type: boolean
+        description: |
+          For inline comments, the comment can be marked as resolved and will be hidden in the future responses
+      resolvedBy:
+        type: string
+        description: |
+          If the user is marked as resolved, this will contain the unique identifier of the User who marked this comment as resolved
+      spam:
+        type: boolean
+        description: |
+          `true  if the message has been detected as spam and hidden from other users
+    example:
+      id: '000000000000000000000010'
+      type: inline
+      user: '000000000000000000000001'
+      score: '000000000000000000000042'
+      revision: '000000000000000000000011'
+      replyTo: '000000000000000000000000'
+      date: '2017-01-26T20:29:10.622Z'
+      modificationDate: '2017-01-26T21:29:10.622Z'
+      comment: '@[000000000000000000000000:flat] Great work!'
+      rawComment: '@flat: Great work!'
+      context:
+        partUuid: 91982db7-2e6d-285e-7a19-76b4bd005b8b
+        staffIdx: 0
+        measureUuids:
+        - e6a6a60b-8710-f819-9a49-e907b19c6f1f
+        - da83d93c-e3a6-3c73-1bbe-15e5131d6437
+        - 056ec5eb-9213-df56-6ae8-d9b99673dc48
+        startDpq: 1
+        stopDpq: 1
+        startTimePos: 2
+        stopTimePos: 3
+      mentions: ['000000000000000000000000']
+      resolved: true
+      resolvedBy: '000000000000000000000000'
+      spam: false
+
+  FlatErrorResponse:
+    type: object
+    properties:
+      code:
+        description: A corresponding code for this error
+        type: string
+      message:
+        description: A printable message for this message
+        type: string
+      id:
+        description: An unique error identifier generated for the request
+        type: string
+      param:
+        description: The related parameter that caused the error
+        type: string
+    example:
+      code: CLIENT_ERROR
+      message: Invalid request
+      id: '123456789'
