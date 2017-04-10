@@ -1714,13 +1714,12 @@ definitions:
     type: object
     description: Creation of a comment
     required:
-    - revision
     - comment
     properties:
       revision:
         type: string
         description: |
-          The unique indentifier of the revision of the score where the comment was added
+          The unique indentifier of the revision of the score where the comment was added. If this property is unspecified or contains "last", the API will automatically take the last revision created.
       comment:
         type: string
         description: |
@@ -1765,7 +1764,7 @@ definitions:
       revision:
         type: string
         description: |
-          The unique indentifier of the revision of the score where the comment was added
+          The unique indentifier of the revision of the score where the comment was added. If this property is unspecified or contains "last", the API will automatically take the last revision created.
       comment:
         type: string
         minLength: 1
