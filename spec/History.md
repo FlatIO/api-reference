@@ -1,6 +1,7 @@
 2017-04-11
 ==========
 - feat(comments): Make "revision" optional when creating comments and support of "last" keyword
+- fix(revisions): Missing `id` property in `ScoreRevision`
 
 2017-04-10
 ==========

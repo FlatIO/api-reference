@@ -1605,6 +1605,9 @@ definitions:
     type: object
     description: A score revision metadata
     properties:
+      id:
+        type: string
+        description: The unique identifier of the revision.
       user:
         type: string
         description: The user identifier who created the revision
