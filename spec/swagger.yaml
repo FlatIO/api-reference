@@ -853,6 +853,9 @@ paths:
       responses:
         200:
           description: Revision metadata
+          schema:
+            type: string
+            format: binary
         402:
           description: Account overquota
           schema:
