@@ -1,6 +1,6 @@
 ## Flat API Specification
 
-The public API specification is available in `swagger.yml`.
+The public API specification is available in `swagger.yml`. You can find [a complete changelog on our API Documentation](https://flat.io/developers/docs/api/changelog.html).
 
 Some indications if you want to make some changes:
 - Before making large changes, please open an issue in this repository.
