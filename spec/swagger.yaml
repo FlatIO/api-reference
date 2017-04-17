@@ -242,6 +242,7 @@ paths:
       operationId: getScore
       parameters:
       - $ref: '#/parameters/score'
+      - $ref: '#/parameters/scoreSharingKey'
       responses:
         200:
           description: Score details
@@ -344,6 +345,7 @@ paths:
       operationId: forkScore
       parameters:
       - $ref: '#/parameters/score'
+      - $ref: '#/parameters/scoreSharingKey'
       - name: body
         in: body
         required: true
@@ -386,6 +388,7 @@ paths:
       operationId: getScoreCollaborators
       parameters:
       - $ref: '#/parameters/score'
+      - $ref: '#/parameters/scoreSharingKey'
       responses:
         200:
           description: List of collaborators
@@ -464,6 +467,7 @@ paths:
       parameters:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/scoreCollaborator'
+      - $ref: '#/parameters/scoreSharingKey'
       responses:
         200:
           description: Collaborator information
@@ -527,6 +531,7 @@ paths:
       operationId: postScoreComment
       parameters:
       - $ref: '#/parameters/score'
+      - $ref: '#/parameters/scoreSharingKey'
       - name: body
         in: body
         required: true
@@ -565,6 +570,7 @@ paths:
       operationId: getScoreComments
       parameters:
       - $ref: '#/parameters/score'
+      - $ref: '#/parameters/scoreSharingKey'
       responses:
         200:
           description: The comments of the score
@@ -600,6 +606,7 @@ paths:
       parameters:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/scoreComment'
+      - $ref: '#/parameters/scoreSharingKey'
       - name: body
         in: body
         required: true
@@ -637,6 +644,7 @@ paths:
       parameters:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/scoreComment'
+      - $ref: '#/parameters/scoreSharingKey'
       responses:
         204:
           description: The comment has been deleted
@@ -664,6 +672,7 @@ paths:
       parameters:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/scoreComment'
+      - $ref: '#/parameters/scoreSharingKey'
       responses:
         204:
           description: The comment has been marked as resolved
@@ -688,6 +697,7 @@ paths:
       parameters:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/scoreComment'
+      - $ref: '#/parameters/scoreSharingKey'
       responses:
         204:
           description: The comment has been unmarked as resolved
@@ -717,6 +727,7 @@ paths:
       operationId: getScoreRevisions
       parameters:
       - $ref: '#/parameters/score'
+      - $ref: '#/parameters/scoreSharingKey'
       responses:
         200:
           description: List of revisions
@@ -790,6 +801,7 @@ paths:
       parameters:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/scoreRevision'
+      - $ref: '#/parameters/scoreSharingKey'
       responses:
         200:
           description: Revision metadata
@@ -824,6 +836,7 @@ paths:
       parameters:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/scoreRevision'
+      - $ref: '#/parameters/scoreSharingKey'
       - name: format
         in: path
         description: The format of the file you will retrieve
@@ -993,6 +1006,12 @@ parameters:
       Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
     type: string
     required: true
+  scoreSharingKey:
+    name: sharingKey
+    in: query
+    type: string
+    description: |
+      This sharing key must be specified to access to a score with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
   scoreRevision:
     name: revision
     in: path
@@ -1208,6 +1227,9 @@ definitions:
     properties:
       id:
         description: The unique identifier of the score
+        type: string
+      sharingKey:
+        description: The private sharing key of the score (available when the `privacy` mode is set to `privateLink`)
         type: string
       title:
         description: The title of the score
@@ -1437,12 +1459,13 @@ definitions:
 
   ScorePrivacy:
     type: string
-    enum: [public, private, organizationPublic]
+    enum: [public, private, organizationPublic, privateLink]
     description: |
       The score main privacy mode.
 
       - `public`: The score is public on the Internet. This one can be accessible at the url `https://flat.io/score/{score}` and can be modified and administred by specified collaborators users.
       - `private`: The score is private and can be only accessed, modified and administred by specified collaborators users.
+      - `privateLink`: The score is private but can be accessed using a private link `htmlUrl` or the private key in the property `sharingKey`.
       - `organizationPublic`: _Available only with [Flat for Education](https://flat.io/edu)._ The score is public in the organization: users of the same organization can access to this one. The score can be modified and administred by specified collaborators users.
 
       The score can also be individually shared to a set of users or groups using the different collaborators API methods.
@@ -1600,6 +1623,10 @@ definitions:
       title:
         type: string
         description: A new title of the score
+      sharingKey:
+        type: string
+        pattern: ^[a-f0-9]{128}$
+        description: When using the `privacy` mode `privateLink`, this property can be used to set a custom sharing key, otherwise a new key will be generated.
     example:
       title: Edited title
       privacy: private
