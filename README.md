@@ -1,4 +1,6 @@
 # Flat OpenAPI Specification
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/FlatIO/api-reference.svg)](https://greenkeeper.io/)
 [![Build Status](https://travis-ci.org/FlatIO/api-reference.svg?branch=master)](https://travis-ci.org/FlatIO/api-reference)
 
 ## Links
