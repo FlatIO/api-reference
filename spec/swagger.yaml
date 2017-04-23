@@ -30,7 +30,6 @@ info:
     * [SDKs](https://flat.io/developers/docs/api/sdks.html)
     * [Rate Limits](https://flat.io/developers/docs/api/rate-limits.html)
     * [Changelog](https://flat.io/developers/docs/api/changelog.html)
-
   version: 2.0.0
   termsOfService: https://flat.io/legal
   contact:
@@ -38,7 +37,7 @@ info:
     url: https://flat.io/support
     email: developers@flat.io
   x-logo:
-    url: https://flat.io/img/logo-white.svg
+    url: https://flat.io/img/logo-flat.svg
 
 host: api.flat.io
 basePath: /v2
