@@ -1,0 +1,34 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.7.0
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:ms:20170412':
+    - gulp-connect > tiny-lr > debug > ms:
+        patched: '2017-05-24T02:33:09.073Z'
+    - gulp-connect > connect > connect-timeout > ms:
+        patched: '2017-05-24T02:33:09.073Z'
+    - gulp-connect > connect > express-session > debug > ms:
+        patched: '2017-05-24T02:33:09.073Z'
+    - gulp-connect > connect > finalhandler > debug > ms:
+        patched: '2017-05-24T02:33:09.073Z'
+    - gulp-connect > connect > morgan > debug > ms:
+        patched: '2017-05-24T02:33:09.073Z'
+    - gulp-connect > connect > serve-index > debug > ms:
+        patched: '2017-05-24T02:33:09.073Z'
+    - gulp-connect > tiny-lr > body-parser > debug > ms:
+        patched: '2017-05-24T02:33:09.073Z'
+    - gulp-connect > connect > debug > ms:
+        patched: '2017-05-24T02:33:09.073Z'
+    - gulp-connect > connect > body-parser > debug > ms:
+        patched: '2017-05-24T02:33:09.073Z'
+    - gulp-connect > connect > compression > debug > ms:
+        patched: '2017-05-24T02:33:09.073Z'
+    - gulp-connect > connect > connect-timeout > debug > ms:
+        patched: '2017-05-24T02:33:09.073Z'
+    - gulp-connect > connect > serve-static > send > debug > ms:
+        patched: '2017-05-24T02:33:09.073Z'
+    - gulp-connect > connect > serve-static > send > ms:
+        patched: '2017-05-24T02:33:09.073Z'
+    - gulp-connect > connect > serve-favicon > ms:
+        patched: '2017-05-24T02:33:09.073Z'
