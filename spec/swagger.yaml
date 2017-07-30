@@ -1947,6 +1947,11 @@ definitions:
         ownedPublicScoresCount:
           type: integer
           description: Number of public score the user have
+        profileTheme:
+          type: string
+          description: Theme (background) for the profile
+        instruments:
+          $ref: '#/definitions/UserInstruments'
     example:
       id: '000000000000000000000001'
       username: flat
@@ -1964,6 +1969,10 @@ definitions:
       followersCount: 4242
       followingCount: 0
       ownedPublicScoresCount: 10
+      profileTheme: blue-8
+      instruments:
+      - woodwinds.flute
+      - woodwinds.clarinet
 
   UserDetailsAdmin:
     description: User details (view for organization teacher / admin)
@@ -2020,6 +2029,20 @@ definitions:
         minLength: 6
       locale:
         $ref: '#/definitions/FlatLocales'
+  UserInstruments:
+    type: array
+    description: |
+      An array of the instrument identifiers that the user plays.
+      This is mainly used to display a list of the instruments in the Flat's UI or instruments icons.
+      The format of the strings is `{instrument-group}.{instrument-id}`.
+    items:
+      type: string
+      pattern: ^[a-z]+\.[a-z]+$
+    example:
+    - keyboards.grand-piano
+    - brass.trumpet
+    - strings.violin
+
   UserDetails:
     type: object
     description: User details
