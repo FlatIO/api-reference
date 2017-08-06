@@ -1946,7 +1946,7 @@ definitions:
           description: Number of people the user follow
         ownedPublicScoresCount:
           type: integer
-          description: Number of public score the user have
+          description: Number of public scores the user have
         profileTheme:
           type: string
           description: Theme (background) for the profile
