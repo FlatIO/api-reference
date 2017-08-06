@@ -2037,7 +2037,7 @@ definitions:
       The format of the strings is `{instrument-group}.{instrument-id}`.
     items:
       type: string
-      pattern: ^[a-z]+\.[a-z]+$
+      pattern: ^[a-z-]+\.[a-z-]+$
     example:
     - keyboards.grand-piano
     - brass.trumpet
