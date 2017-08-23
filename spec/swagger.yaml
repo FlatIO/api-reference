@@ -3196,7 +3196,7 @@ definitions:
     properties:
       type:
         type: string
-        enum: [flat, link]
+        enum: [flat, link, exercise]
         description: The type of the attachment posted
       score:
         type: string
@@ -3265,7 +3265,7 @@ definitions:
     properties:
       state:
         type: string
-        enum: [active, archived]
+        enum: [draft, active, archived]
         description: State of the assignment
       title:
         type: string
@@ -3535,7 +3535,7 @@ definitions:
     properties:
       type:
         type: string
-        enum: [rich, photo, video, link, flat]
+        enum: [rich, photo, video, link, flat, exercise]
         description: |
           The type of the assignment resolved:
           * `rich`, `photo`, `video` are attachment types that are automatically resolved from a `link` attachment.
@@ -3546,6 +3546,9 @@ definitions:
       revision:
         type: string
         description: An unique revision identifier of a score
+      correct:
+        type: boolean
+        description: If the attachment is an exercise question, this state will describe if it is correct or not.For exercise assignments only.
       sharingMode:
         $ref: '#/definitions/MediaScoreSharingMode'
       title:
