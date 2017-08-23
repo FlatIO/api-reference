@@ -984,6 +984,60 @@ paths:
           schema:
             $ref: '#/definitions/FlatErrorResponse'
 
+  /organizations/users/{user}:
+    put:
+      tags: [Organization]
+      summary: Update account information
+      operationId: updateOrganizationUser
+      security:
+      - OAuth2:
+        - edu.admin
+        - edu.admin.users
+      parameters:
+      - $ref: '#/parameters/organizationUser'
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/UserAdminUpdate'
+      responses:
+        200:
+          description: User updated
+          schema:
+            $ref: '#/definitions/UserDetailsAdmin'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+    delete:
+      tags: [Organization]
+      summary: Remove an account from Flat
+      description: |
+        This operation removes an account from Flat and its data, including:
+        * The music scores created by this user (documents, history, comments, collaboration information)
+        * Education related data (assignments and classroom information)
+      operationId: removeOrganizationUser
+      security:
+      - OAuth2:
+        - edu.admin
+        - edu.admin.users
+      parameters:
+      - $ref: '#/parameters/organizationUser'
+      - name: convertToIndividual
+        in: query
+        type: boolean
+        description: |
+          If `true`, the account will be only removed from the organization and converted into an individual account on our public website, https://flat.io.
+          This operation will remove the education-related data from the account.
+          Before realizing this operation, you need to be sure that the user is at least 13 years old and that this one has read and agreed to the Individual Terms of Services of Flat available on https://flat.io/legal.
+      responses:
+        204:
+          description: User deleted
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+
   /organizations/invitations:
     post:
       tags: [Organization]
@@ -1850,6 +1904,14 @@ parameters:
       Unique identifier of a Flat group
     type: string
     required: true
+  organizationUser:
+    name: user
+    in: path
+    description: |
+      Unique identifier of the Flat account
+    type: string
+    required: true
+
 definitions:
   FlatLocales:
     type: string
@@ -2038,6 +2100,18 @@ definitions:
         minLength: 6
       locale:
         $ref: '#/definitions/FlatLocales'
+
+  UserAdminUpdate:
+    type: object
+    description: User update as an organization admin
+    properties:
+      password:
+        description: Password of the new account
+        type: string
+        format: password
+        minLength: 6
+      organizationRole:
+        $ref: '#/definitions/OrganizationRoles'
   UserInstruments:
     type: array
     description: |
@@ -2526,6 +2600,7 @@ definitions:
     example:
       title: Edited title
       privacy: private
+
 
   ScoreRevision:
     type: object
