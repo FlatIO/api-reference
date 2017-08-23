@@ -1256,7 +1256,7 @@ paths:
         type: string
         default: active
         description: Filter the classes by state
-        enum: [active, archived]
+        enum: [active, inactive, archived]
       responses:
         200:
           description: The list of classes
@@ -1354,6 +1354,32 @@ paths:
       description: |
         Mark the class as `active`. When this course is synchronized with another app, like Google Classroom, this state will be automatically be updated.
       operationId: unarchiveClass
+      security:
+      - OAuth2:
+        - edu.classes
+      parameters:
+      - name: class
+        in: path
+        description: Unique identifier of the class
+        type: string
+        required: true
+      responses:
+        200:
+          description: The class details
+          schema:
+            $ref: '#/definitions/ClassDetails'
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/FlatErrorResponse'
+
+  /classes/{class}/activate:
+    post:
+      tags: [Class]
+      summary: Activate the class
+      operationId: activateClass
+      description: |
+        Mark the class as `active`. This is mainly used for classes synchronized from Clever that are initially with an `inactive` state and hidden in the UI.
       security:
       - OAuth2:
         - edu.classes
@@ -3492,6 +3518,7 @@ definitions:
     type: string
     enum:
     - active
+    - inactive
     - archived
 
   MediaScoreSharingMode:
