@@ -970,7 +970,8 @@ paths:
         type: string
         enum: [user, teacher, admin]
       - $ref: '#/parameters/limit'
-      - $ref: '#/parameters/offset'
+      - $ref: '#/parameters/next'
+      - $ref: '#/parameters/previous'
       responses:
         200:
           description: List of users
@@ -1028,7 +1029,8 @@ paths:
         type: string
         enum: [user, teacher, admin]
       - $ref: '#/parameters/limit'
-      - $ref: '#/parameters/offset'
+      - $ref: '#/parameters/next'
+      - $ref: '#/parameters/previous'
       responses:
         200:
           description: List of invitations
@@ -1785,14 +1787,21 @@ parameters:
     type: integer
     minimum: 1
     maximum: 1000
-    default: 100
-  offset:
-    name: offset
+    default: 50
+  next:
+    name: next
     in: query
-    description: This offsets the start of each page by the number specified
-    type: integer
-    minimum: 0
-    default: 0
+    description: |
+      An opaque string cursor to fetch the next page of data.
+      The paginated API URLs are returned in the `Link` header when requesting the API. These URLs will contain a `next` and `previous` cursor based on the available data.
+    type: string
+  previous:
+    name: previous
+    in: query
+    description: |
+      An opaque string cursor to fetch the previous page of data.
+      The paginated API URLs are returned in the `Link` header when requesting the API. These URLs will contain a `next` and `previous` cursor based on the available data.
+    type: string
   score:
     name: score
     in: path
