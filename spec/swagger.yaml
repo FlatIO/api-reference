@@ -2470,6 +2470,7 @@ definitions:
 
       When using a [Flat for Education](https://flat.io/edu) account, some of the modes may not be available if disabled by an administrator of the organization (e.g. by default the `public` mode is not available).
 
+
   ScoreLikesCounts:
     type: object
     description: |
@@ -3159,6 +3160,9 @@ definitions:
           id:
             type: string
             description: Unique identifier of the course on Canvas
+          domain:
+            type: string
+            description: Canvas instance domain (e.g. "canvas.instructure.com")
 
     example:
       id: '100000000000000000000001'
