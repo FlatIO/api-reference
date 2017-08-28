@@ -3163,6 +3163,36 @@ definitions:
           domain:
             type: string
             description: Canvas instance domain (e.g. "canvas.instructure.com")
+      clever:
+        type: object
+        description: Clever.com section-related information
+        properties:
+          id:
+            type: string
+            description: Clever section unique identifier
+          creationDate:
+            description: The creation date of the section on clever
+            type: string
+            format: date-time
+          modificationDate:
+            description: The last modification date of the section on clever
+            type: string
+            format: date-time
+          subject:
+            type: string
+            description: Normalized subject of the course
+            enum: [english/language arts, math, science, social studies, language, homeroom/advisory, interventions/online learning, technology and engineering, PE and health, arts and music, other]
+          termName:
+            type: string
+            description: Name of the term when this course happens
+          termStartDate:
+            type: string
+            format: date-time
+            description: Beginning date of the term
+          termEndDate:
+            type: string
+            format: date-time
+            description: End date of the term
 
     example:
       id: '100000000000000000000001'
