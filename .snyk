@@ -1,0 +1,30 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.7.1
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:debug:20170905':
+    - gulp-connect > tiny-lr > debug:
+        patched: '2017-09-27T02:33:06.359Z'
+    - gulp-connect > connect > debug:
+        patched: '2017-09-27T02:33:06.359Z'
+    - gulp-connect > connect > finalhandler > debug:
+        patched: '2017-09-27T02:33:06.359Z'
+    - gulp-connect > connect > morgan > debug:
+        patched: '2017-09-27T02:33:06.359Z'
+    - gulp-connect > connect > serve-index > debug:
+        patched: '2017-09-27T02:33:06.359Z'
+    - gulp-connect > tiny-lr > body-parser > debug:
+        patched: '2017-09-27T02:33:06.359Z'
+    - gulp-connect > connect > express-session > debug:
+        patched: '2017-09-27T02:33:06.359Z'
+    - gulp-connect > connect > body-parser > debug:
+        patched: '2017-09-27T02:33:06.359Z'
+    - gulp-connect > connect > compression > debug:
+        patched: '2017-09-27T02:33:06.359Z'
+    - gulp-connect > connect > connect-timeout > debug:
+        patched: '2017-09-27T02:33:06.359Z'
+    - gulp-connect > connect > serve-static > send > debug:
+        patched: '2017-09-27T02:33:06.359Z'
+    - gulp-connect > connect > method-override > debug:
+        patched: '2017-09-27T02:33:06.359Z'
