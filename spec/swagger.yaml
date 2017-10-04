@@ -30,7 +30,7 @@ info:
     * [SDKs](https://flat.io/developers/docs/api/sdks.html)
     * [Rate Limits](https://flat.io/developers/docs/api/rate-limits.html)
     * [Changelog](https://flat.io/developers/docs/api/changelog.html)
-  version: 2.3.0
+  version: 2.4.0
   termsOfService: https://flat.io/legal
   contact:
     name: Flat
@@ -1858,7 +1858,6 @@ paths:
           description: Error
           schema:
             $ref: '#/definitions/FlatErrorResponse'
-
 parameters:
   limit:
     name: limit
@@ -2126,7 +2125,6 @@ definitions:
         minLength: 6
       locale:
         $ref: '#/definitions/FlatLocales'
-
   UserAdminUpdate:
     type: object
     description: User update as an organization admin
@@ -2216,7 +2214,6 @@ definitions:
       readOnly: true
       organization: '0000000000000000000000042'
       creationDate: '2015-01-19T00:22:02.387Z'
-
   ScoreSummary:
     type: object
     description: A summary of the score details
@@ -2250,6 +2247,28 @@ definitions:
         picture: https://flat.io/img/logo_flat.svg
       htmlUrl: https://flat.io/score/000000000000000000000000
 
+  ScoreLicense:
+    description: |
+      License of the creation. Read more about the Creative Commons licenses on https://creativecommons.org/licenses/
+    type: string
+    enum:
+    - copyright
+    - cc0
+    - cc-by
+    - cc-by-sa
+    - cc-by-nd
+    - cc-by-nc
+    - cc-by-nc-sa
+    - cc-by-nc-nd
+
+  ScoreCreationType:
+    description: The type of creation (an orginal, an arrangement)
+    type: string
+    enum:
+    - original
+    - arrangement
+    - other
+
   ScoreDetails:
     type: object
     description: The score and all its details
@@ -2257,6 +2276,40 @@ definitions:
     - $ref: '#/definitions/ScoreSummary'
     - type: object
       properties:
+        subtitle:
+          description: Subtitle of the score
+          type: string
+        lyricist:
+          description: Lyricist of the score
+          type: string
+        composer:
+          description: Composer of the score
+          type: string
+        description:
+          description: Description of the creation
+          type: string
+        tags:
+          description: Tags describing the score
+          type: array
+          items:
+            type: string
+            pattern: ^[a-zA-Z0-9]{1,30}$
+        creationType:
+          $ref: '#/definitions/ScoreCreationType'
+        license:
+          $ref: '#/definitions/ScoreLicense'
+        licenseText:
+          description: Additional license text written on the exported/printed score
+          type: string
+        durationTime:
+          description: In seconds, an approximative duration of the score
+          type: integer
+        numberMeasures:
+          description: The number of measures in the score
+          type: integer
+        mainTempoQpm:
+          description: The main tempo of the score (in QPM)
+          type: integer
         rights:
           $ref: '#/definitions/ScoreRights'
         collaborators:
@@ -2270,6 +2323,10 @@ definitions:
           format: date-time
         modificationDate:
           description: The date of the last revision of the score
+          type: string
+          format: date-time
+        publicationDate:
+          description: The date when the score was published on Flat
           type: string
           format: date-time
         organization:
@@ -2299,7 +2356,15 @@ definitions:
     example:
       id: '000000000000000000000000'
       title: My score
+      subtitle: Subtitle of the score
+      lyricist: Lyricist
+      composer: Mr Awesome
+      creationType: original
       privacy: private
+      license: copyright
+      licenseText: Copyright 2017 Mr Awesome
+      durationTime: 70
+      numberMeasures: 35
       user:
         id: '000000000000000000000001'
         username: flat
@@ -2309,6 +2374,7 @@ definitions:
       htmlUrl: https://flat.io/score/000000000000000000000000
       creationDate: '2017-01-15T20:03:25.771Z'
       modificationDate: '2017-01-26T20:29:10.622Z'
+      publicationDate: '2017-09-10T12:00:00.123Z'
       instruments: [keyboards.grand-piano, woodwinds.oboe, woodwinds.clarinet]
       rights:
         aclRead: true
@@ -2617,13 +2683,23 @@ definitions:
     properties:
       privacy:
         $ref: '#/definitions/ScorePrivacy'
-      title:
-        type: string
-        description: A new title of the score
       sharingKey:
         type: string
         pattern: ^[a-f0-9]{128}$
         description: When using the `privacy` mode `privateLink`, this property can be used to set a custom sharing key, otherwise a new key will be generated.
+      description:
+        type: string
+        maxLength: 1000
+        description: Description of the creation
+      tags:
+        type: array
+        items:
+          type: string
+        description: Tags describing the score
+      creationType:
+        $ref: '#/definitions/ScoreCreationType'
+      license:
+        $ref: '#/definitions/ScoreLicense'
     example:
       title: Edited title
       privacy: private
@@ -3502,7 +3578,6 @@ definitions:
       id: CgsI-00000000000
       state: turned_in
       alternateLink: http://classroom.google.com/c/music-theory/a/first-assignment/submissions/student/my-submission
-
 
   GroupDetails:
     description: The details of a group
