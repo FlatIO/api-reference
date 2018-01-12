@@ -10,7 +10,7 @@
     "gulp-connect": "^5.0.0",
     "gulp-util": "^3.0.7",
     "portfinder": "^1.0.3",
-    "shelljs": "^0.7.0",
+    "shelljs": "^0.8.0",
     "swagger-repo": "^1.0.0"
   },
   "private": true,
