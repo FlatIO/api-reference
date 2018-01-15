@@ -30,7 +30,7 @@ info:
     * [SDKs](https://flat.io/developers/docs/api/sdks.html)
     * [Rate Limits](https://flat.io/developers/docs/api/rate-limits.html)
     * [Changelog](https://flat.io/developers/docs/api/changelog.html)
-  version: 2.5.0
+  version: 2.5.1
   termsOfService: https://flat.io/legal
   contact:
     name: Flat
@@ -2274,7 +2274,7 @@ definitions:
       username:
         description: Username of the new account
         type: string
-        pattern: ^[A-Za-z0-9-_.]+$
+        pattern: ^[A-Za-z0-9\-_.]+$
       email:
         description: Email of the new account
         type: string
