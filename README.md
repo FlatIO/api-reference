@@ -1,7 +1,6 @@
 # Flat OpenAPI Specification
 
 [![Greenkeeper badge](https://badges.greenkeeper.io/FlatIO/api-reference.svg)](https://greenkeeper.io/)
-[![Build Status](https://travis-ci.org/FlatIO/api-reference.svg?branch=master)](https://travis-ci.org/FlatIO/api-reference)
 
 ## Links
 
@@ -9,9 +8,6 @@
 - Look full spec:
     + JSON https://flat.io/developers/api/reference/swagger.json
     + YAML https://flat.io/developers/api/reference/swagger.yaml
-- Preview spec version for branch `[branch]`: https://flatio.github.io/api-reference/preview/[branch]
-
-**Warning:** All above links are updated only after Travis CI finishes deployment
 
 ## Working on specification
 ### Install
