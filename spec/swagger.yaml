@@ -30,7 +30,7 @@ info:
     * [SDKs](https://flat.io/developers/docs/api/sdks.html)
     * [Rate Limits](https://flat.io/developers/docs/api/rate-limits.html)
     * [Changelog](https://flat.io/developers/docs/api/changelog.html)
-  version: 2.5.1
+  version: 2.5.2
   termsOfService: https://flat.io/legal
   contact:
     name: Flat
@@ -2586,6 +2586,8 @@ definitions:
       aclRead:
         description: |
           `True` if the current user can read the current document
+        type: boolean
+        default: true
       aclWrite:
         description: |
           `True` if the current user can modify the current document
