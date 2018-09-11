@@ -13,7 +13,7 @@ info:
   description: |
     The Flat API allows you to easily extend the abilities of the [Flat Platform](https://flat.io), with a wide range of use cases including the following:
 
-    * Creating and importing new music scores using MusicXML or MIDI files
+    * Creating and importing new music scores using MusicXML, MIDI, Guitar Pro (GP3, GP4, GP5, GPX, GP), PowerTab, TuxGuitar and MuseScore files
     * Browsing, updating, copying, exporting the user's scores (for example in MP3, WAV or MIDI)
     * Managing educational resources with Flat for Education: creating & updating the organization accounts, the classes, rosters and assignments.
 
@@ -30,7 +30,7 @@ info:
     * [SDKs](https://flat.io/developers/docs/api/sdks.html)
     * [Rate Limits](https://flat.io/developers/docs/api/rate-limits.html)
     * [Changelog](https://flat.io/developers/docs/api/changelog.html)
-  version: 2.6.0
+  version: 2.7.0
   termsOfService: https://flat.io/legal
   contact:
     name: Flat
@@ -43,10 +43,6 @@ host: api.flat.io
 basePath: /v2
 schemes:
 - https
-consumes:
-- application/json
-produces:
-- application/json
 
 securityDefinitions:
   OAuth2:
@@ -59,6 +55,8 @@ securityDefinitions:
     scopes:
       account.public_profile: |
         Provides access to the basic person's public profile. Education profiles may be anonymized with this scope, you can request the scope `education_profile` to access to the a basic education account profile.
+      account.email: |
+        Provices access to the person's email.
       account.education_profile: |
         Provides access to the basic person's education profile and public organization information.
       scores.readonly: |
@@ -128,6 +126,8 @@ paths:
       description: |
         Get details about the current authenticated User.
       operationId: getAuthenticatedUser
+      produces:
+      - application/json
       responses:
         200:
           description: Current user details
@@ -147,7 +147,7 @@ paths:
       summary: Create a new score
       operationId: createScore
       description: |
-        Use this API method to **create a new music score in the current User account**. You will need a MusicXML 3 (`vnd.recordare.musicxml` or `vnd.recordare.musicxml+xml`) or a MIDI (`audio/midi`) file to create the new Flat document.
+        Use this API method to **create a new music score in the current User account**. You will need a MusicXML 3 (`vnd.recordare.musicxml` or `vnd.recordare.musicxml+xml`), a MIDI (`audio/midi`), Guitar Pro (GP3, GP4, GP5, GPX, GP), PowerTab, TuxGuitar, or MuseScore file to create the new Flat document.
 
         This API call will automatically create the first revision of the document, the score can be modified by the using our web application or by uploading a new revision of this file (`POST /v2/scores/{score}/revisions/{revision}`).
 
@@ -162,6 +162,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/ScoreCreation'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: Score created
@@ -195,6 +199,8 @@ paths:
       parameters:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/sharingKey'
+      produces:
+      - application/json
       responses:
         200:
           description: Score details
@@ -236,6 +242,10 @@ paths:
         in: body
         schema:
           $ref: '#/definitions/ScoreModification'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: Score details
@@ -273,6 +283,8 @@ paths:
       operationId: deleteScore
       parameters:
       - $ref: '#/parameters/score'
+      produces:
+      - application/json
       responses:
         204:
           description: The score has been removed
@@ -299,6 +311,10 @@ paths:
       operationId: untrashScore
       parameters:
       - $ref: '#/parameters/score'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         204:
           description: The score has been untrashed
@@ -328,6 +344,8 @@ paths:
       operationId: getScoreSubmissions
       parameters:
       - $ref: '#/parameters/score'
+      produces:
+      - application/json
       responses:
         200:
           description: List of submissions
@@ -360,6 +378,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/ScoreFork'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: Score details
@@ -398,6 +420,8 @@ paths:
       parameters:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/sharingKey'
+      produces:
+      - application/json
       responses:
         200:
           description: List of collaborators
@@ -441,6 +465,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/ResourceCollaboratorCreation'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: The newly added collaborator metadata
@@ -477,6 +505,8 @@ paths:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/resourceCollaborator'
       - $ref: '#/parameters/sharingKey'
+      produces:
+      - application/json
       responses:
         200:
           description: Collaborator information
@@ -510,6 +540,8 @@ paths:
       parameters:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/resourceCollaborator'
+      produces:
+      - application/json
       responses:
         204:
           description: The collaborator has been removed
@@ -544,6 +576,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/ScoreTrackCreation'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: Created track
@@ -572,6 +608,8 @@ paths:
       parameters:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/sharingKey'
+      produces:
+      - application/json
       responses:
         200:
           description: List of tracks
@@ -605,6 +643,8 @@ paths:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/scoreTrack'
       - $ref: '#/parameters/sharingKey'
+      produces:
+      - application/json
       responses:
         200:
           description: Track details
@@ -637,6 +677,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/ScoreTrackUpdate'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: Updated track
@@ -664,6 +708,8 @@ paths:
       parameters:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/scoreTrack'
+      produces:
+      - application/json
       responses:
         204:
           description: Track removed
@@ -701,6 +747,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/ScoreCommentCreation'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: The new comment
@@ -746,6 +796,8 @@ paths:
         enum: [date]
         description: Sort
       - $ref: '#/parameters/sortDirection'
+      produces:
+      - application/json
       responses:
         200:
           description: The comments of the score
@@ -787,6 +839,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/ScoreCommentUpdate'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: The edited comment
@@ -820,6 +876,8 @@ paths:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/scoreComment'
       - $ref: '#/parameters/sharingKey'
+      produces:
+      - application/json
       responses:
         204:
           description: The comment has been deleted
@@ -848,6 +906,10 @@ paths:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/scoreComment'
       - $ref: '#/parameters/sharingKey'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         204:
           description: The comment has been marked as resolved
@@ -873,6 +935,8 @@ paths:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/scoreComment'
       - $ref: '#/parameters/sharingKey'
+      produces:
+      - application/json
       responses:
         204:
           description: The comment has been unmarked as resolved
@@ -903,6 +967,8 @@ paths:
       parameters:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/sharingKey'
+      produces:
+      - application/json
       responses:
         200:
           description: List of revisions
@@ -942,6 +1008,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/ScoreRevisionCreation'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: The new created revision metadata
@@ -980,6 +1050,8 @@ paths:
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/scoreRevision'
       - $ref: '#/parameters/sharingKey'
+      produces:
+      - application/json
       responses:
         200:
           description: Revision metadata
@@ -1078,6 +1150,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/CollectionCreation'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: Collection created
@@ -1109,7 +1185,6 @@ paths:
       - name: parent
         in: query
         type: string
-        enum: [root, sharedWithMe, trash]
         default: root
         description: |
           List the collection contained in this `parent` collection.
@@ -1125,6 +1200,8 @@ paths:
       - $ref: '#/parameters/limitDefault25Max100'
       - $ref: '#/parameters/next'
       - $ref: '#/parameters/previous'
+      produces:
+      - application/json
       responses:
         200:
           description: List of collections
@@ -1149,6 +1226,8 @@ paths:
       parameters:
       - $ref: '#/parameters/collection'
       - $ref: '#/parameters/sharingKey'
+      produces:
+      - application/json
       responses:
         200:
           description: Collection details
@@ -1179,6 +1258,10 @@ paths:
         in: body
         schema:
           $ref: '#/definitions/CollectionModification'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: Collection details
@@ -1207,6 +1290,8 @@ paths:
       operationId: deleteCollection
       parameters:
       - $ref: '#/parameters/collection'
+      produces:
+      - application/json
       responses:
         204:
           description: Collection deleted
@@ -1235,6 +1320,10 @@ paths:
       operationId: untrashCollection
       parameters:
       - $ref: '#/parameters/collection'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         204:
           description: The score has been untrashed
@@ -1274,6 +1363,8 @@ paths:
       - $ref: '#/parameters/limitDefault25Max100'
       - $ref: '#/parameters/next'
       - $ref: '#/parameters/previous'
+      produces:
+      - application/json
       responses:
         200:
           description: List of scores
@@ -1302,6 +1393,10 @@ paths:
       - $ref: '#/parameters/collection'
       - $ref: '#/parameters/score'
       - $ref: '#/parameters/sharingKey'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: Score details
@@ -1332,6 +1427,8 @@ paths:
       parameters:
       - $ref: '#/parameters/collection'
       - $ref: '#/parameters/score'
+      produces:
+      - application/json
       responses:
         204:
           description: Score removed from the collection
@@ -1366,6 +1463,8 @@ paths:
           This route parameter is the unique identifier of the user. You can specify an email instead of an unique identifier. If you are executing this request authenticated, you can use `me` as a value instead of the current User unique identifier to work on the current authenticated user.
         type: string
         required: true
+      produces:
+      - application/json
       responses:
         200:
           description: The user public details
@@ -1389,6 +1488,8 @@ paths:
         in: query
         description: Return only the identifiers of the scores
         type: boolean
+      produces:
+      - application/json
       responses:
         200:
           description: List of liked scores
@@ -1421,6 +1522,8 @@ paths:
         in: query
         type: string
         description: Filter the score forked from the score id `parent`
+      produces:
+      - application/json
       responses:
         200:
           description: The user scores
@@ -1447,6 +1550,10 @@ paths:
         in: body
         schema:
           $ref: '#/definitions/UserCreation'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: New user created
@@ -1474,6 +1581,8 @@ paths:
       - $ref: '#/parameters/limit'
       - $ref: '#/parameters/next'
       - $ref: '#/parameters/previous'
+      produces:
+      - application/json
       responses:
         200:
           description: List of users
@@ -1502,6 +1611,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/UserAdminUpdate'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: User updated
@@ -1532,6 +1645,8 @@ paths:
           If `true`, the account will be only removed from the organization and converted into an individual account on our public website, https://flat.io.
           This operation will remove the education-related data from the account.
           Before realizing this operation, you need to be sure that the user is at least 13 years old and that this one has read and agreed to the Individual Terms of Services of Flat available on https://flat.io/legal.
+      produces:
+      - application/json
       responses:
         204:
           description: User deleted
@@ -1560,6 +1675,10 @@ paths:
         in: body
         schema:
           $ref: '#/definitions/OrganizationInvitationCreation'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: New invitation created
@@ -1587,6 +1706,8 @@ paths:
       - $ref: '#/parameters/limit'
       - $ref: '#/parameters/next'
       - $ref: '#/parameters/previous'
+      produces:
+      - application/json
       responses:
         200:
           description: List of invitations
@@ -1614,6 +1735,8 @@ paths:
         description: Unique identifier of the invitation
         type: string
         required: true
+      produces:
+      - application/json
       responses:
         204:
           description: The invitation has been removed
@@ -1639,6 +1762,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/LtiCredentialsCreation'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: The LTI Credentials
@@ -1661,6 +1788,8 @@ paths:
         - edu.admin
         - edu.admin.lti
         - edu.admin.lti.readonly
+      produces:
+      - application/json
       responses:
         200:
           description: The list of LTI Credentials
@@ -1693,6 +1822,8 @@ paths:
           Credentials unique identifier
         type: string
         required: true
+      produces:
+      - application/json
       responses:
         204:
           description: Credentials revoked
@@ -1731,6 +1862,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/ClassCreation'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: The new class details
@@ -1759,6 +1894,8 @@ paths:
         default: active
         description: Filter the classes by state
         enum: [active, inactive, archived]
+      produces:
+      - application/json
       responses:
         200:
           description: The list of classes
@@ -1786,6 +1923,8 @@ paths:
         description: Unique identifier of the class
         type: string
         required: true
+      produces:
+      - application/json
       responses:
         200:
           description: The new class details
@@ -1815,6 +1954,10 @@ paths:
         description: Details of the Class
         schema:
           $ref: '#/definitions/ClassUpdate'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: The new class details
@@ -1841,6 +1984,10 @@ paths:
         description: Unique identifier of the class
         type: string
         required: true
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: The class details
@@ -1865,6 +2012,8 @@ paths:
         description: Unique identifier of the class
         type: string
         required: true
+      produces:
+      - application/json
       responses:
         200:
           description: The class details
@@ -1891,6 +2040,10 @@ paths:
         description: Unique identifier of the class
         type: string
         required: true
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: The class details
@@ -1926,6 +2079,10 @@ paths:
         description: Unique identifier of the user
         type: string
         required: true
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         204:
           description: The user has been added to the class
@@ -1955,6 +2112,8 @@ paths:
         description: Unique identifier of the user
         type: string
         required: true
+      produces:
+      - application/json
       responses:
         204:
           description: The user has been removed from the class
@@ -1987,6 +2146,8 @@ paths:
         description: Unique identifier of the user
         type: string
         required: true
+      produces:
+      - application/json
       responses:
         200:
           description: The list of submissions
@@ -2022,6 +2183,10 @@ paths:
         in: body
         schema:
           $ref: '#/definitions/AssignmentCreation'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: The assignment has been created
@@ -2047,6 +2212,8 @@ paths:
         description: Unique identifier of the class
         type: string
         required: true
+      produces:
+      - application/json
       responses:
         200:
           description: List of assignments for the class
@@ -2090,6 +2257,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/AssignmentCopy'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: The new created assingment
@@ -2129,6 +2300,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/AssignmentSubmissionUpdate'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: The submission
@@ -2159,6 +2334,8 @@ paths:
         description: Unique identifier of the assignment
         type: string
         required: true
+      produces:
+      - application/json
       responses:
         200:
           description: The submissions
@@ -2204,6 +2381,10 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/AssignmentSubmissionUpdate'
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: The submission
@@ -2239,6 +2420,8 @@ paths:
         description: Unique identifier of the submission
         type: string
         required: true
+      produces:
+      - application/json
       responses:
         200:
           description: A submission
@@ -2268,6 +2451,10 @@ paths:
           The enrollment code, available to the teacher in `ClassDetails`
         type: string
         required: true
+      consumes:
+      - application/json
+      produces:
+      - application/json
       responses:
         200:
           description: The new class details
@@ -2293,6 +2480,8 @@ paths:
       operationId: getGroupDetails
       parameters:
       - $ref: '#/parameters/group'
+      produces:
+      - application/json
       responses:
         200:
           description: The group details
@@ -2318,6 +2507,8 @@ paths:
       operationId: listGroupUsers
       parameters:
       - $ref: '#/parameters/group'
+      produces:
+      - application/json
       responses:
         200:
           description: The list of users member of the group
@@ -2349,6 +2540,8 @@ paths:
         in: query
         type: string
         description: Filter the score forked from the score id `parent`
+      produces:
+      - application/json
       responses:
         200:
           description: The group's scores
@@ -2477,12 +2670,11 @@ parameters:
       Unique identifier of the Flat account
     type: string
     required: true
-
 definitions:
   FlatLocales:
     type: string
     description: The user language
-    enum: [en, es, fr, it, pl, ro, nl]
+    enum: [en, es, fr, de, it, ja, ko, nl, pl, pt, ro, ru, zh-Hans]
     default: en
   OrganizationRoles:
     type: string
@@ -2710,7 +2902,6 @@ definitions:
           description: Tell either this user profile is private or not (individual accounts only)
         locale:
           $ref: '#/definitions/FlatLocales'
-
   Group:
     type: object
     description: A group of users
@@ -2778,10 +2969,16 @@ definitions:
           If this is a right of a Collection, the capabilities of the associated user can be lower than this permission, check out the `capabilities` property as the end-user to have the complete possibilities with the collection.
         type: boolean
         default: false
+      isCollaborator:
+        description: |
+          `True` if the current user is a collaborator of the current document (direct or via group).
+        type: boolean
+        default: false
     example:
       aclRead: true
       aclWrite: true
       aclAdmin: true
+      isCollaborator: true
 
   ResourceCollaborator:
     description: |
@@ -2998,6 +3195,11 @@ definitions:
           $ref: '#/definitions/ScoreCommentsCounts'
         views:
           $ref: '#/definitions/ScoreViewsCounts'
+        collections:
+          description: The List of parent collections, which includes all the collections this score is included. Please note that you might not have access to all of them.
+          type: array
+          items:
+            type: string
     example:
       id: '000000000000000000000000'
       title: My score
@@ -3352,9 +3554,12 @@ definitions:
           The title of the new score. If the title is too long, the API may trim this one.
 
           If this title is not specified, the API will try to (in this order):
-            - Use the name of the file for files from a specified `source` (e.g. Google Drive)
             - Use the title contained in the file (e.g. [`movement-title`](https://usermanuals.musicxml.com/MusicXML/Content/EL-MusicXML-movement-title.htm) or [`credit-words`](https://usermanuals.musicxml.com/MusicXML/Content/EL-MusicXML-credit-words.htm) for [MusicXML](http://www.musicxml.com/) files).
+            - Use the name of the file for files from a specified `source` (e.g. Google Drive) or the one in the `filename` property
             - Set a default title (e.g. "New Music Score")
+      filename:
+        type: string
+        description: If this is an imported file, its filename
       privacy:
         $ref: '#/definitions/ScorePrivacy'
       data:
@@ -3443,6 +3648,10 @@ definitions:
       app:
         description: If this directory is dedicated to an app, the unique idenfier of this app
         type: string
+      creationDate:
+        description: The date when the collection was created
+        type: string
+        format: date-time
       user:
         $ref: '#/definitions/UserPublicSummary'
       rights:
@@ -3480,6 +3689,11 @@ definitions:
 
               If this collection has the `type` `trash`, this property will be set to `false`. Use `POST /v2/scores/{score}/untrash` to restore a score.
             type: boolean
+      collections:
+        description: The List of parent collections, which includes all the collections this score is included. Please note that you might not have access to all of them.
+        type: array
+        items:
+          type: string
 
   CollectionCreation:
     type: object
@@ -3588,7 +3802,7 @@ definitions:
       The context of the comment (for inline/contextualized comments). A context will include all the information related to the location of the comment (i.e. score parts, range of measure, time position).
     required:
     - partUuid
-    - staffIdx
+    # - staffUuid
     - measureUuids
     - startTimePos
     - stopTimePos
@@ -3600,7 +3814,10 @@ definitions:
         description: The unique identifier (UUID) of the score part
       staffIdx:
         type: number
-        description: The identififer of the staff
+        description: (Deprecated, use `staffUuid`) The identififer of the staff
+      staffUuid:
+        type: string
+        description: The unique identififer (UUID) of the staff
       measureUuids:
         type: array
         items:
@@ -3616,7 +3833,7 @@ definitions:
         type: number
     example:
       partUuid: 91982db7-2e6d-285e-7a19-76b4bd005b8b
-      staffIdx: 0
+      staffUuid: 9395d8f3-f42b-47b6-8c5d-6ba704961ec0
       measureUuids:
       - e6a6a60b-8710-f819-9a49-e907b19c6f1f
       - da83d93c-e3a6-3c73-1bbe-15e5131d6437
@@ -3663,7 +3880,7 @@ definitions:
       replyTo: '000000000000000000000000'
       context:
         partUuid: 91982db7-2e6d-285e-7a19-76b4bd005b8b
-        staffIdx: 0
+        staffUuid: 9395d8f3-f42b-47b6-8c5d-6ba704961ec0
         measureUuids:
         - e6a6a60b-8710-f819-9a49-e907b19c6f1f
         - da83d93c-e3a6-3c73-1bbe-15e5131d6437
@@ -3703,7 +3920,7 @@ definitions:
       replyTo: '000000000000000000000000'
       context:
         partUuid: 91982db7-2e6d-285e-7a19-76b4bd005b8b
-        staffIdx: 0
+        staffUuid: 9395d8f3-f42b-47b6-8c5d-6ba704961ec0
         measureUuids:
         - e6a6a60b-8710-f819-9a49-e907b19c6f1f
         - da83d93c-e3a6-3c73-1bbe-15e5131d6437
@@ -3787,7 +4004,7 @@ definitions:
       rawComment: '@flat: Great work!'
       context:
         partUuid: 91982db7-2e6d-285e-7a19-76b4bd005b8b
-        staffIdx: 0
+        staffUuid: 9395d8f3-f42b-47b6-8c5d-6ba704961ec0
         measureUuids:
         - e6a6a60b-8710-f819-9a49-e907b19c6f1f
         - da83d93c-e3a6-3c73-1bbe-15e5131d6437
@@ -3858,6 +4075,7 @@ definitions:
     - blackboard
     - desire2learn
     - sakai
+    - schoolbox
     - other
 
   LtiCredentialsCreation:
