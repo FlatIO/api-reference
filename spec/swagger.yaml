@@ -30,7 +30,7 @@ info:
     * [SDKs](https://flat.io/developers/docs/api/sdks.html)
     * [Rate Limits](https://flat.io/developers/docs/api/rate-limits.html)
     * [Changelog](https://flat.io/developers/docs/api/changelog.html)
-  version: 2.7.0
+  version: 2.8.0
   termsOfService: https://flat.io/legal
   contact:
     name: Flat
@@ -233,8 +233,8 @@ paths:
 
         To edit the file itself, create a new revision using the appropriate method (`POST /v2/scores/{score}/revisions/{revision}`).
 
-        When editing the `title` of the score, the API metadata are updated directly when calling this method, unlike the data itself.
-        The title in the score data will be "lazy" updated at the next score save with the editor or our internal save.
+        When editing the `title`, `subtitle`, `composer`, `lyricist` or `licenseText`, the metadatas will be instantly be updated, and a real-time action will be pushed to update the document lazily.
+        This pending document modification will be automatically be saved as a new version by either a connected client or our internal versioning service.
       operationId: editScore
       parameters:
       - $ref: '#/parameters/score'
@@ -2674,7 +2674,7 @@ definitions:
   FlatLocales:
     type: string
     description: The user language
-    enum: [en, es, fr, de, it, ja, ko, nl, pl, pt, ro, ru, zh-Hans]
+    enum: [en, es, fr, de, it, ja, ko, nl, pl, pt, ro, ru, tr, zh-Hans]
     default: en
   OrganizationRoles:
     type: string
@@ -2691,7 +2691,7 @@ definitions:
   LicenseSources:
     type: string
     description: Source of the license
-    enum: [order, trial, voucher, distributor, subscription]
+    enum: [order, trial, voucher, distributor, subscription, appStore]
     default: order
   UserBasics:
     type: object
@@ -2713,7 +2713,10 @@ definitions:
         description: User pictue
         type: string
       isPowerUser:
-        description: User license status. 'True' if user is an individual Power user
+        description: User license status. 'true' if user is an individual Power user
+        type: boolean
+      isFlatTeam:
+        description: Will be 'true' if user is part of the Flat Team
         type: boolean
     example:
       id: '000000000000000000000001'
@@ -2722,6 +2725,7 @@ definitions:
       printableName: Flat Team
       picture: https://flat.io/img/logo_flat.svg
       isPowerUser: true
+      isFlatTeam: true
 
   UserPublicSummary:
     description: Public User details summary
@@ -2780,7 +2784,13 @@ definitions:
           type: string
           description: Theme (background) for the profile
         instruments:
-          $ref: '#/definitions/UserInstruments'
+          type: array
+          items:
+            type: string
+          description: |
+            An array of the instrument identifiers that the user plays.
+            This is mainly used to display a list of the instruments in the Flat's UI or instruments icons.
+            The format of the strings is `{instrument-group}.{instrument-id}`.
     example:
       id: '000000000000000000000001'
       username: flat
@@ -2869,20 +2879,6 @@ definitions:
         minLength: 6
       organizationRole:
         $ref: '#/definitions/OrganizationRoles'
-  UserInstruments:
-    type: array
-    description: |
-      An array of the instrument identifiers that the user plays.
-      This is mainly used to display a list of the instruments in the Flat's UI or instruments icons.
-      The format of the strings is `{instrument-group}.{instrument-id}`.
-    items:
-      type: string
-      pattern: ^[a-z-]+\.[a-z-]+$
-    example:
-    - keyboards.grand-piano
-    - brass.trumpet
-    - strings.violin
-
   UserDetails:
     type: object
     description: User details
@@ -3050,11 +3046,6 @@ definitions:
       aclRead: true
       aclWrite: true
       aclAdmin: false
-
-  ResourceSharingKey:
-    type: string
-    pattern: ^[a-f0-9]{128}$
-    description: When using the `privacy` mode `privateLink`, this property can be used to set a custom sharing key, otherwise a new key will be generated.
 
   ScoreSummary:
     type: object
@@ -3519,19 +3510,6 @@ definitions:
       additions: 24
       deletions: 5
 
-  ScoreData:
-    type: string
-    description: |
-      The data of the score file. It must be a MusicXML 3 file (`vnd.recordare.musicxml` or `vnd.recordare.musicxml+xml`), a MIDI file (`audio/midi`) or a Flat.json (aka Adagio.json) file.
-
-      Binary payloads (`vnd.recordare.musicxml` and `audio/midi`) can be encoded in Base64, in this case the `dataEncoding` property must match the encoding used for the API request.
-    example: <score-partwise version="3.0"></score-partwise>
-
-  ScoreDataEncoding:
-    type: string
-    description: The optional encoding of the score data. This property must match the encoding used for the `data` property.
-    enum: [base64]
-
   ScoreSource:
     type: object
     properties:
@@ -3563,9 +3541,15 @@ definitions:
       privacy:
         $ref: '#/definitions/ScorePrivacy'
       data:
-        $ref: '#/definitions/ScoreData'
+        type: string
+        description: |
+          The data of the score file. It must be a MusicXML 3 file (`vnd.recordare.musicxml` or `vnd.recordare.musicxml+xml`), a MIDI file (`audio/midi`) or a Flat.json (aka Adagio.json) file.
+          Binary payloads (`vnd.recordare.musicxml` and `audio/midi`) can be encoded in Base64, in this case the `dataEncoding` property must match the encoding used for the API request.
+        example: <score-partwise version="3.0"></score-partwise>
       dataEncoding:
-        $ref: '#/definitions/ScoreDataEncoding'
+        type: string
+        description: The optional encoding of the score data. This property must match the encoding used for the `data` property.
+        enum: [base64]
       source:
         $ref: '#/definitions/ScoreSource'
       collection:
@@ -3599,13 +3583,24 @@ definitions:
       title:
         type: string
         description: The title of the score
+      subtitle:
+        type: string
+        description: The subtitle of the score
+      composer:
+        type: string
+        description: The composer of the score
+      lyricist:
+        type: string
+        description: The lyricist of the score
       privacy:
         $ref: '#/definitions/ScorePrivacy'
       sharingKey:
-        $ref: '#/definitions/ResourceSharingKey'
+        type: string
+        pattern: ^[a-f0-9]{128}$
+        description: When using the `privacy` mode `privateLink`, this property can be used to set a custom sharing key, otherwise a new key will be generated.
       description:
         type: string
-        maxLength: 1000
+        maxLength: 2000
         description: Description of the creation
       tags:
         type: array
@@ -3616,14 +3611,11 @@ definitions:
         $ref: '#/definitions/ScoreCreationType'
       license:
         $ref: '#/definitions/ScoreLicense'
+      licenseText:
+        type: string
+        description: The rights info written on the score
     example:
       privacy: private
-
-  CollectionTitle:
-    description: The title of the collection
-    type: string
-    minLength: 1
-    maxLength: 300
 
   Collection:
     type: object
@@ -3633,7 +3625,8 @@ definitions:
         type: string
         description: Unique identifier of the collection
       title:
-        $ref: '#/definitions/CollectionTitle'
+        description: The title of the collection
+        type: string
       htmlUrl:
         description: The url where the collection can be viewed in a web browser
         type: string
@@ -3702,7 +3695,10 @@ definitions:
     - privacy
     properties:
       title:
-        $ref: '#/definitions/CollectionTitle'
+        description: The title of the collection
+        type: string
+        minLength: 1
+        maxLength: 300
     example:
       title: Jazz scores
       privacy: private
@@ -3726,7 +3722,10 @@ definitions:
     description: Edit the collection metadata
     properties:
       title:
-        $ref: '#/definitions/CollectionTitle'
+        description: The title of the collection
+        type: string
+        minLength: 1
+        maxLength: 300
 
   ScoreRevision:
     type: object
@@ -3750,6 +3749,9 @@ definitions:
         type: string
         format: date-time
         description: The date when this revision was created
+      event:
+        type: string
+        description: The last event (action id) of the revision
       description:
         type: string
         description: A description associated to the revision
@@ -3774,9 +3776,15 @@ definitions:
     - data
     properties:
       data:
-        $ref: '#/definitions/ScoreData'
+        type: string
+        description: |
+          The data of the score file. It must be a MusicXML 3 file (`vnd.recordare.musicxml` or `vnd.recordare.musicxml+xml`), a MIDI file (`audio/midi`) or a Flat.json (aka Adagio.json) file.
+          Binary payloads (`vnd.recordare.musicxml` and `audio/midi`) can be encoded in Base64, in this case the `dataEncoding` property must match the encoding used for the API request.
+        example: <score-partwise version="3.0"></score-partwise>
       dataEncoding:
-        $ref: '#/definitions/ScoreDataEncoding'
+        type: string
+        description: The optional encoding of the score data. This property must match the encoding used for the `data` property.
+        enum: [base64]
       autosave:
         type: boolean
         description: |
@@ -4017,7 +4025,6 @@ definitions:
       resolved: true
       resolvedBy: '000000000000000000000000'
       spam: false
-
 
   OrganizationInvitationCreation:
     type: object
@@ -4519,6 +4526,10 @@ definitions:
       id:
         type: string
         description: Unique identifier of the submission
+      state:
+        type: string
+        description: State of the submission
+        enum: [created, turnedIn, returned]
       classroom:
         type: string
         description: |
