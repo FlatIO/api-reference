@@ -1,7 +1,5 @@
 # Flat OpenAPI Specification
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/FlatIO/api-reference.svg)](https://greenkeeper.io/)
-
 ## Links
 
 - Documentation(ReDoc): https://flat.io/developers/api/reference/
