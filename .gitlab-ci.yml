@@ -1,0 +1,10 @@
+pages:
+  script:
+    - npm install -d
+    - npm run build
+    - mv web_deploy public
+  artifacts:
+    paths:
+      - public
+  only:
+    - master

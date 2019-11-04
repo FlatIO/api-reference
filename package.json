@@ -1,6 +1,6 @@
 {
   "name": "@flat/api-reference",
-  "version": "2.7.0",
+  "version": "2.9.0",
   "dependencies": {
     "bower": "^1.7.7",
     "connect": "^3.4.1",
