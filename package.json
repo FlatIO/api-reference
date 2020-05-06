@@ -10,13 +10,17 @@
     "gulp-util": "^3.0.7",
     "portfinder": "^1.0.3",
     "shelljs": "^0.8.0",
-    "swagger-repo": "^1.0.0"
+    "swagger-repo": "^1.0.0",
+    "snyk": "^1.319.0"
   },
   "private": true,
   "scripts": {
     "build": "node ./scripts/build.js",
     "swagger": "swagger-repo",
     "test": "swagger-repo validate",
-    "start": "gulp serve"
-  }
+    "start": "gulp serve",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
+  },
+  "snyk": true
 }
