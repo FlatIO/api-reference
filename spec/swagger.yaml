@@ -3171,6 +3171,7 @@ paths:
       security:
       - OAuth2:
         - edu.classes
+        - edu.assignments
     delete:
       tags:
       - Class
@@ -3207,6 +3208,7 @@ paths:
       security:
       - OAuth2:
         - edu.classes
+        - edu.assignments
   /classes/{class}/assignments/{assignment}/submissions:
     get:
       tags:
