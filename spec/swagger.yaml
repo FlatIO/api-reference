@@ -33,7 +33,7 @@ info:
     name: Flat
     url: https://flat.io/developers/docs/api/
     email: developers@flat.io
-  version: 2.9.0
+  version: 2.10.0
   x-logo:
     url: https://flat.io/img/logo-flat.svg
 servers:
@@ -401,6 +401,7 @@ paths:
     post:
       tags:
       - Score
+      - Class
       summary: Fork a score
       description: |
         This API call will make a copy of the last revision of the specified score and create a new score. The copy of the score will have a privacy set to `private`.
@@ -1311,6 +1312,7 @@ paths:
       - OAuth2:
         - scores.social
         - scores
+
   /scores/{score}/revisions:
     get:
       tags:
@@ -2240,15 +2242,33 @@ paths:
       summary: List the organization users
       operationId: listOrganizationUsers
       parameters:
-      - name: role
+      - name: sort
         in: query
-        description: Filter users by role
+        description: The order to sort the user list
         schema:
           type: string
-          enum:
-          - user
-          - teacher
-          - admin
+          items:
+            type: string
+            enum:
+            - firstname
+            - lastname
+            - lastActivityDate
+            - licenseExpirationDate
+      - $ref: '#/components/parameters/sortDirection'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/next'
+      - $ref: '#/components/parameters/previous'
+      - $ref: '#/components/parameters/role'
+      - $ref: '#/components/parameters/searchInputQuery'
+      - $ref: '#/components/parameters/groupIds'
+      - $ref: '#/components/parameters/noActiveLicense'
+      - name: licenseExpirationDate
+        in: query
+        description: Filter users by license expiration date
+        schema:
+          type: array
+          items:
+            type: string
       - name: limit
         in: query
         description: This is the maximum number of objects that may be returned
@@ -2256,21 +2276,7 @@ paths:
           maximum: 1000
           minimum: 1
           type: integer
-          default: 50
-      - name: next
-        in: query
-        description: |
-          An opaque string cursor to fetch the next page of data.
-          The paginated API URLs are returned in the `Link` header when requesting the API. These URLs will contain a `next` and `previous` cursor based on the available data.
-        schema:
-          type: string
-      - name: previous
-        in: query
-        description: |
-          An opaque string cursor to fetch the previous page of data.
-          The paginated API URLs are returned in the `Link` header when requesting the API. These URLs will contain a `next` and `previous` cursor based on the available data.
-        schema:
-          type: string
+          default: 25
       responses:
         200:
           description: List of users
@@ -2320,6 +2326,37 @@ paths:
         - edu.admin
         - edu.admin.users
       x-codegen-request-body-name: body
+  /organizations/users/count:
+    get:
+      tags:
+      - Organization
+      summary: Count the organization users using the provided filters
+      operationId: countOrgaUsers
+      parameters:
+      - $ref: '#/components/parameters/role'
+      - $ref: '#/components/parameters/searchInputQuery'
+      - $ref: '#/components/parameters/groupIds'
+      - $ref: '#/components/parameters/noActiveLicense'
+      responses:
+        200:
+          description: Number of users
+          content:
+            application/json:
+              schema:
+                type: integer
+                items:
+                  $ref: '#/components/schemas/UserDetailsAdmin'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.admin
+        - edu.admin.users
+        - edu.admin.users.readonly
   /organizations/users/{user}:
     put:
       tags:
@@ -2670,7 +2707,7 @@ paths:
 
         If the classsroom is synchronized with another application like Google Classroom, some of the meta information will automatically be updated.
 
-        You can add users to this class using `POST /classes/{class}/users/{user}`, they will automatically added to the group based on their role on Flat. Users can also enroll themselves to this class using `POST /classes/enroll/{enrollmentCode}` and the `enrollmentCode` returned in the `ClassDetails` response.
+        You can add users to this class using `PUT /classes/{class}/users/{user}`, they will automatically added to the group based on their role on Flat. Users can also enroll themselves to this class using `POST /classes/enroll/{enrollmentCode}` and the `enrollmentCode` returned in the `ClassDetails` response.
       operationId: createClass
       requestBody:
         content:
@@ -3097,6 +3134,79 @@ paths:
         - edu.classes
         - edu.assignments
       x-codegen-request-body-name: body
+  /classes/{class}/assignments/{assignment}/archive:
+    post:
+      tags:
+      - Class
+      summary: Archive the assignment
+      description: |
+        Archive the assignment
+      operationId: archiveAssignment
+      parameters:
+      - name: class
+        in: path
+        description: Unique identifier of the class
+        required: true
+        schema:
+          type: string
+      - name: assignment
+        in: path
+        description: Unique identifier of the assignment
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: The assignment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assignment'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.classes
+    delete:
+      tags:
+      - Class
+      summary: Unarchive the assignment.
+      description: |
+        Mark the assignment as `active`.
+      operationId: unarchiveAssignment
+      parameters:
+      - name: class
+        in: path
+        description: Unique identifier of the class
+        required: true
+        schema:
+          type: string
+      - name: assignment
+        in: path
+        description: Unique identifier of the assignment
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: The assignment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assignment'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.classes
   /classes/{class}/assignments/{assignment}/submissions:
     get:
       tags:
@@ -3360,6 +3470,13 @@ paths:
         required: true
         schema:
           type: string
+      - name: source
+        in: query
+        description: |
+          Filter the users by their source
+        schema:
+          type: string
+          enum: [googleClassroom, microsoftGraph, clever]
       responses:
         200:
           description: The list of users member of the group
@@ -3596,8 +3713,7 @@ components:
           instruments:
             type: array
             description: |
-              An array of the instrument identifiers that the user plays.
-              This is mainly used to display a list of the instruments in the Flat's UI or instruments icons.
+              An array of the instrument identifiers used the different score parts.
               The format of the strings is `{instrument-group}.{instrument-id}`.
             items:
               type: string
@@ -3640,15 +3756,26 @@ components:
       type: object
       properties:
         username:
+          maxLength: 30
+          minLength: 1
           pattern: ^[A-Za-z0-9\-_.]+$
           type: string
           description: Username of the new account
+        firstname:
+          maxLength: 60
+          type: string
+          description: First name of the user
+        lastname:
+          maxLength: 60
+          type: string
+          description: Last name of the user
         email:
           type: string
           description: Email of the new account
           format: email
         password:
           minLength: 6
+          maxLength: 1000
           type: string
           description: Password of the new account
           format: password
@@ -3660,6 +3787,7 @@ components:
       properties:
         password:
           minLength: 6
+          maxLength: 1000
           type: string
           description: Password of the new account
           format: password
@@ -3954,6 +4082,13 @@ components:
             type: array
             description: |
               An array of the instrument identifiers used in the last version of the score. This is mainly used to display a list of the instruments in the Flat's UI or instruments icons. The format of the strings is `{instrument-group}.{instrument-id}`.
+            items:
+              type: string
+          samples:
+            type: array
+            description: |
+              An array of the audio samples identifiers used the different score parts.
+              The format of the strings is `{instrument-group}.{sample-id}`.
             items:
               type: string
           googleDriveFileId:
@@ -4308,6 +4443,7 @@ components:
       properties:
         collection:
           type: string
+          default: root
           description: |
             Unique identifier of a collection where the score will be copied.
             If no collection identifier is provided, the score will be stored in the `root` directory.
@@ -4778,8 +4914,6 @@ components:
           description: The email address you want to send the invitation to
         organizationRole:
           $ref: '#/components/schemas/OrganizationRoles'
-        role:
-          $ref: '#/components/schemas/OrganizationRoles'
       description: The parameters to create an organization invitation
       example:
         email: edu@flat.io
@@ -5164,6 +5298,13 @@ components:
           - draft
           - active
           - archived
+        type:
+          type: string
+          description: Type of the assignment, determined by the attachments
+          enum:
+          - newScore
+          - scoreTemplate
+          - sharedWriting
         title:
           type: string
           description: Title of the assignment
@@ -5669,3 +5810,35 @@ components:
       required: true
       schema:
         type: string
+    role:
+      name: role
+      in: query
+      description: Filter users by role
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+          - user
+          - teacher
+          - admin
+    searchInputQuery:
+      name: q
+      in: query
+      description: The query to search
+      schema:
+        type: string
+    groupIds:
+      name: group
+      in: query
+      description: Filter users by group
+      schema:
+        type: array
+        items:
+          type: string
+    noActiveLicense:
+      name: noActiveLicense
+      in: query
+      description: Filter users who don't have an active license
+      schema:
+        type: boolean
