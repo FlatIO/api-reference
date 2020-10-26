@@ -33,7 +33,7 @@ info:
     name: Flat
     url: https://flat.io/developers/docs/api/
     email: developers@flat.io
-  version: 2.10.0
+  version: 2.11.0
   x-logo:
     url: https://flat.io/img/logo-flat.svg
 servers:
@@ -1528,8 +1528,8 @@ paths:
       - name: parts
         in: query
         description: |
-          An optional a set of parts to be exported. This parameter must be
-          specified with a list of integers. For example "1,2,5".
+          An optional a set of parts uuid to be exported. This parameter must be composed of parts uuids
+          separated by commas. For example "59df645f-bb1c-f1b4-b573-d2afc4491f94,34ef645f-1aef-f3bc-1564-34cca4492b87".
         schema:
           type: string
       - name: format
@@ -2264,11 +2264,16 @@ paths:
       - $ref: '#/components/parameters/noActiveLicense'
       - name: licenseExpirationDate
         in: query
-        description: Filter users by license expiration date
+        description: Filter users by license expiration date or `active` / `notActive`
         schema:
           type: array
           items:
             type: string
+      - name: onlyIds
+        in: query
+        description: Return only user ids
+        schema:
+          type: boolean
       - name: limit
         in: query
         description: This is the maximum number of objects that may be returned
@@ -2745,12 +2750,7 @@ paths:
       summary: Get the details of a single class
       operationId: getClass
       parameters:
-      - name: class
-        in: path
-        description: Unique identifier of the class
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/class'
       responses:
         200:
           description: The new class details
@@ -2776,12 +2776,7 @@ paths:
         Update the meta information of the class
       operationId: updateClass
       parameters:
-      - name: class
-        in: path
-        description: Unique identifier of the class
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/class'
       requestBody:
         description: Details of the Class
         content:
@@ -2815,12 +2810,7 @@ paths:
         Mark the class as `archived`. When this course is synchronized with another app, like Google Classroom, this state will be automatically be updated.
       operationId: archiveClass
       parameters:
-      - name: class
-        in: path
-        description: Unique identifier of the class
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/class'
       responses:
         200:
           description: The class details
@@ -2845,12 +2835,7 @@ paths:
         Mark the class as `active`. When this course is synchronized with another app, like Google Classroom, this state will be automatically be updated.
       operationId: unarchiveClass
       parameters:
-      - name: class
-        in: path
-        description: Unique identifier of the class
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/class'
       responses:
         200:
           description: The class details
@@ -2876,12 +2861,7 @@ paths:
         Mark the class as `active`. This is mainly used for classes synchronized from Clever that are initially with an `inactive` state and hidden in the UI.
       operationId: activateClass
       parameters:
-      - name: class
-        in: path
-        description: Unique identifier of the class
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/class'
       responses:
         200:
           description: The class details
@@ -2911,12 +2891,7 @@ paths:
         When enrolling a user in the class, Flat will automatically add this user to the corresponding Class group, based on this role in the Organization.
       operationId: addClassUser
       parameters:
-      - name: class
-        in: path
-        description: Unique identifier of the class
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/class'
       - name: user
         in: path
         description: Unique identifier of the user
@@ -2945,12 +2920,7 @@ paths:
         Warning: Removing a user from the class will remove the associated resources, including the submissions and feedback related to these submissions.
       operationId: deleteClassUser
       parameters:
-      - name: class
-        in: path
-        description: Unique identifier of the class
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/class'
       - name: user
         in: path
         description: Unique identifier of the user
@@ -2978,12 +2948,7 @@ paths:
         Use this method as a teacher to list all the assignment submissions sent by a student of the class
       operationId: listClassStudentSubmissions
       parameters:
-      - name: class
-        in: path
-        description: Unique identifier of the class
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/class'
       - name: user
         in: path
         description: Unique identifier of the user
@@ -3018,12 +2983,7 @@ paths:
       summary: Assignments listing
       operationId: listAssignments
       parameters:
-      - name: class
-        in: path
-        description: Unique identifier of the class
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/class'
       responses:
         200:
           description: List of assignments for the class
@@ -3055,12 +3015,7 @@ paths:
         If the class is synchronized with Google Classroom, the assignment will be automatically posted to your Classroom course.
       operationId: createAssignment
       parameters:
-      - name: class
-        in: path
-        description: Unique identifier of the class
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/class'
       requestBody:
         content:
           application/json:
@@ -3098,18 +3053,8 @@ paths:
         If the new class is synchronized with an external app (e.g. Google Classroom), the copied assignment will also be posted on the external app.
       operationId: copyAssignment
       parameters:
-      - name: class
-        in: path
-        description: Unique identifier of the class
-        required: true
-        schema:
-          type: string
-      - name: assignment
-        in: path
-        description: Unique identifier of the assignment
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/class'
+      - $ref: '#/components/parameters/assignment'
       requestBody:
         content:
           application/json:
@@ -3143,18 +3088,8 @@ paths:
         Archive the assignment
       operationId: archiveAssignment
       parameters:
-      - name: class
-        in: path
-        description: Unique identifier of the class
-        required: true
-        schema:
-          type: string
-      - name: assignment
-        in: path
-        description: Unique identifier of the assignment
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/class'
+      - $ref: '#/components/parameters/assignment'
       responses:
         200:
           description: The assignment details
@@ -3180,18 +3115,8 @@ paths:
         Mark the assignment as `active`.
       operationId: unarchiveAssignment
       parameters:
-      - name: class
-        in: path
-        description: Unique identifier of the class
-        required: true
-        schema:
-          type: string
-      - name: assignment
-        in: path
-        description: Unique identifier of the assignment
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/class'
+      - $ref: '#/components/parameters/assignment'
       responses:
         200:
           description: The assignment details
@@ -3216,18 +3141,8 @@ paths:
       summary: List the students' submissions
       operationId: getSubmissions
       parameters:
-      - name: class
-        in: path
-        description: Unique identifier of the class
-        required: true
-        schema:
-          type: string
-      - name: assignment
-        in: path
-        description: Unique identifier of the assignment
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/class'
+      - $ref: '#/components/parameters/assignment'
       responses:
         200:
           description: The submissions
@@ -3254,23 +3169,13 @@ paths:
       - Class
       summary: Create or edit a submission
       description: |
-        Use this method as a student to create, update and submit a submission related to an assignment. Students can only set `attachments`, `studentComment` and `submit`.
-
+        Use this method as a student to create, update and submit a submission related to an assignment.
+        Students can only set `attachments` and `submit`.
         Teachers can use `PUT /classes/{class}/assignments/{assignment}/submissions/{submission}` to update a submission by id.
       operationId: createSubmission
       parameters:
-      - name: class
-        in: path
-        description: Unique identifier of the class
-        required: true
-        schema:
-          type: string
-      - name: assignment
-        in: path
-        description: Unique identifier of the assignment
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/class'
+      - $ref: '#/components/parameters/assignment'
       requestBody:
         content:
           application/json:
@@ -3302,24 +3207,9 @@ paths:
       summary: Get a student submission
       operationId: getSubmission
       parameters:
-      - name: class
-        in: path
-        description: Unique identifier of the class
-        required: true
-        schema:
-          type: string
-      - name: assignment
-        in: path
-        description: Unique identifier of the assignment
-        required: true
-        schema:
-          type: string
-      - name: submission
-        in: path
-        description: Unique identifier of the submission
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/class'
+      - $ref: '#/components/parameters/assignment'
+      - $ref: '#/components/parameters/submission'
       responses:
         200:
           description: A submission
@@ -3345,27 +3235,12 @@ paths:
       summary: Edit a submission
       description: |
         Use this method as a teacher to update the different submission and give feedback.
-        Teachers can only set `returnFeedback`
+        Teachers can only set `return`, `draftGrade` and `grade`
       operationId: editSubmission
       parameters:
-      - name: class
-        in: path
-        description: Unique identifier of the class
-        required: true
-        schema:
-          type: string
-      - name: assignment
-        in: path
-        description: Unique identifier of the assignment
-        required: true
-        schema:
-          type: string
-      - name: submission
-        in: path
-        description: Unique identifier of the submission
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/class'
+      - $ref: '#/components/parameters/assignment'
+      - $ref: '#/components/parameters/submission'
       requestBody:
         content:
           application/json:
@@ -3390,6 +3265,200 @@ paths:
         - edu.classes
         - edu.assignments
       x-codegen-request-body-name: body
+  /classes/{class}/assignments/{assignment}/submissions/{submission}/history:
+    get:
+      tags:
+      - Class
+      operationId: getSubmissionHistory
+      summary: Get the history of the submission
+      description: |
+        For teachers only. Returns a detailed history of the submission. This currently includes state and grade histories.
+      security:
+      - OAuth2:
+        - edu.assignments
+        - edu.assignments.readonly
+      parameters:
+      - $ref: '#/components/parameters/class'
+      - $ref: '#/components/parameters/assignment'
+      - $ref: '#/components/parameters/submission'
+      responses:
+        200:
+          description: The history of the submission
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssignmentSubmissionHistory'
+        403:
+          description: Not granted to access to this submission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        404:
+          description: Submission not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+  /classes/{class}/assignments/{assignment}/submissions/{submission}/comments:
+    get:
+      tags:
+      - Class
+      operationId: getSubmissionComments
+      summary: List the feedback comments of a submission
+      security:
+      - OAuth2:
+        - edu.assignments
+        - edu.assignments.readonly
+      parameters:
+      - $ref: '#/components/parameters/class'
+      - $ref: '#/components/parameters/assignment'
+      - $ref: '#/components/parameters/submission'
+      responses:
+        200:
+          description: The comments of the score
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssignmentSubmissionComment'
+        403:
+          description: Not granted to access to this submission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        404:
+          description: Submission not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+    post:
+      tags:
+      - Class
+      operationId: postSubmissionComment
+      summary: Add a feedback comment to a submission
+      security:
+      - OAuth2:
+        - edu.assignments
+      parameters:
+      - $ref: '#/components/parameters/class'
+      - $ref: '#/components/parameters/assignment'
+      - $ref: '#/components/parameters/submission'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignmentSubmissionCommentCreation'
+        required: true
+      responses:
+        200:
+          description: The comment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentSubmissionComment'
+        403:
+          description: Not granted to access to this submission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        404:
+          description: Submission not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+  /classes/{class}/assignments/{assignment}/submissions/{submission}/comments/{comment}:
+    put:
+      tags:
+      - Class
+      operationId: updateSubmissionComment
+      summary: Update a feedback comment to a submission
+      security:
+      - OAuth2:
+        - edu.assignments
+      parameters:
+      - $ref: '#/components/parameters/class'
+      - $ref: '#/components/parameters/assignment'
+      - $ref: '#/components/parameters/submission'
+      - $ref: '#/components/parameters/comment'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignmentSubmissionCommentCreation'
+        required: true
+      responses:
+        200:
+          description: The comment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentSubmissionComment'
+        403:
+          description: Not granted to access to this submission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        404:
+          description: Submission not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+    delete:
+      tags:
+      - Class
+      operationId: deleteSubmissionComment
+      summary: Delete a feedback comment to a submission
+      security:
+      - OAuth2:
+        - edu.assignments
+      parameters:
+      - $ref: '#/components/parameters/class'
+      - $ref: '#/components/parameters/assignment'
+      - $ref: '#/components/parameters/submission'
+      - $ref: '#/components/parameters/comment'
+      responses:
+        204:
+          description: The comment has been deleted
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
   /classes/enroll/{enrollmentCode}:
     post:
       tags:
@@ -3431,13 +3500,7 @@ paths:
       summary: Get group information
       operationId: getGroupDetails
       parameters:
-      - name: group
-        in: path
-        description: |
-          Unique identifier of a Flat group
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/group'
       responses:
         200:
           description: The group details
@@ -3465,13 +3528,7 @@ paths:
       summary: List group's users
       operationId: listGroupUsers
       parameters:
-      - name: group
-        in: path
-        description: |
-          Unique identifier of a Flat group
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/group'
       - name: source
         in: query
         description: |
@@ -3511,13 +3568,7 @@ paths:
         Get the list of scores shared with a group.
       operationId: getGroupScores
       parameters:
-      - name: group
-        in: path
-        description: |
-          Unique identifier of a Flat group
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/group'
       - name: parent
         in: query
         description: Filter the score forked from the score id `parent`
@@ -3584,6 +3635,7 @@ components:
       default: en
       enum:
       - en
+      - en-GB
       - es
       - fr
       - de
@@ -3593,8 +3645,10 @@ components:
       - nl
       - pl
       - pt
+      - pt-BR
       - ro
       - ru
+      - sv
       - tr
       - zh-Hans
     OrganizationRoles:
@@ -3791,10 +3845,28 @@ components:
           minLength: 6
           maxLength: 1000
           type: string
-          description: Password of the new account
+          description: Password of the account
           format: password
         organizationRole:
           $ref: '#/components/schemas/OrganizationRoles'
+        username:
+          maxLength: 30
+          minLength: 1
+          pattern: ^[A-Za-z0-9\-_.]+$
+          type: string
+          description: Username of the account
+        firstname:
+          maxLength: 60
+          type: string
+          description: First name of the user
+        lastname:
+          maxLength: 60
+          type: string
+          description: Last name of the user
+        email:
+          type: string
+          description: Email of the account
+          format: email
       description: User update as an organization admin
     UserDetails:
       description: User details
@@ -4314,16 +4386,16 @@ components:
       properties:
         total:
           type: number
-          description: The total number of comments added on the score
+          description: The total number of comments added to the score
         unique:
           type: number
-          description: The unique (1/user) number of comments added on the score
+          description: The unique (1/user) number of comments added to the score
         weekly:
           type: number
-          description: The weekly unique number of comments added on the score
+          description: The weekly unique number of comments added to the score
         monthly:
           type: number
-          description: The monthly unique number of comments added on the score
+          description: The monthly unique number of comments added to the score
       description: |
         A computed version of the total, unique, weekly and monthly number of
         comments added on the documents (this doesn't include inline comments).
@@ -4596,7 +4668,7 @@ components:
         The collection main privacy mode.
         - `private`: The collection is private and can be only accessed, modified and administred by specified collaborators users.
       enum:
-      - private
+        - private
     CollectionModification:
       type: object
       properties:
@@ -5146,6 +5218,16 @@ components:
               type: string
               description: Canvas instance domain (e.g. "canvas.instructure.com")
           description: Meta information provided by Canvs LMS
+        mfc:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Unique identifier of the course on MusicFirst Classroom
+            alternateLink:
+              type: string
+              description: Link to MusicFirst Classroom class
+          description: Meta information provided by Canvs LMS
         clever:
           type: object
           properties:
@@ -5223,14 +5305,20 @@ components:
           - flat
           - link
           - googleDrive
-          - exercise
+          - worksheet
         score:
           type: string
           description: |
             A unique Flat score identifier. The user creating the assignment must at least have read access to the document. If the user has admin rights, new group permissions will be automatically added for the
             teachers and students of the class.
+        worksheet:
+          type: string
+          description: An unique worksheet identifier
         sharingMode:
           $ref: '#/components/schemas/MediaScoreSharingMode'
+        lockScoreTemplate:
+          type: boolean
+          description: To be used with a score attached in `sharingMode` `copy` (score used as template). If true, students won't be able to change the original notes of the template.
         url:
           type: string
           description: The URL of the attachment.
@@ -5247,6 +5335,12 @@ components:
     AssignmentCreation:
       type: object
       properties:
+        state:
+          type: string
+          description: State of the assignment
+          enum:
+          - draft
+          - active
         title:
           type: string
           description: Title of the assignment
@@ -5259,19 +5353,56 @@ components:
             $ref: '#/components/schemas/ClassAttachmentCreation'
         dueDate:
           type: string
+          nullable: true
           description: |
             The due date of this assignment, late submissions will be marked as paste due. If not set, the assignment won't have a due date.
           format: date-time
         scheduledDate:
           type: string
+          nullable: true
           description: |
             The publication (scheduled) date of the assignment.
             If this one is specified, the assignment will only be listed to the teachers of the class.
           format: date-time
+        nbPlaybackAuthorized:
+          type: number
+          nullable: true
+          description: The number of playback authorized on the scores of the assignment.
+        toolset:
+          type: string
+          nullable: true
+          description: The id of the associated toolset
+        maxPoints:
+          type: number
+          nullable: true
+          minimum: 0
+          maximum: 100
+          description: |
+            If set, the grading will be enabled for the assignement with this value as the maximum of points
+        googleClassroom:
+          type: object
+          properties:
+            topicId:
+              type: string
+              nullable: true
+              description: Identifier of the topic where the assignment is created
+        assigneeMode:
+          type: string
+          description: Possible modes of assigning assignments
+          default: everyone
+          enum:
+          - everyone
+          - selected
+        assignedStudents:
+          type: array
+          items:
+            type: string
+          description: Identifiers for the students that have access to the assignment
       description: Assignment creation details
       example:
         title: First assignment
         description: Get started with Flat
+        maxPoints: 100
         attachments:
         - type: flat
           score: '0000000000000000'
@@ -5344,8 +5475,36 @@ components:
             The due date of this assignment, late submissions will be marked as
             paste due.
           format: date-time
+        maxPoints:
+          type: number
+          description: |
+            If set, the grading will be enabled for the assignement
         googleClassroom:
           $ref: '#/components/schemas/GoogleClassroomCoursework'
+        mfc:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Unique identifier of the course on MusicFirst Task
+            alternateLink:
+              type: string
+              description: Link to MusicFirst Classroom task
+        canvas:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Unique identifier of the course on Canvas assignment
+            alternateLink:
+              type: string
+              description: Link to Canvas assignment
+        lti:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Resource ID in the LMS
       description: Assignment details
       example:
         title: My first assignment
@@ -5356,6 +5515,7 @@ components:
         creationDate: 2017-06-12T13:56:19.613000Z
         dueDate: 2017-07-12T13:56:19.613000Z
         scheduledDate: 2017-06-18T13:56:19.613000Z
+        maxPoints: 100
         attachments:
         - type: flat
           score: '0000000000000000'
@@ -5374,6 +5534,11 @@ components:
         googleClassroom:
           id: '1235665432'
           alternateLink: http://classroom.google.com/c/music-theory/a/first-assignment/detail
+        lti:
+          id: '12345'
+        canvas:
+          id: '12345'
+          alternateLink: https://canvas.instructure.com/courses/00000/assignments/12345
         submissions:
         - id: 58c4955c226ffff257211a90
           classroom: 58c4725345cd836264f0b29e
@@ -5396,24 +5561,47 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ClassAttachmentCreation'
-        studentComment:
-          type: string
-          description: |
-            An optionnal comment sent by the student when submitting his work
         submit:
           type: boolean
           description: If `true`, the submission will be marked as done
-        returnFeedback:
-          type: string
-          description: The feedback associated with the return
+        draftGrade:
+          type: number
+          nullable: true
+          minimum: 0
+          maximum: 100
+          description: Optional grade. If unset, no grade was set. This value is only visible by the teacher, and we will be set to `grade` once the teacher returns the submission
+        grade:
+          type: number
+          nullable: true
+          minimum: 0
+          maximum: 100
+          description: Optional grade. If unset, no grade was set.
+        return:
+          type: boolean
+          description: If `true`, the submission will be marked as done
+        comments:
+          type: object
+          properties:
+            total:
+              type: number
+              description: The total number of comments added to the submission
+            unread:
+              type: number
+              description: The number of unread comments for the current user
       description: Assignment Submission creation
       example:
         attachments:
         - type: flat
           score: 58c4955a226ffff257211a8d
           title: Hello - Student
-        studentComment: Here is my great creation
         submit: true
+    AssignmentSubmissionState:
+      type: string
+      description: State of the submission
+      enum:
+      - created
+      - turnedIn
+      - returned
     AssignmentSubmission:
       type: object
       properties:
@@ -5421,12 +5609,7 @@ components:
           type: string
           description: Unique identifier of the submission
         state:
-          type: string
-          description: State of the submission
-          enum:
-          - created
-          - turnedIn
-          - returned
+          $ref: '#/components/schemas/AssignmentSubmissionState'
         classroom:
           type: string
           description: |
@@ -5447,20 +5630,24 @@ components:
         submissionDate:
           type: string
           description: The date when the student submitted his work
-        studentComment:
-          type: string
-          description: |
-            An optionnal comment sent by the student when submitting his work
         returnDate:
           type: string
           description: The date when the teacher returned the work
-        returnFeedback:
-          type: string
-          description: The feedback associated with the return
         returnCreator:
           type: string
           description: |
             The User unique identifier of the teacher who returned the submission
+        grade:
+          type: number
+          nullable: true
+          description: Optional grade. If unset, no grade was set.
+        draftGrade:
+          type: number
+          nullable: true
+          description: Optional grade. If unset, no grade was set. This value is only visible by the teacher, and we will be set to `grade` once the teacher returns the submission
+        maxPoints:
+          type: number
+          description: Optional max points for the grade. If set, a corresponding `draftGrade` or `grade` will be set.
         googleClassroom:
           $ref: '#/components/schemas/GoogleClassroomSubmission'
       description: Assignment Submission
@@ -5469,16 +5656,89 @@ components:
         classroom: 58c4725345cd836264f0b29e
         assignment: 58c49068524c03ec576ca43c
         creator: 559eb5c7f0d4d5e46d03781d
-        creationDate: 2017-03-12T00:25:00.748000Z
-        submissionDate: 2017-03-12T00:25:22.748000Z
+        creationDate: 2020-08-12T00:25:00.748000Z
+        submissionDate: 2020-08-12T00:45:22.748000Z
         attachments:
         - type: flat
           score: 58c4955a226ffff257211a8d
           title: Hello - Student
+        returnDate: 2020-08-15T00:25:00.748000Z
+        returnCreator: 559eb5c7f0d4d5e46d000000
+        grade: 80
+        draftGrade: 82
         googleClassroom:
           id: CgsI-00000000000
           state: turned_in
           alternateLink: http://classroom.google.com/c/music-theory/a/first-assignment/submissions/student/my-submission
+    AssignmentSubmissionComment:
+      description: Feedback comment added to an assignment submission
+      type: object
+      properties:
+        id:
+          type: string
+          description: The comment unique identifier
+        user:
+          type: string
+          description: The author unique identifier
+        submission:
+          type: string
+          description: The submission unique identifier
+        date:
+          type: string
+          description: The date when the comment was posted
+          format: date-time
+        modificationDate:
+          type: string
+          description: The date of the last comment modification
+          format: date-time
+        comment:
+          type: string
+          description: The comment text
+        unread:
+          type: boolean
+          description: True if the comment is unread by the current user
+    AssignmentSubmissionCommentCreation:
+      description: Creation of a assignment submission comment
+      required:
+      - comment
+      type: object
+      properties:
+        comment:
+          type: string
+          description: The comment text
+    AssignmentSubmissionHistory:
+      description: History item of the submission
+      type: object
+      properties:
+        date:
+          description: The date when the submission was changed
+          type: string
+          format: date-time
+        users:
+          description: The user(s) unique identifier(s) who made the change
+          type: array
+          items:
+            type: string
+        state:
+          $ref: '#/components/schemas/AssignmentSubmissionState'
+        draftGrade:
+          type: number
+          description: The numerator of the grade at this time in the submission grade history
+        grade:
+          type: number
+          description: The numerator of the grade at this time in the submission grade history
+        maxPoints:
+          type: number
+          description: The denominator of the grade at this time in the submission grade history
+        attachment:
+          type: object
+          properties:
+            score:
+              type: string
+              description: The score identifier that changed
+            revision:
+              type: string
+              description: The revision identifier that changed
     GoogleClassroomCoursework:
       type: object
       properties:
@@ -5491,6 +5751,10 @@ components:
         alternateLink:
           type: string
           description: Absolute link to this coursework in the Classroom web UI
+        topicId:
+          type: string
+          nullable: true
+          description: Identifier of the topic where the assignment is created
       description: A coursework on Google Classroom
       example:
         id: '1235665432'
@@ -5584,18 +5848,21 @@ components:
           - link
           - flat
           - googleDrive
-          - exercise
+          - worksheet
         score:
           type: string
           description: An unique Flat score identifier
         revision:
           type: string
           description: An unique revision identifier of a score
-        correct:
-          type: boolean
-          description: If the attachment is an exercise question, this state will describe if it is correct or not.For exercise assignments only.
+        worksheet:
+          type: string
+          description: An unique worksheet identifier
         sharingMode:
           $ref: '#/components/schemas/MediaScoreSharingMode'
+        lockScoreTemplate:
+          type: boolean
+          description: To be used with a score attached in `sharingMode` `copy` (score used as template). If true, students won't be able to change the original notes of the template.
         title:
           type: string
           description: The resolved title of the attachment
@@ -5801,6 +6068,41 @@ components:
       in: path
       description: |
         Unique identifier of a Flat group
+      required: true
+      schema:
+        type: string
+    class:
+      name: class
+      in: path
+      description: Unique identifier of the class
+      required: true
+      schema:
+        type: string
+    assignment:
+      name: assignment
+      in: path
+      description: Unique identifier of the assignment
+      required: true
+      schema:
+        type: string
+    submission:
+      name: submission
+      in: path
+      description: Unique identifier of the submission
+      required: true
+      schema:
+        type: string
+    post:
+      name: post
+      in: path
+      description: Unique identifier of the post
+      required: true
+      schema:
+        type: string
+    comment:
+      name: comment
+      in: path
+      description: Unique identifier of the comment
       required: true
       schema:
         type: string
