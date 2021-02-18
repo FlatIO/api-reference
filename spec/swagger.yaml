@@ -33,7 +33,7 @@ info:
     name: Flat
     url: https://flat.io/developers/docs/api/
     email: developers@flat.io
-  version: 2.11.0
+  version: 2.12.0
   x-logo:
     url: https://flat.io/img/logo-flat.svg
 servers:
@@ -153,6 +153,14 @@ paths:
         - scores
       x-codegen-request-body-name: body
   /scores/{score}:
+    parameters:
+    - name: score
+      in: path
+      description: |
+        Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
+      required: true
+      schema:
+        type: string
     get:
       tags:
       - Score
@@ -162,13 +170,6 @@ paths:
         The currently authenticated user must have at least a read access to the document to use this API call.
       operationId: getScore
       parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
       - name: sharingKey
         in: query
         description: |
@@ -222,14 +223,6 @@ paths:
         When editing the `title`, `subtitle`, `composer`, `lyricist`, `arranger` or `licenseText`, the metadatas will be instantly be updated, and a real-time action will be pushed to update the document lazily.
         This pending document modification will be automatically be saved as a new version by either a connected client or our internal versioning service.
       operationId: editScore
-      parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
       requestBody:
         content:
           application/json:
@@ -284,13 +277,6 @@ paths:
         When called by a regular collaborator (`aclRead` / `aclWrite`), the score will be unshared (i.e. removed from the account & own collections).
       operationId: deleteScore
       parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
       - name: now
         in: query
         description: If `true`, the score deletion will be scheduled to be done ASAP
@@ -322,6 +308,14 @@ paths:
       - OAuth2:
         - scores
   /scores/{score}/untrash:
+    parameters:
+    - name: score
+      in: path
+      description: |
+        Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
+      required: true
+      schema:
+        type: string
     post:
       tags:
       - Score
@@ -329,14 +323,6 @@ paths:
       description: |
         This method will remove the score from the `trash` collection and from the deletion queue, and add it back to the original collections.
       operationId: untrashScore
-      parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
       responses:
         204:
           description: The score has been untrashed
@@ -362,6 +348,14 @@ paths:
       - OAuth2:
         - scores
   /scores/{score}/submissions:
+    parameters:
+    - name: score
+      in: path
+      description: |
+        Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
+      required: true
+      schema:
+        type: string
     get:
       tags:
       - Score
@@ -370,14 +364,6 @@ paths:
       description: |
         This API call will list the different assignments submissions where the score is attached. This method can be used by anyone that are part of the organization and have at least read access to the document.
       operationId: getScoreSubmissions
-      parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
       responses:
         200:
           description: List of submissions
@@ -398,6 +384,14 @@ paths:
         - scores
         - scores.readonly
   /scores/{score}/fork:
+    parameters:
+    - name: score
+      in: path
+      description: |
+        Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
+      required: true
+      schema:
+        type: string
     post:
       tags:
       - Score
@@ -409,13 +403,6 @@ paths:
         When using a [Flat for Education](https://flat.io/edu) account, the inline and contextualized comments will be accessible in the child document.
       operationId: forkScore
       parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
       - name: sharingKey
         in: query
         description: |
@@ -464,6 +451,14 @@ paths:
         - scores
       x-codegen-request-body-name: body
   /scores/{score}/collaborators:
+    parameters:
+    - name: score
+      in: path
+      description: |
+        Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
+      required: true
+      schema:
+        type: string
     get:
       tags:
       - Score
@@ -474,13 +469,6 @@ paths:
         Collaborators can be a single user (the object `user` will be populated) or a group (the object `group` will be populated).
       operationId: getScoreCollaborators
       parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
       - name: sharingKey
         in: query
         description: |
@@ -535,14 +523,6 @@ paths:
         - To add a Flat group to the resource, specify its unique identifier in the `group` property.
         - To update an existing collaborator, process the same request with different rights.
       operationId: addScoreCollaborator
-      parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
       requestBody:
         content:
           application/json:
@@ -585,6 +565,21 @@ paths:
         - scores
       x-codegen-request-body-name: body
   /scores/{score}/collaborators/{collaborator}:
+    parameters:
+    - name: score
+      in: path
+      description: |
+        Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
+      required: true
+      schema:
+        type: string
+    - name: collaborator
+      in: path
+      description: |
+        Unique identifier of a **collaborator permission**, or unique identifier of a **User**, or unique identifier of a **Group**
+      required: true
+      schema:
+        type: string
     get:
       tags:
       - Score
@@ -593,20 +588,6 @@ paths:
         Get the information about a collaborator (User or Group).
       operationId: getScoreCollaborator
       parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
-      - name: collaborator
-        in: path
-        description: |
-          Unique identifier of a **collaborator permission**, or unique identifier of a **User**, or unique identifier of a **Group**
-        required: true
-        schema:
-          type: string
       - name: sharingKey
         in: query
         description: |
@@ -654,21 +635,6 @@ paths:
       description: |
         Remove the specified collaborator from the score
       operationId: removeScoreCollaborator
-      parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
-      - name: collaborator
-        in: path
-        description: |
-          Unique identifier of a **collaborator permission**, or unique identifier of a **User**, or unique identifier of a **Group**
-        required: true
-        schema:
-          type: string
       responses:
         204:
           description: The collaborator has been removed
@@ -694,19 +660,20 @@ paths:
       - OAuth2:
         - scores
   /scores/{score}/tracks:
+    parameters:
+    - name: score
+      in: path
+      description: |
+        Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
+      required: true
+      schema:
+        type: string
     get:
       tags:
       - Score
       summary: List the audio or video tracks linked to a score
       operationId: listScoreTracks
       parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
       - name: sharingKey
         in: query
         description: |
@@ -752,14 +719,6 @@ paths:
         Use this method to add new track to the score. This track can then be played on flat.io or in an embedded score.
         This API method support medias hosted on SoundCloud, YouTube and Vimeo.
       operationId: addScoreTrack
-      parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
       requestBody:
         content:
           application/json:
@@ -796,26 +755,27 @@ paths:
         - scores
       x-codegen-request-body-name: body
   /scores/{score}/tracks/{track}:
+    parameters:
+    - name: score
+      in: path
+      description: |
+        Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
+      required: true
+      schema:
+        type: string
+    - name: track
+      in: path
+      description: |
+        Unique identifier of a score audio track
+      required: true
+      schema:
+        type: string
     get:
       tags:
       - Score
       summary: Retrieve the details of an audio or video track linked to a score
       operationId: getScoreTrack
       parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
-      - name: track
-        in: path
-        description: |
-          Unique identifier of a score audio track
-        required: true
-        schema:
-          type: string
       - name: sharingKey
         in: query
         description: |
@@ -856,21 +816,6 @@ paths:
       - Score
       summary: Update an audio or video track linked to a score
       operationId: updateScoreTrack
-      parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
-      - name: track
-        in: path
-        description: |
-          Unique identifier of a score audio track
-        required: true
-        schema:
-          type: string
       requestBody:
         content:
           application/json:
@@ -911,21 +856,6 @@ paths:
       - Score
       summary: Remove an audio or video track linked to the score
       operationId: deleteScoreTrack
-      parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
-      - name: track
-        in: path
-        description: |
-          Unique identifier of a score audio track
-        required: true
-        schema:
-          type: string
       responses:
         204:
           description: Track removed
@@ -951,6 +881,20 @@ paths:
       - OAuth2:
         - scores
   /scores/{score}/comments:
+    parameters:
+    - name: score
+      in: path
+      description: |
+        Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
+      required: true
+      schema:
+        type: string
+    - name: sharingKey
+      in: query
+      description: |
+        This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
+      schema:
+        type: string
     get:
       tags:
       - Score
@@ -958,19 +902,6 @@ paths:
       description: This method lists the different comments added on a music score (documents and inline) sorted by their post dates.
       operationId: getScoreComments
       parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
-      - name: sharingKey
-        in: query
-        description: |
-          This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
-        schema:
-          type: string
       - name: type
         in: query
         description: Filter the comments by type
@@ -1041,20 +972,6 @@ paths:
 
         Please note that this method includes an anti-spam system for public scores. We don't guarantee that your comments will be accepted and displayed to end-user. Comments are be blocked by returning a `403` HTTP error and hidden from other users when the `spam` property is `true`.
       operationId: postScoreComment
-      parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
-      - name: sharingKey
-        in: query
-        description: |
-          This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
-        schema:
-          type: string
       requestBody:
         content:
           application/json:
@@ -1098,32 +1015,32 @@ paths:
         - scores
       x-codegen-request-body-name: body
   /scores/{score}/comments/{comment}:
+    parameters:
+    - name: score
+      in: path
+      description: |
+        Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
+      required: true
+      schema:
+        type: string
+    - name: comment
+      in: path
+      description: |
+        Unique identifier of a sheet music comment
+      required: true
+      schema:
+        type: string
+    - name: sharingKey
+      in: query
+      description: |
+        This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
+      schema:
+        type: string
     put:
       tags:
       - Score
       summary: Update an existing comment
       operationId: updateScoreComment
-      parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
-      - name: comment
-        in: path
-        description: |
-          Unique identifier of a sheet music comment
-        required: true
-        schema:
-          type: string
-      - name: sharingKey
-        in: query
-        description: |
-          This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
-        schema:
-          type: string
       requestBody:
         content:
           application/json:
@@ -1171,27 +1088,6 @@ paths:
       - Score
       summary: Delete a comment
       operationId: deleteScoreComment
-      parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
-      - name: comment
-        in: path
-        description: |
-          Unique identifier of a sheet music comment
-        required: true
-        schema:
-          type: string
-      - name: sharingKey
-        in: query
-        description: |
-          This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
-        schema:
-          type: string
       responses:
         204:
           description: The comment has been deleted
@@ -1218,37 +1114,41 @@ paths:
         - scores.social
         - scores
   /scores/{score}/comments/{comment}/resolved:
+    parameters:
+    - name: score
+      in: path
+      description: |
+        Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
+      required: true
+      schema:
+        type: string
+    - name: comment
+      in: path
+      description: |
+        Unique identifier of a sheet music comment
+      required: true
+      schema:
+        type: string
+    - name: sharingKey
+      in: query
+      description: |
+        This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
+      schema:
+        type: string
     put:
       tags:
       - Score
       summary: Mark the comment as resolved
       operationId: markScoreCommentResolved
-      parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
-      - name: comment
-        in: path
-        description: |
-          Unique identifier of a sheet music comment
-        required: true
-        schema:
-          type: string
-      - name: sharingKey
-        in: query
-        description: |
-          This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
-        schema:
-          type: string
       responses:
         204:
           description: The comment has been marked as resolved
         403:
           description: Not granted to mark this comment as resolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
         404:
           description: Score or comment not found
           content:
@@ -1271,20 +1171,6 @@ paths:
       summary: Mark the comment as unresolved
       operationId: markScoreCommentUnresolved
       parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
-      - name: comment
-        in: path
-        description: |
-          Unique identifier of a sheet music comment
-        required: true
-        schema:
-          type: string
       - name: sharingKey
         in: query
         description: |
@@ -1296,6 +1182,10 @@ paths:
           description: The comment has been unmarked as resolved
         403:
           description: Not granted to unmark this comment as resolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
         404:
           description: Score or comment not found
           content:
@@ -1314,6 +1204,14 @@ paths:
         - scores
 
   /scores/{score}/revisions:
+    parameters:
+    - name: score
+      in: path
+      description: |
+        Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
+      required: true
+      schema:
+        type: string
     get:
       tags:
       - Score
@@ -1324,13 +1222,6 @@ paths:
         Depending the plan of the account, this list can be trunked to the few last revisions.
       operationId: getScoreRevisions
       parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
       - name: sharingKey
         in: query
         description: |
@@ -1381,14 +1272,6 @@ paths:
       description: |
         Update a score by uploading a new revision for this one.
       operationId: createScoreRevision
-      parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
       requestBody:
         content:
           application/json:
@@ -1431,6 +1314,27 @@ paths:
         - scores
       x-codegen-request-body-name: body
   /scores/{score}/revisions/{revision}:
+    parameters:
+    - name: score
+      in: path
+      description: |
+        Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
+      required: true
+      schema:
+        type: string
+    - name: revision
+      in: path
+      description: |
+        Unique identifier of a score revision. You can use `last` to fetch the information related to the last version created.
+      required: true
+      schema:
+        type: string
+    - name: sharingKey
+      in: query
+      description: |
+        This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
+      schema:
+        type: string
     get:
       tags:
       - Score
@@ -1439,27 +1343,6 @@ paths:
         When creating a score or saving a new version of a score, a revision is created in our storage. This method allows you to get a specific
         revision metadata.
       operationId: getScoreRevision
-      parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
-      - name: revision
-        in: path
-        description: |
-          Unique identifier of a score revision. You can use `last` to fetch the information related to the last version created.
-        required: true
-        schema:
-          type: string
-      - name: sharingKey
-        in: query
-        description: |
-          This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
-        schema:
-          type: string
       responses:
         200:
           description: Revision metadata
@@ -1496,6 +1379,35 @@ paths:
         - scores
         - scores.readonly
   /scores/{score}/revisions/{revision}/{format}:
+    parameters:
+    - name: score
+      in: path
+      description: |
+        Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
+      required: true
+      schema:
+        type: string
+    - name: revision
+      in: path
+      description: |
+        Unique identifier of a score revision. You can use `last` to fetch the information related to the last version created.
+      required: true
+      schema:
+        type: string
+    - name: format
+      in: path
+      description: The format of the file you will retrieve
+      required: true
+      schema:
+        type: string
+        enum:
+        - json
+        - mxl
+        - xml
+        - mp3
+        - wav
+        - midi
+        - thumbnail.png
     get:
       tags:
       - Score
@@ -1505,20 +1417,6 @@ paths:
         `mxl`/`xml`, MP3 `mp3`, WAV `wav`, MIDI `midi`, or a tumbnail of the first page `thumbnail.png`).
       operationId: getScoreRevisionData
       parameters:
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
-      - name: revision
-        in: path
-        description: |
-          Unique identifier of a score revision. You can use `last` to fetch the information related to the last version created.
-        required: true
-        schema:
-          type: string
       - name: sharingKey
         in: query
         description: |
@@ -1532,20 +1430,6 @@ paths:
           separated by commas. For example "59df645f-bb1c-f1b4-b573-d2afc4491f94,34ef645f-1aef-f3bc-1564-34cca4492b87".
         schema:
           type: string
-      - name: format
-        in: path
-        description: The format of the file you will retrieve
-        required: true
-        schema:
-          type: string
-          enum:
-          - json
-          - mxl
-          - xml
-          - mp3
-          - wav
-          - midi
-          - thumbnail.png
       - name: onlyCached
         in: query
         description: |
@@ -1730,23 +1614,24 @@ paths:
         - collections
       x-codegen-request-body-name: body
   /collections/{collection}:
+    parameters:
+    - name: collection
+      in: path
+      description: |
+        Unique identifier of the collection.
+        The following aliases are supported:
+        - `root`: The root collection of the account
+        - `sharedWithMe`: Automatically contains new resources that have been shared individually
+        - `trash`: Automatically contains resources that have been deleted
+      required: true
+      schema:
+        type: string
     get:
       tags:
       - Collection
       summary: Get collection details
       operationId: getCollection
       parameters:
-      - name: collection
-        in: path
-        description: |
-          Unique identifier of the collection.
-          The following aliases are supported:
-          - `root`: The root collection of the account
-          - `sharedWithMe`: Automatically contains new resources that have been shared individually
-          - `trash`: Automatically contains resources that have been deleted
-        required: true
-        schema:
-          type: string
       - name: sharingKey
         in: query
         description: |
@@ -1787,18 +1672,6 @@ paths:
       - Collection
       summary: Update a collection's metadata
       operationId: editCollection
-      parameters:
-      - name: collection
-        in: path
-        description: |
-          Unique identifier of the collection.
-          The following aliases are supported:
-          - `root`: The root collection of the account
-          - `sharedWithMe`: Automatically contains new resources that have been shared individually
-          - `trash`: Automatically contains resources that have been deleted
-        required: true
-        schema:
-          type: string
       requestBody:
         content:
           application/json:
@@ -1841,18 +1714,6 @@ paths:
       description: |
         This method will schedule the deletion of the collection. Until deleted, the collection will be available in the `trash`.
       operationId: deleteCollection
-      parameters:
-      - name: collection
-        in: path
-        description: |
-          Unique identifier of the collection.
-          The following aliases are supported:
-          - `root`: The root collection of the account
-          - `sharedWithMe`: Automatically contains new resources that have been shared individually
-          - `trash`: Automatically contains resources that have been deleted
-        required: true
-        schema:
-          type: string
       responses:
         204:
           description: Collection deleted
@@ -1878,6 +1739,18 @@ paths:
       - OAuth2:
         - collections
   /collections/{collection}/untrash:
+    parameters:
+    - name: collection
+      in: path
+      description: |
+        Unique identifier of the collection.
+        The following aliases are supported:
+        - `root`: The root collection of the account
+        - `sharedWithMe`: Automatically contains new resources that have been shared individually
+        - `trash`: Automatically contains resources that have been deleted
+      required: true
+      schema:
+        type: string
     post:
       tags:
       - Collection
@@ -1885,18 +1758,6 @@ paths:
       description: |
         This method will restore the collection by removing it from the `trash` and add it back to the `root` collection.
       operationId: untrashCollection
-      parameters:
-      - name: collection
-        in: path
-        description: |
-          Unique identifier of the collection.
-          The following aliases are supported:
-          - `root`: The root collection of the account
-          - `sharedWithMe`: Automatically contains new resources that have been shared individually
-          - `trash`: Automatically contains resources that have been deleted
-        required: true
-        schema:
-          type: string
       responses:
         204:
           description: The score has been untrashed
@@ -1922,6 +1783,24 @@ paths:
       - OAuth2:
         - collections
   /collections/{collection}/scores:
+    parameters:
+    - name: collection
+      in: path
+      description: |
+        Unique identifier of the collection.
+        The following aliases are supported:
+        - `root`: The root collection of the account
+        - `sharedWithMe`: Automatically contains new resources that have been shared individually
+        - `trash`: Automatically contains resources that have been deleted
+      required: true
+      schema:
+        type: string
+    - name: sharingKey
+      in: query
+      description: |
+        This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
+      schema:
+        type: string
     get:
       tags:
       - Collection
@@ -1931,23 +1810,6 @@ paths:
         If no sort option is provided, the scores are sorted by `modificationDate` `desc`.
       operationId: listCollectionScores
       parameters:
-      - name: collection
-        in: path
-        description: |
-          Unique identifier of the collection.
-          The following aliases are supported:
-          - `root`: The root collection of the account
-          - `sharedWithMe`: Automatically contains new resources that have been shared individually
-          - `trash`: Automatically contains resources that have been deleted
-        required: true
-        schema:
-          type: string
-      - name: sharingKey
-        in: query
-        description: |
-          This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
-        schema:
-          type: string
       - name: sort
         in: query
         description: Sort
@@ -2006,6 +1868,31 @@ paths:
       - OAuth2:
         - collections
   /collections/{collection}/scores/{score}:
+    parameters:
+    - name: collection
+      in: path
+      description: |
+        Unique identifier of the collection.
+        The following aliases are supported:
+        - `root`: The root collection of the account
+        - `sharedWithMe`: Automatically contains new resources that have been shared individually
+        - `trash`: Automatically contains resources that have been deleted
+      required: true
+      schema:
+        type: string
+    - name: score
+      in: path
+      description: |
+        Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
+      required: true
+      schema:
+        type: string
+    - name: sharingKey
+      in: query
+      description: |
+        This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
+      schema:
+        type: string
     put:
       tags:
       - Collection
@@ -2014,31 +1901,6 @@ paths:
         This operation will add a score to a collection. The default behavior will make the score available across multiple collections.
         You must have the capability `canAddScores` on the provided `collection` to perform the action.
       operationId: addScoreToCollection
-      parameters:
-      - name: collection
-        in: path
-        description: |
-          Unique identifier of the collection.
-          The following aliases are supported:
-          - `root`: The root collection of the account
-          - `sharedWithMe`: Automatically contains new resources that have been shared individually
-          - `trash`: Automatically contains resources that have been deleted
-        required: true
-        schema:
-          type: string
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
-      - name: sharingKey
-        in: query
-        description: |
-          This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
-        schema:
-          type: string
       responses:
         200:
           description: Score details
@@ -2076,25 +1938,6 @@ paths:
         This method will delete a score from the collection. Unlike [`DELETE /scores/{score}`](#operation/deleteScore), this score will not remove the score from your account, but only from the collection.
         This can be used to *move* a score from one collection to another, or simply remove a score from one collection when this one is contained in multiple collections.
       operationId: deleteScoreFromCollection
-      parameters:
-      - name: collection
-        in: path
-        description: |
-          Unique identifier of the collection.
-          The following aliases are supported:
-          - `root`: The root collection of the account
-          - `sharedWithMe`: Automatically contains new resources that have been shared individually
-          - `trash`: Automatically contains resources that have been deleted
-        required: true
-        schema:
-          type: string
-      - name: score
-        in: path
-        description: |
-          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-        required: true
-        schema:
-          type: string
       responses:
         204:
           description: Score removed from the collection
@@ -2120,6 +1963,14 @@ paths:
       - OAuth2:
         - collections
   /users/{user}:
+    parameters:
+    - name: user
+      in: path
+      description: |
+        This route parameter is the unique identifier of the user. You can specify an email instead of an unique identifier. If you are executing this request authenticated, you can use `me` as a value instead of the current User unique identifier to work on the current authenticated user.
+      required: true
+      schema:
+        type: string
     get:
       tags:
       - User
@@ -2127,14 +1978,6 @@ paths:
       description: |
         Get a public profile of a Flat User.
       operationId: getUser
-      parameters:
-      - name: user
-        in: path
-        description: |
-          This route parameter is the unique identifier of the user. You can specify an email instead of an unique identifier. If you are executing this request authenticated, you can use `me` as a value instead of the current User unique identifier to work on the current authenticated user.
-        required: true
-        schema:
-          type: string
       responses:
         200:
           description: The user public details
@@ -2153,6 +1996,14 @@ paths:
         - account.public_profile
         - account.education_profile
   /users/{user}/likes:
+    parameters:
+    - name: user
+      in: path
+      description: |
+        Unique identifier of a Flat user. If you authenticated, you can use `me` to refer to the current user.
+      required: true
+      schema:
+        type: string
     get:
       tags:
       - User
@@ -2160,13 +2011,6 @@ paths:
       summary: List liked scores
       operationId: gerUserLikes
       parameters:
-      - name: user
-        in: path
-        description: |
-          Unique identifier of a Flat user. If you authenticated, you can use `me` to refer to the current user.
-        required: true
-        schema:
-          type: string
       - name: ids
         in: query
         description: Return only the identifiers of the scores
@@ -2191,6 +2035,14 @@ paths:
       - OAuth2:
         - account.public_profile
   /users/{user}/scores:
+    parameters:
+    - name: user
+      in: path
+      description: |
+        Unique identifier of a Flat user. If you authenticated, you can use `me` to refer to the current user.
+      required: true
+      schema:
+        type: string
     get:
       tags:
       - User
@@ -2204,13 +2056,6 @@ paths:
         If you want to access to private scores, please use the [Collections API](#tag/Collection) instead.
       operationId: getUserScores
       parameters:
-      - name: user
-        in: path
-        description: |
-          Unique identifier of a Flat user. If you authenticated, you can use `me` to refer to the current user.
-        required: true
-        schema:
-          type: string
       - name: parent
         in: query
         description: Filter the score forked from the score id `parent`
@@ -2255,7 +2100,6 @@ paths:
             - lastActivityDate
             - licenseExpirationDate
       - $ref: '#/components/parameters/sortDirection'
-      - $ref: '#/components/parameters/limit'
       - $ref: '#/components/parameters/next'
       - $ref: '#/components/parameters/previous'
       - $ref: '#/components/parameters/role'
@@ -2363,19 +2207,19 @@ paths:
         - edu.admin.users
         - edu.admin.users.readonly
   /organizations/users/{user}:
+    parameters:
+    - name: user
+      in: path
+      description: |
+        Unique identifier of the Flat account
+      required: true
+      schema:
+        type: string
     put:
       tags:
       - Organization
       summary: Update account information
       operationId: updateOrganizationUser
-      parameters:
-      - name: user
-        in: path
-        description: |
-          Unique identifier of the Flat account
-        required: true
-        schema:
-          type: string
       requestBody:
         content:
           application/json:
@@ -2410,13 +2254,6 @@ paths:
         * Education related data (assignments and classroom information)
       operationId: removeOrganizationUser
       parameters:
-      - name: user
-        in: path
-        description: |
-          Unique identifier of the Flat account
-        required: true
-        schema:
-          type: string
       - name: convertToIndividual
         in: query
         description: |
@@ -2532,18 +2369,18 @@ paths:
         - edu.admin.users
       x-codegen-request-body-name: body
   /organizations/invitations/{invitation}:
+    parameters:
+    - name: invitation
+      in: path
+      description: Unique identifier of the invitation
+      required: true
+      schema:
+        type: string
     delete:
       tags:
       - Organization
       summary: Remove an organization invitation
       operationId: removeOrganizationInvitation
-      parameters:
-      - name: invitation
-        in: path
-        description: Unique identifier of the invitation
-        required: true
-        schema:
-          type: string
       responses:
         204:
           description: The invitation has been removed
@@ -2627,19 +2464,19 @@ paths:
         - edu.admin.lti
       x-codegen-request-body-name: body
   /organizations/lti/credentials/{credentials}:
+    parameters:
+    - name: credentials
+      in: path
+      description: |
+        Credentials unique identifier
+      required: true
+      schema:
+        type: string
     delete:
       tags:
       - Organization
       summary: Revoke LTI 1.x credentials
       operationId: revokeLtiCredentials
-      parameters:
-      - name: credentials
-        in: path
-        description: |
-          Credentials unique identifier
-        required: true
-        schema:
-          type: string
       responses:
         204:
           description: Credentials revoked
@@ -2744,13 +2581,13 @@ paths:
         - edu.classes
       x-codegen-request-body-name: body
   /classes/{class}:
+    parameters:
+    - $ref: '#/components/parameters/class'
     get:
       tags:
       - Class
       summary: Get the details of a single class
       operationId: getClass
-      parameters:
-      - $ref: '#/components/parameters/class'
       responses:
         200:
           description: The new class details
@@ -2775,8 +2612,6 @@ paths:
       description: |
         Update the meta information of the class
       operationId: updateClass
-      parameters:
-      - $ref: '#/components/parameters/class'
       requestBody:
         description: Details of the Class
         content:
@@ -2802,6 +2637,8 @@ paths:
         - edu.classes
       x-codegen-request-body-name: body
   /classes/{class}/archive:
+    parameters:
+    - $ref: '#/components/parameters/class'
     post:
       tags:
       - Class
@@ -2809,8 +2646,6 @@ paths:
       description: |
         Mark the class as `archived`. When this course is synchronized with another app, like Google Classroom, this state will be automatically be updated.
       operationId: archiveClass
-      parameters:
-      - $ref: '#/components/parameters/class'
       responses:
         200:
           description: The class details
@@ -2834,8 +2669,6 @@ paths:
       description: |
         Mark the class as `active`. When this course is synchronized with another app, like Google Classroom, this state will be automatically be updated.
       operationId: unarchiveClass
-      parameters:
-      - $ref: '#/components/parameters/class'
       responses:
         200:
           description: The class details
@@ -2853,6 +2686,8 @@ paths:
       - OAuth2:
         - edu.classes
   /classes/{class}/activate:
+    parameters:
+    - $ref: '#/components/parameters/class'
     post:
       tags:
       - Class
@@ -2860,8 +2695,6 @@ paths:
       description: |
         Mark the class as `active`. This is mainly used for classes synchronized from Clever that are initially with an `inactive` state and hidden in the UI.
       operationId: activateClass
-      parameters:
-      - $ref: '#/components/parameters/class'
       responses:
         200:
           description: The class details
@@ -2879,6 +2712,14 @@ paths:
       - OAuth2:
         - edu.classes
   /classes/{class}/users/{user}:
+    parameters:
+    - $ref: '#/components/parameters/class'
+    - name: user
+      in: path
+      description: Unique identifier of the user
+      required: true
+      schema:
+        type: string
     put:
       tags:
       - Class
@@ -2890,14 +2731,6 @@ paths:
 
         When enrolling a user in the class, Flat will automatically add this user to the corresponding Class group, based on this role in the Organization.
       operationId: addClassUser
-      parameters:
-      - $ref: '#/components/parameters/class'
-      - name: user
-        in: path
-        description: Unique identifier of the user
-        required: true
-        schema:
-          type: string
       responses:
         204:
           description: The user has been added to the class
@@ -2919,14 +2752,6 @@ paths:
 
         Warning: Removing a user from the class will remove the associated resources, including the submissions and feedback related to these submissions.
       operationId: deleteClassUser
-      parameters:
-      - $ref: '#/components/parameters/class'
-      - name: user
-        in: path
-        description: Unique identifier of the user
-        required: true
-        schema:
-          type: string
       responses:
         204:
           description: The user has been removed from the class
@@ -2940,6 +2765,14 @@ paths:
       - OAuth2:
         - edu.classes
   /classes/{class}/students/{user}/submissions:
+    parameters:
+    - $ref: '#/components/parameters/class'
+    - name: user
+      in: path
+      description: Unique identifier of the user
+      required: true
+      schema:
+        type: string
     get:
       tags:
       - Class
@@ -2947,14 +2780,6 @@ paths:
       description: |
         Use this method as a teacher to list all the assignment submissions sent by a student of the class
       operationId: listClassStudentSubmissions
-      parameters:
-      - $ref: '#/components/parameters/class'
-      - name: user
-        in: path
-        description: Unique identifier of the user
-        required: true
-        schema:
-          type: string
       responses:
         200:
           description: The list of submissions
@@ -2977,13 +2802,13 @@ paths:
         - edu.assignments
         - edu.assignments.readonly
   /classes/{class}/assignments:
+    parameters:
+    - $ref: '#/components/parameters/class'
     get:
       tags:
       - Class
       summary: Assignments listing
       operationId: listAssignments
-      parameters:
-      - $ref: '#/components/parameters/class'
       responses:
         200:
           description: List of assignments for the class
@@ -3014,8 +2839,6 @@ paths:
 
         If the class is synchronized with Google Classroom, the assignment will be automatically posted to your Classroom course.
       operationId: createAssignment
-      parameters:
-      - $ref: '#/components/parameters/class'
       requestBody:
         content:
           application/json:
@@ -3041,6 +2864,9 @@ paths:
         - edu.assignments
       x-codegen-request-body-name: body
   /classes/{class}/assignments/{assignment}/copy:
+    parameters:
+    - $ref: '#/components/parameters/class'
+    - $ref: '#/components/parameters/assignment'
     post:
       tags:
       - Class
@@ -3052,9 +2878,6 @@ paths:
 
         If the new class is synchronized with an external app (e.g. Google Classroom), the copied assignment will also be posted on the external app.
       operationId: copyAssignment
-      parameters:
-      - $ref: '#/components/parameters/class'
-      - $ref: '#/components/parameters/assignment'
       requestBody:
         content:
           application/json:
@@ -3080,6 +2903,9 @@ paths:
         - edu.assignments
       x-codegen-request-body-name: body
   /classes/{class}/assignments/{assignment}/archive:
+    parameters:
+    - $ref: '#/components/parameters/class'
+    - $ref: '#/components/parameters/assignment'
     post:
       tags:
       - Class
@@ -3087,9 +2913,6 @@ paths:
       description: |
         Archive the assignment
       operationId: archiveAssignment
-      parameters:
-      - $ref: '#/components/parameters/class'
-      - $ref: '#/components/parameters/assignment'
       responses:
         200:
           description: The assignment details
@@ -3114,9 +2937,6 @@ paths:
       description: |
         Mark the assignment as `active`.
       operationId: unarchiveAssignment
-      parameters:
-      - $ref: '#/components/parameters/class'
-      - $ref: '#/components/parameters/assignment'
       responses:
         200:
           description: The assignment details
@@ -3135,14 +2955,14 @@ paths:
         - edu.classes
         - edu.assignments
   /classes/{class}/assignments/{assignment}/submissions:
+    parameters:
+    - $ref: '#/components/parameters/class'
+    - $ref: '#/components/parameters/assignment'
     get:
       tags:
       - Class
       summary: List the students' submissions
       operationId: getSubmissions
-      parameters:
-      - $ref: '#/components/parameters/class'
-      - $ref: '#/components/parameters/assignment'
       responses:
         200:
           description: The submissions
@@ -3173,9 +2993,6 @@ paths:
         Students can only set `attachments` and `submit`.
         Teachers can use `PUT /classes/{class}/assignments/{assignment}/submissions/{submission}` to update a submission by id.
       operationId: createSubmission
-      parameters:
-      - $ref: '#/components/parameters/class'
-      - $ref: '#/components/parameters/assignment'
       requestBody:
         content:
           application/json:
@@ -3200,16 +3017,76 @@ paths:
         - edu.classes
         - edu.assignments
       x-codegen-request-body-name: body
+  /classes/{class}/assignments/{assignment}/submissions/csv:
+    parameters:
+    - $ref: '#/components/parameters/class'
+    - $ref: '#/components/parameters/assignment'
+    get:
+      tags:
+      - Class
+      summary: CSV Grades exports
+      description: Export list of submissions grades to a CSV file
+      operationId: exportSubmissionsReviewsAsCsv
+      responses:
+        200:
+          description: List of submissions
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        default:
+          description: Error
+          content:
+            text/csv:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.classes
+        - edu.classes.readonly
+        - edu.assignments
+        - edu.assignments.readonly
+  /classes/{class}/assignments/{assignment}/submissions/excel:
+    parameters:
+    - $ref: '#/components/parameters/class'
+    - $ref: '#/components/parameters/assignment'
+    get:
+      tags:
+      - Class
+      summary: Excel Grades exports
+      description: Export list of submissions grades to an Excel file
+      operationId: exportSubmissionsReviewsAsExcel
+      responses:
+        200:
+          description: List of submissions
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        default:
+          description: Error
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.classes
+        - edu.classes.readonly
+        - edu.assignments
+        - edu.assignments.readonly
   /classes/{class}/assignments/{assignment}/submissions/{submission}:
+    parameters:
+    - $ref: '#/components/parameters/class'
+    - $ref: '#/components/parameters/assignment'
+    - $ref: '#/components/parameters/submission'
     get:
       tags:
       - Class
       summary: Get a student submission
       operationId: getSubmission
-      parameters:
-      - $ref: '#/components/parameters/class'
-      - $ref: '#/components/parameters/assignment'
-      - $ref: '#/components/parameters/submission'
       responses:
         200:
           description: A submission
@@ -3237,10 +3114,6 @@ paths:
         Use this method as a teacher to update the different submission and give feedback.
         Teachers can only set `return`, `draftGrade` and `grade`
       operationId: editSubmission
-      parameters:
-      - $ref: '#/components/parameters/class'
-      - $ref: '#/components/parameters/assignment'
-      - $ref: '#/components/parameters/submission'
       requestBody:
         content:
           application/json:
@@ -3266,6 +3139,10 @@ paths:
         - edu.assignments
       x-codegen-request-body-name: body
   /classes/{class}/assignments/{assignment}/submissions/{submission}/history:
+    parameters:
+    - $ref: '#/components/parameters/class'
+    - $ref: '#/components/parameters/assignment'
+    - $ref: '#/components/parameters/submission'
     get:
       tags:
       - Class
@@ -3277,10 +3154,6 @@ paths:
       - OAuth2:
         - edu.assignments
         - edu.assignments.readonly
-      parameters:
-      - $ref: '#/components/parameters/class'
-      - $ref: '#/components/parameters/assignment'
-      - $ref: '#/components/parameters/submission'
       responses:
         200:
           description: The history of the submission
@@ -3309,6 +3182,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
   /classes/{class}/assignments/{assignment}/submissions/{submission}/comments:
+    parameters:
+    - $ref: '#/components/parameters/class'
+    - $ref: '#/components/parameters/assignment'
+    - $ref: '#/components/parameters/submission'
     get:
       tags:
       - Class
@@ -3318,10 +3195,6 @@ paths:
       - OAuth2:
         - edu.assignments
         - edu.assignments.readonly
-      parameters:
-      - $ref: '#/components/parameters/class'
-      - $ref: '#/components/parameters/assignment'
-      - $ref: '#/components/parameters/submission'
       responses:
         200:
           description: The comments of the score
@@ -3357,10 +3230,6 @@ paths:
       security:
       - OAuth2:
         - edu.assignments
-      parameters:
-      - $ref: '#/components/parameters/class'
-      - $ref: '#/components/parameters/assignment'
-      - $ref: '#/components/parameters/submission'
       requestBody:
         content:
           application/json:
@@ -3393,6 +3262,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
   /classes/{class}/assignments/{assignment}/submissions/{submission}/comments/{comment}:
+    parameters:
+    - $ref: '#/components/parameters/class'
+    - $ref: '#/components/parameters/assignment'
+    - $ref: '#/components/parameters/submission'
+    - $ref: '#/components/parameters/comment'
     put:
       tags:
       - Class
@@ -3401,11 +3275,6 @@ paths:
       security:
       - OAuth2:
         - edu.assignments
-      parameters:
-      - $ref: '#/components/parameters/class'
-      - $ref: '#/components/parameters/assignment'
-      - $ref: '#/components/parameters/submission'
-      - $ref: '#/components/parameters/comment'
       requestBody:
         content:
           application/json:
@@ -3445,11 +3314,6 @@ paths:
       security:
       - OAuth2:
         - edu.assignments
-      parameters:
-      - $ref: '#/components/parameters/class'
-      - $ref: '#/components/parameters/assignment'
-      - $ref: '#/components/parameters/submission'
-      - $ref: '#/components/parameters/comment'
       responses:
         204:
           description: The comment has been deleted
@@ -3460,6 +3324,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
   /classes/enroll/{enrollmentCode}:
+    parameters:
+    - name: enrollmentCode
+      in: path
+      description: |
+        The enrollment code, available to the teacher in `ClassDetails`
+      required: true
+      schema:
+        type: string
     post:
       tags:
       - Class
@@ -3469,14 +3341,6 @@ paths:
 
         Flat will automatically add the user to the corresponding class group based on this role in the organization.
       operationId: enrollClass
-      parameters:
-      - name: enrollmentCode
-        in: path
-        description: |
-          The enrollment code, available to the teacher in `ClassDetails`
-        required: true
-        schema:
-          type: string
       responses:
         200:
           description: The new class details
@@ -3494,13 +3358,13 @@ paths:
       - OAuth2:
         - edu.classes
   /groups/{group}:
+    parameters:
+    - $ref: '#/components/parameters/group'
     get:
       tags:
       - Group
       summary: Get group information
       operationId: getGroupDetails
-      parameters:
-      - $ref: '#/components/parameters/group'
       responses:
         200:
           description: The group details
@@ -3522,13 +3386,14 @@ paths:
         - edu.classes
         - edu.classes.readonly
   /groups/{group}/users:
+    parameters:
+    - $ref: '#/components/parameters/group'
     get:
       tags:
       - Group
       summary: List group's users
       operationId: listGroupUsers
       parameters:
-      - $ref: '#/components/parameters/group'
       - name: source
         in: query
         description: |
@@ -3559,6 +3424,8 @@ paths:
         - edu.classes
         - edu.classes.readonly
   /groups/{group}/scores:
+    parameters:
+    - $ref: '#/components/parameters/group'
     get:
       tags:
       - Group
@@ -3568,7 +3435,6 @@ paths:
         Get the list of scores shared with a group.
       operationId: getGroupScores
       parameters:
-      - $ref: '#/components/parameters/group'
       - name: parent
         in: query
         description: Filter the score forked from the score id `parent`
@@ -3688,6 +3554,10 @@ components:
         id:
           type: string
           description: The user unique identifier
+        type:
+          type: string
+          description: The type of user account
+          enum: [user, guest]
         username:
           type: string
           description: The user name (unique for the organization)
@@ -3721,7 +3591,7 @@ components:
         isPowerUser: true
         isFlatTeam: true
       discriminator:
-        propertyName: userType
+        propertyName: type
     UserPublicSummary:
       description: Public User details summary
       allOf:
@@ -3992,6 +3862,10 @@ components:
             type: string
             description: |
               If the collaborator is not a user of Flat yet, this field will contain his email.
+          invited:
+            type: boolean
+            description: |
+              If this property is `true`, this is still a pending invitation
     ResourceCollaboratorCreation:
       type: object
       properties:
@@ -4750,7 +4624,7 @@ components:
       example:
         data: <score-partwise version="3.0"></score-partwise>
         history:
-        - id: 90.0
+        - id: b278ad43-2e99-4e60-a782-ac119b294ab8
           userId: '000000000000000000000010'
           fnc: action.AddMeasure
           args:
@@ -5335,6 +5209,8 @@ components:
     AssignmentCreation:
       type: object
       properties:
+        type:
+          $ref: '#/components/schemas/AssignmentType'
         state:
           type: string
           description: State of the assignment
@@ -5372,6 +5248,14 @@ components:
           type: string
           nullable: true
           description: The id of the associated toolset
+        coverFile:
+          type: string
+          nullable: true
+          description: The id of the cover to display
+        cover:
+          type: string
+          nullable: true
+          description: The URL of the cover to display
         maxPoints:
           type: number
           nullable: true
@@ -5389,7 +5273,6 @@ components:
         assigneeMode:
           type: string
           description: Possible modes of assigning assignments
-          default: everyone
           enum:
           - everyone
           - selected
@@ -5411,16 +5294,27 @@ components:
         scheduledDate: 2017-06-20T13:56:19.613000Z
         dueDate: 2017-07-12T13:56:19.613000Z
     AssignmentCopy:
-      required:
-      - classroom
       type: object
       properties:
         classroom:
           type: string
           description: The destination classroom where the assignment will be copied
+        assignment:
+          type: string
+          description: An optional destination assignment where the original assignement will be copied. Must be a draft.
       description: Assignment copy operation
       example:
         classroom: '0000000000000000'
+    AssignmentType:
+      type: string
+      description: Type of the assignment
+      enum:
+      - none
+      - newScore
+      - scoreTemplate
+      - sharedWriting
+      - worksheet
+      - performance
     Assignment:
       type: object
       properties:
@@ -5432,12 +5326,7 @@ components:
           - active
           - archived
         type:
-          type: string
-          description: Type of the assignment, determined by the attachments
-          enum:
-          - newScore
-          - scoreTemplate
-          - sharedWriting
+          $ref: '#/components/schemas/AssignmentType'
         title:
           type: string
           description: Title of the assignment
@@ -5447,6 +5336,12 @@ components:
         description:
           type: string
           description: Description and content of the assignment
+        cover:
+          type: string
+          description: The URL of the cover to display
+        coverFile:
+          type: string
+          description: The id of the cover to display
         attachments:
           type: array
           items:
@@ -5832,6 +5727,7 @@ components:
       - read
       - write
       - copy
+      - performance
     MediaAttachment:
       type: object
       properties:
@@ -5849,6 +5745,7 @@ components:
           - flat
           - googleDrive
           - worksheet
+          - performance
         score:
           type: string
           description: An unique Flat score identifier
@@ -5889,11 +5786,11 @@ components:
             If the attachment type is `rich`, `video`, `photo` or `link`, a
             displayable thumbnail for this attachment
         thumbnailWidth:
-          type: string
+          type: integer
           description: |
             If the `thumbnailUrl` is available, the width of the thumbnail
         thumbnailHeight:
-          type: string
+          type: integer
           description: |
             If the `thumbnailUrl` is available, the width of the thumbnail
         authorName:
@@ -5926,6 +5823,7 @@ components:
         authorName: Flat
         authorUrl: https://www.youtube.com/channel/UCEUIbEP9Rba_g0r4eeGhmXw
     FlatErrorResponse:
+      description: An API Error response
       type: object
       properties:
         code:
@@ -5954,15 +5852,6 @@ components:
         minimum: 1
         type: integer
         default: 50
-    limitDefault25Max100:
-      name: limit
-      in: query
-      description: This is the maximum number of objects that may be returned
-      schema:
-        maximum: 100
-        minimum: 1
-        type: integer
-        default: 25
     next:
       name: next
       in: query
@@ -5988,81 +5877,6 @@ components:
         enum:
         - asc
         - desc
-    score:
-      name: score
-      in: path
-      description: |
-        Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
-      required: true
-      schema:
-        type: string
-    sharingKey:
-      name: sharingKey
-      in: query
-      description: |
-        This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
-      schema:
-        type: string
-    scoreRevision:
-      name: revision
-      in: path
-      description: |
-        Unique identifier of a score revision. You can use `last` to fetch the information related to the last version created.
-      required: true
-      schema:
-        type: string
-    scoreParts:
-      name: parts
-      in: query
-      description: |
-        An optional a set of parts to be exported. This parameter must be
-        specified with a list of integers. For example "1,2,5".
-      schema:
-        type: string
-    resourceCollaborator:
-      name: collaborator
-      in: path
-      description: |
-        Unique identifier of a **collaborator permission**, or unique identifier of a **User**, or unique identifier of a **Group**
-      required: true
-      schema:
-        type: string
-    scoreTrack:
-      name: track
-      in: path
-      description: |
-        Unique identifier of a score audio track
-      required: true
-      schema:
-        type: string
-    scoreComment:
-      name: comment
-      in: path
-      description: |
-        Unique identifier of a sheet music comment
-      required: true
-      schema:
-        type: string
-    collection:
-      name: collection
-      in: path
-      description: |
-        Unique identifier of the collection.
-        The following aliases are supported:
-        - `root`: The root collection of the account
-        - `sharedWithMe`: Automatically contains new resources that have been shared individually
-        - `trash`: Automatically contains resources that have been deleted
-      required: true
-      schema:
-        type: string
-    user:
-      name: user
-      in: path
-      description: |
-        Unique identifier of a Flat user. If you authenticated, you can use `me` to refer to the current user.
-      required: true
-      schema:
-        type: string
     group:
       name: group
       in: path
@@ -6103,14 +5917,6 @@ components:
       name: comment
       in: path
       description: Unique identifier of the comment
-      required: true
-      schema:
-        type: string
-    organizationUser:
-      name: user
-      in: path
-      description: |
-        Unique identifier of the Flat account
       required: true
       schema:
         type: string
