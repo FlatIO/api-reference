@@ -2,15 +2,15 @@
   "name": "@flat/api-reference",
   "version": "2.9.0",
   "dependencies": {
-    "bower": "^1.7.7",
-    "connect": "^3.4.1",
-    "cors": "^2.7.1",
-    "gulp": "^4.0.0",
-    "gulp-connect": "^5.0.0",
+    "bower": "^1.8.12",
+    "connect": "^3.7.0",
+    "cors": "^2.8.5",
+    "gulp": "^4.0.2",
+    "gulp-connect": "^5.7.0",
     "gulp-util": "^3.0.7",
-    "portfinder": "^1.0.3",
-    "shelljs": "^0.8.0",
-    "swagger-repo": "^1.0.0"
+    "portfinder": "^1.0.28",
+    "shelljs": "^0.8.4",
+    "swagger-repo": "^1.5.1"
   },
   "private": true,
   "scripts": {
