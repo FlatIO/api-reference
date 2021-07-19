@@ -33,7 +33,7 @@ info:
     name: Flat
     url: https://flat.io/developers/docs/api/
     email: developers@flat.io
-  version: 2.12.0
+  version: 2.13.0
   x-logo:
     url: https://flat.io/img/logo-flat.svg
 servers:
@@ -84,6 +84,13 @@ paths:
       description: |
         Get details about the current authenticated User.
       operationId: getAuthenticatedUser
+      parameters:
+      - name: onlyId
+        in: query
+        description: Only return the user id
+        schema:
+          type: boolean
+          default: false
       responses:
         200:
           description: Current user details
@@ -680,6 +687,18 @@ paths:
           This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
         schema:
           type: string
+      - name: assignment
+        in: query
+        description: |
+          An assignment id with which all the tracks returned will be related to
+        schema:
+          type: string
+      - name: listAutoTrack
+        in: query
+        description: |
+          If true, and if available, return last automatically synchronized Flat's mp3 export as an additional track
+        schema:
+          type: boolean
       responses:
         200:
           description: List of tracks
@@ -1408,13 +1427,14 @@ paths:
         - wav
         - midi
         - thumbnail.png
+        - synchronizationPoints
     get:
       tags:
       - Score
       summary: Get a score revision data
       description: |
-        Retrieve the file corresponding to a score revision (the following formats are available: Flat JSON/Adagio JSON `json`, MusicXML
-        `mxl`/`xml`, MP3 `mp3`, WAV `wav`, MIDI `midi`, or a tumbnail of the first page `thumbnail.png`).
+        Retrieve the file corresponding to a score revision (the following formats are available): Flat JSON/Adagio JSON `json`, MusicXML
+        `mxl`/`xml`, MP3 `mp3`, WAV `wav`, MIDI `midi`, a tumbnail of the first page `thumbnail.png` or auto sync points `synchronizationPoints`.
       operationId: getScoreRevisionData
       parameters:
       - name: sharingKey
@@ -1435,6 +1455,12 @@ paths:
         description: |
           Only return files already generated and cached in Flat's production
           cache. If the file is not availabe, a 404 will be returned
+        schema:
+          type: boolean
+      - name: url
+        in: query
+        description: |
+          Returns a json with the `url` in it instead of redirecting
         schema:
           type: boolean
       responses:
@@ -3138,6 +3164,31 @@ paths:
         - edu.classes
         - edu.assignments
       x-codegen-request-body-name: body
+    delete:
+      tags:
+      - Class
+      summary: Delete a submission
+      description: |
+        Use this method as a teacher to delete a submission and allow student to start over the assignment
+      operationId: deleteSubmission
+      parameters:
+      - $ref: '#/components/parameters/class'
+      - $ref: '#/components/parameters/assignment'
+      - $ref: '#/components/parameters/submission'
+      responses:
+        204:
+          description: The submission has been deleted
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.classes
+        - edu.assignments
+      x-codegen-request-body-name: body
   /classes/{class}/assignments/{assignment}/submissions/{submission}/history:
     parameters:
     - $ref: '#/components/parameters/class'
@@ -3575,7 +3626,8 @@ components:
           description: A displayable name for the user (for consumer users)
         picture:
           type: string
-          description: User pictue
+          nullable: true
+          description: The URL of the picture to display
         isPowerUser:
           type: boolean
           description: User license status. 'true' if user is an individual Power user
@@ -3633,13 +3685,16 @@ components:
           ownedPublicScoresCount:
             type: integer
             description: Number of public scores the user have
+          coverPicture:
+            type: string
+            description: Cover picture (backgroud) for the profile
           profileTheme:
             type: string
             description: Theme (background) for the profile
           instruments:
             type: array
             description: |
-              An array of the instrument identifiers used the different score parts.
+              An array of the instrument identifiers.
               The format of the strings is `{instrument-group}.{instrument-id}`.
             items:
               type: string
@@ -3758,6 +3813,14 @@ components:
             description: Tell either this user profile is private or not (individual accounts only)
           locale:
             $ref: '#/components/schemas/FlatLocales'
+          pictureFile:
+            type: string
+            nullable: true
+            description: The ID of the user profile picture
+          coverPictureFile:
+            type: string
+            nullable: true
+            description: The ID of the user profile cover picture
     Group:
       type: object
       properties:
@@ -3991,13 +4054,13 @@ components:
             type: string
             description: Additional license text written on the exported/printed score
           durationTime:
-            type: integer
+            type: number
             description: In seconds, an approximative duration of the score
           numberMeasures:
             type: integer
             description: The number of measures in the score
           mainTempoQpm:
-            type: integer
+            type: number
             description: The main tempo of the score (in QPM)
           rights:
             $ref: '#/components/schemas/ResourceRights'
@@ -5041,6 +5104,27 @@ components:
           $ref: '#/components/schemas/GroupDetails'
         teachersGroup:
           $ref: '#/components/schemas/GroupDetails'
+        issues:
+          type: object
+          description: Detected issues for this class
+          properties:
+            sync:
+              type: array
+              description: Synchronization issues for the class
+              items:
+                type: object
+                description: A sync issue
+                properties:
+                  id:
+                    type: string
+                    description: The account user identifier
+                  email:
+                    type: string
+                    description: The email address of the user concerned by this sync issue
+                  reason:
+                    type: string
+                    enum: [otherOrgnanization, personalSubscription]
+                    description: The reason why the account cannot be synced
         googleClassroom:
           type: object
           properties:
@@ -5265,11 +5349,22 @@ components:
             If set, the grading will be enabled for the assignement with this value as the maximum of points
         googleClassroom:
           type: object
+          description: Google Classroom options for this assignment
           properties:
             topicId:
               type: string
               nullable: true
               description: Identifier of the topic where the assignment is created
+        microsoftGraph:
+          type: object
+          description: Microsoft Graph options for this assignment
+          properties:
+            categories:
+              description: List of categories this assignment belongs to
+              type: array
+              nullable: true
+              items:
+                type: string
         assigneeMode:
           type: string
           description: Possible modes of assigning assignments
@@ -5302,6 +5397,13 @@ components:
         assignment:
           type: string
           description: An optional destination assignment where the original assignement will be copied. Must be a draft.
+        scheduledDate:
+          type: string
+          description: |
+            The publication (scheduled) date of the assignment.
+            If this one is specified, the assignment will only be listed to the teachers of the class.
+            Alternatively the existing `scheduledDate` from the copied assignment will be used.
+          format: date-time
       description: Assignment copy operation
       example:
         classroom: '0000000000000000'
@@ -5376,8 +5478,11 @@ components:
             If set, the grading will be enabled for the assignement
         googleClassroom:
           $ref: '#/components/schemas/GoogleClassroomCoursework'
+        microsoftGraph:
+          $ref: '#/components/schemas/MicrosoftGraphAssignment'
         mfc:
           type: object
+          description: A MusicFirst Classroom assignment
           properties:
             id:
               type: string
@@ -5387,6 +5492,7 @@ components:
               description: Link to MusicFirst Classroom task
         canvas:
           type: object
+          description: A Canvas LMS assignment
           properties:
             id:
               type: string
@@ -5396,6 +5502,7 @@ components:
               description: Link to Canvas assignment
         lti:
           type: object
+          description: An LTI assignment
           properties:
             id:
               type: string
@@ -5545,6 +5652,8 @@ components:
           description: Optional max points for the grade. If set, a corresponding `draftGrade` or `grade` will be set.
         googleClassroom:
           $ref: '#/components/schemas/GoogleClassroomSubmission'
+        microsoftGraph:
+          $ref: '#/components/schemas/MicrosoftGraphSubmission'
       description: Assignment Submission
       example:
         id: 58c4955c226ffff257211a90
@@ -5634,6 +5743,47 @@ components:
             revision:
               type: string
               description: The revision identifier that changed
+    MicrosoftGraphAssignment:
+      type: object
+      description: A Microsoft Teams asignment
+      properties:
+        id:
+          type: string
+          description: Identifier of the assignement assigned by Microsoft Teams
+        state:
+          type: string
+          description: State of the assignment
+        alternateLink:
+          type: string
+          description: Absolute link to this assignement in the Microsoft Teams web UI
+        categories:
+          type: array
+          description: List of categories where this assignment is published under
+          items:
+            type: string
+            description: A Microsoft Teams assignment category ID
+      example:
+        id: 8e460d32-d2d4-46b3-8e1a-9b7677a48fda
+        state: draft
+        alternateLink: https://teams.microsoft.com/l/entity
+        categories: [0a012acd-6e78-4cd0-89a9-80d296e48f82]
+    MicrosoftGraphSubmission:
+      type: object
+      description: A Microsoft Teams submission
+      properties:
+        id:
+          type: string
+          description: Identifier of the submission assigned by Microsoft Teams
+        state:
+          type: string
+          description: State of the submission
+        alternateLink:
+          type: string
+          description: Absolute link to this submission in the Microsoft Teams web UI
+      example:
+        id: 8e460d32-d2d4-46b3-8e1a-9b7677a48fda
+        state: returned
+        alternateLink: https://teams.microsoft.com/l/entity
     GoogleClassroomCoursework:
       type: object
       properties:
@@ -5653,6 +5803,7 @@ components:
       description: A coursework on Google Classroom
       example:
         id: '1235665432'
+        state: draft
         alternateLink: http://classroom.google.com/c/music-theory/a/first-assignment/detail
     GoogleClassroomSubmission:
       type: object
@@ -5755,6 +5906,9 @@ components:
         worksheet:
           type: string
           description: An unique worksheet identifier
+        track:
+          type: string
+          description: A unique track identifier
         sharingMode:
           $ref: '#/components/schemas/MediaScoreSharingMode'
         lockScoreTemplate:
