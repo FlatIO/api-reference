@@ -33,9 +33,9 @@ info:
     name: Flat
     url: https://flat.io/developers/docs/api/
     email: developers@flat.io
-  version: 2.13.0
+  version: 2.14.0
   x-logo:
-    url: https://flat.io/img/logo-flat.svg
+    url: https://prod.flat-cdn.com/img/logo-flat.svg
 servers:
 - url: https://api.flat.io/v2
 tags:
@@ -114,7 +114,11 @@ paths:
       - Score
       summary: Create a new score
       description: |
-        Use this API method to **create a new music score in the current User account**. You will need a MusicXML 3 (`vnd.recordare.musicxml` or `vnd.recordare.musicxml+xml`), a MIDI (`audio/midi`), Guitar Pro (GP3, GP4, GP5, GPX, GP), PowerTab, TuxGuitar, or MuseScore file to create the new Flat document.
+        Use this API method to **create a new music score in the current User account**. This API endpoints provides 3 ways to create scores:
+
+        * `ScoreCreationBuilderData` : Create a blank score by providing the list of instruments to use. You can optionally customize the initial key signature, time signature, enable TABs, Chord grids, as well as the page layout.
+        * `ScoreCreationFileImport`: Import an existing MusicXML 3 file (`vnd.recordare.musicxml` or `vnd.recordare.musicxml+xml`), a MIDI file (`audio/midi`), Guitar Pro (GP3, GP4, GP5, GPX, GP), PowerTab, TuxGuitar, or MuseScore file to create the new Flat document.
+        * `ScoreCreationGoogleDriveImport`: Import an existing Google Drive file from the connected Google Drive account.
 
         This API call will automatically create the first revision of the document, the score can be modified by the using our web application or by uploading a new revision of this file (`POST /v2/scores/{score}/revisions/{revision}`).
 
@@ -128,7 +132,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ScoreCreation'
+              oneOf:
+              - $ref: '#/components/schemas/ScoreCreationBuilderData'
+              - $ref: '#/components/schemas/ScoreCreationFileImport'
+              - $ref: '#/components/schemas/ScoreCreationGoogleDriveImport'
         required: true
       responses:
         200:
@@ -3762,6 +3769,14 @@ components:
           format: password
         locale:
           $ref: '#/components/schemas/FlatLocales'
+        role:
+          description: Role of the new account
+          type: string
+          default: user
+          enum:
+          - user
+          - teacher
+          - admin
       description: User creation
     UserAdminUpdate:
       type: object
@@ -4402,7 +4417,7 @@ components:
             If the score is a file on Google Drive, this field property must contain its identifier. To use this method, the Drive file must be public or the Flat Drive App must have access to the file.
       example:
         googleDrive: 0B-0000000000000001
-    ScoreCreation:
+    ScoreCreationCommon:
       required:
       - privacy
       type: object
@@ -4416,24 +4431,8 @@ components:
               - Use the title contained in the file (e.g. [`movement-title`](https://usermanuals.musicxml.com/MusicXML/Content/EL-MusicXML-movement-title.htm) or [`credit-words`](https://usermanuals.musicxml.com/MusicXML/Content/EL-MusicXML-credit-words.htm) for [MusicXML](http://www.musicxml.com/) files).
               - Use the name of the file for files from a specified `source` (e.g. Google Drive) or the one in the `filename` property
               - Set a default title (e.g. "New Music Score")
-        filename:
-          type: string
-          description: If this is an imported file, its filename
         privacy:
           $ref: '#/components/schemas/ScorePrivacy'
-        data:
-          type: string
-          description: |
-            The data of the score file. It must be a MusicXML 3 file (`vnd.recordare.musicxml` or `vnd.recordare.musicxml+xml`), a MIDI file (`audio/midi`) or a Flat.json (aka Adagio.json) file.
-            Binary payloads (`vnd.recordare.musicxml` and `audio/midi`) can be encoded in Base64, in this case the `dataEncoding` property must match the encoding used for the API request.
-          example: <score-partwise version="3.0"></score-partwise>
-        dataEncoding:
-          type: string
-          description: The optional encoding of the score data. This property must match the encoding used for the `data` property.
-          enum:
-          - base64
-        source:
-          $ref: '#/components/schemas/ScoreSource'
         collection:
           type: string
           description: |
@@ -4443,12 +4442,159 @@ components:
           type: string
           description: |
             If the user uses Google Drive and this properties is specified, the file will be created in this directory. The currently user creating the file must be granted to write in this directory.
-      description: A new created score
-      example:
-        title: My new score
-        privacy: private
-        data: <score-partwise version="3.0"></score-partwise>
-        googleDriveFolder: 0B-0000000000000000
+    ScoreCreationFileImport:
+      allOf:
+      - $ref: '#/components/schemas/ScoreCreationCommon'
+      - type: object
+        required:
+        - data
+        properties:
+          filename:
+            type: string
+            description: If this is an imported file, its filename
+          data:
+            type: string
+            description: |
+              The data of the score file. It must be a MusicXML 3 file (`vnd.recordare.musicxml` or `vnd.recordare.musicxml+xml`), a MIDI file (`audio/midi`) or a Flat.json (aka Adagio.json) file.
+              Binary payloads (`vnd.recordare.musicxml` and `audio/midi`) can be encoded in Base64, in this case the `dataEncoding` property must match the encoding used for the API request.
+          dataEncoding:
+            type: string
+            description: The optional encoding of the score data. This property must match the encoding used for the `data` property.
+            enum:
+            - base64
+        description: A newly created score from an imported file
+        example:
+          title: My new score
+          privacy: private
+          data: <score-partwise version="3.0">...[Your actual file will be provided in this property]...</score-partwise>
+    ScoreCreationGoogleDriveImport:
+      allOf:
+      - $ref: '#/components/schemas/ScoreCreationCommon'
+      - type: object
+        required:
+        - source
+        properties:
+          source:
+            $ref: '#/components/schemas/ScoreSource'
+        description: A newly created score from a file from Google Drive
+        example:
+          title: My new score
+          privacy: private
+          source:
+            googleDrive: 0B-0000000000000001
+            privacy: private
+    ScoreCreationBuilderData:
+      allOf:
+      - $ref: '#/components/schemas/ScoreCreationCommon'
+      - type: object
+        required:
+        - title
+        - builderData
+        properties:
+          builderData:
+            type: object
+            required:
+            - scoreData
+            properties:
+              scoreData:
+                required:
+                - instruments
+                type: object
+                properties:
+                  useTabStaff:
+                    type: boolean
+                    description: true if the TAB staff is displayed with fretted instruments
+                  useChordGrid:
+                    type: boolean
+                    description: true if the chord grid must be displayed with fretted instruments
+                  fifths:
+                    type: number
+                    description: The key signature of the score (expressed between -7 and 7). Major C is used when the value is not provided.
+                  nbBeats:
+                    type: number
+                    description: The number of beats in the measure
+                  beatType:
+                    type: number
+                    description: The duration of a beat in the measure
+                  instruments:
+                    type: array
+                    description: |
+                      The list of instruments to add to the score.
+                      See https://prod.flat-cdn.com/fixtures/instruments_en.json for the possible values for `group` and `instrument`.
+                    items:
+                      required:
+                      - group
+                      - instrument
+                      type: object
+                      properties:
+                        group:
+                          type: string
+                          description: The  of the instrument group (e.g. `keyboards`, `brass`)
+                        instrument:
+                          type: string
+                          description: The identifier of the instrument (e.g. `piano`, `trumpet`)
+                        longName:
+                          type: string
+                          description: The full name of the instrument
+                        shortName:
+                          type: string
+                          description: The abbreviation of the name of the instrument
+              layoutData:
+                type: object
+                description: Control the appearance of the score. If missing, default values are used.
+                properties:
+                  notesSpacingCoeff:
+                    type: number
+                    description: A float value >= 1 that controls the spacing between notes.
+                  lengthUnit:
+                    description: The unit to use for layout customizations
+                    type: string
+                    default: cm
+                    enum:
+                    - cm
+                    - inch
+                  pageHeight:
+                    type: number
+                    description: The height of the page in chosen unit (`lengthUnit`).
+                  pageWidth:
+                    type: number
+                    description: The width of the page in chosen unit (`lengthUnit`).
+                  pageMarginTop:
+                    type: number
+                    description: The top margin of the page in chosen unit (`lengthUnit`).
+                  pageMarginBottom:
+                    type: number
+                    description: The bottom margin of the page in chosen unit (`lengthUnit`).
+                  pageMarginLeft:
+                    type: number
+                    description: The left margin of the page in chosen unit (`lengthUnit`).
+                  pageMarginRight:
+                    type: number
+                    description: The right margin of the page in chosen unit (`lengthUnit`).
+        example:
+          title: Violin and Piano
+          privacy: private
+          builderData:
+            scoreData:
+              fifths: 8
+              nbBeats: 2
+              beatType: 4
+              instruments:
+              - group: strings
+                instrument: hq-violin
+              - group: strings
+                instrument: hq-grand-piano
+                shortName: Pno.
+                longName: Super Piano
+            layoutData:
+              notesSpacingCoeff: 2
+              lengthUnit: cm
+              pageHeight: 29.7
+              pageWidth: 21
+              pageMarginTop: 1.5
+              pageMarginBottom: 1.5
+              pageMarginLeft: 2.5
+              pageMarginRight: 2.5
     ScoreFork:
       type: object
       properties:
@@ -5376,6 +5522,9 @@ components:
           items:
             type: string
           description: Identifiers for the students that have access to the assignment
+        shuffleExercises:
+          type: boolean
+          description: Mixing exercises for each students
       description: Assignment creation details
       example:
         title: First assignment
@@ -5578,6 +5727,12 @@ components:
           minimum: 0
           maximum: 100
           description: Optional grade. If unset, no grade was set.
+        exercisesIds:
+          type: array
+          nullable: true
+          items:
+            type: string
+          description: The ids of exercises when they need to be in a specific order
         return:
           type: boolean
           description: If `true`, the submission will be marked as done
@@ -5650,6 +5805,12 @@ components:
         maxPoints:
           type: number
           description: Optional max points for the grade. If set, a corresponding `draftGrade` or `grade` will be set.
+        exercisesIds:
+          type: array
+          nullable: true
+          items:
+            type: string
+          description: The ids of exercises when they need to be in a specific order
         googleClassroom:
           $ref: '#/components/schemas/GoogleClassroomSubmission'
         microsoftGraph:
