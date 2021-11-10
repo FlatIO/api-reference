@@ -33,7 +33,7 @@ info:
     name: Flat
     url: https://flat.io/developers/docs/api/
     email: developers@flat.io
-  version: 2.14.0
+  version: 2.15.0
   x-logo:
     url: https://prod.flat-cdn.com/img/logo-flat.svg
 servers:
@@ -1457,11 +1457,10 @@ paths:
           separated by commas. For example "59df645f-bb1c-f1b4-b573-d2afc4491f94,34ef645f-1aef-f3bc-1564-34cca4492b87".
         schema:
           type: string
-      - name: onlyCached
+      - name: defaultTrack
         in: query
         description: |
-          Only return files already generated and cached in Flat's production
-          cache. If the file is not availabe, a 404 will be returned
+          When `format` is `mp3`, this property is set to true and the score has a default `ScoreTrack` (mp3), this one will be returned instead of the playback file.
         schema:
           type: boolean
       - name: url
@@ -2298,6 +2297,81 @@ paths:
       responses:
         204:
           description: User deleted
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.admin
+        - edu.admin.users
+  /organizations/users/{user}/signinLink:
+    parameters:
+    - name: user
+      in: path
+      description: |
+        Unique identifier of the Flat account
+      required: true
+      schema:
+        type: string
+    post:
+      tags:
+      - Organization
+      summary: Create a sign in link for an organization user
+      operationId: createOrganizationUserSigninLink
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationUserSigninLinkCreation'
+      responses:
+        200:
+          description: Sign in link
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationUserSigninLink'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.admin
+        - edu.admin.users
+  /organizations/users/{user}/accessToken:
+    parameters:
+    - name: user
+      in: path
+      description: |
+        Unique identifier of the Flat account
+      required: true
+      schema:
+        type: string
+    post:
+      tags:
+      - Organization
+      operationId: createOrganizationUserAccessToken
+      summary: Create a delegated API access token for an organization user
+      description: |
+        This operation will create an API access token for a chosen organization user.
+        This token will be valid for a limited time and can be used to access the API as the organization user.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationUserAccessTokenCreation'
+      responses:
+        200:
+          description: Created API access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiAccessToken'
         default:
           description: Error
           content:
@@ -3565,6 +3639,7 @@ components:
       - de
       - it
       - ja
+      - ja-HIRA
       - ko
       - nl
       - pl
@@ -3836,6 +3911,28 @@ components:
             type: string
             nullable: true
             description: The ID of the user profile cover picture
+    OrganizationUserSigninLinkCreation:
+      type: object
+      properties:
+        destinationPath:
+          type: string
+          description: Path to redirect to after signin
+          default: /
+      example:
+        destinationPath: /class
+    OrganizationUserSigninLink:
+      type: object
+      properties:
+        url:
+          type: string
+          description: URL to use to sign in to this account
+        expirationDate:
+          type: string
+          description: Date when the link expires
+          format: date-time
+      example:
+        url: https://demo.flat.io/auth/signin-link/00000000-0000-0000-0000-000000000000?next=%2F
+        expirationDate: 2022-01-01T00:00:00Z
     Group:
       type: object
       properties:
@@ -5031,6 +5128,17 @@ components:
           type: string
           description: |
             If the user is marked as resolved, this will contain the unique identifier of the User who marked this comment as resolved
+        moderation:
+          type: object
+          description: Information about the comment being moderated
+          properties:
+            hidden:
+              type: boolean
+              description: If true, this comment will be hidden from other users
+            reason:
+              type: string
+              description: If the comment is hidden, the reason why this one has been moderated
+              enum: [spam, inappropriate]
         spam:
           type: boolean
           description: |
@@ -5063,6 +5171,81 @@ components:
         resolved: true
         resolvedBy: '000000000000000000000000'
         spam: false
+    AppScopes:
+      type: string
+      description: Available scopes
+      enum:
+      - account.public_profile
+      - account.email
+      - account.education_profile
+      - scores.readonly
+      - scores.social
+      - scores
+      - collections.readonly
+      - collections.add_scores
+      - collections
+      - edu.classes
+      - edu.classes.readonly
+      - edu.assignments
+      - edu.assignments.readonly
+      - edu.admin
+      - edu.admin.lti
+      - edu.admin.lti.readonly
+      - edu.admin.users
+      - edu.admin.users.readonly
+    OrganizationUserAccessTokenCreation:
+      required:
+      - scopes
+      type: object
+      properties:
+        scopes:
+          type: array
+          description: List of requested scopes for this credential
+          items:
+            $ref: '#/components/schemas/AppScopes'
+      description: Creation of a delegated API access token for an organization user
+      example:
+        scopes:
+        - account.public_profile
+        - account.education_profile
+        - edu.classes.readonly
+    ApiAccessToken:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of this private token
+        name:
+          type: string
+          description: Name of the personal access token
+        token:
+          type: string
+          description: |
+            The token. This token will only be returned once, then only the first 4 characters will be returned.
+        issuedDate:
+          type: string
+          description: |
+            The date then this token was issued
+          format: date-time
+        expirationDate:
+          type: string
+          description: |
+            The date then this token will expire
+          format: date-time
+        scopes:
+          type: array
+          description: |
+            The list of scopes associated to the token
+          items:
+            $ref: '#/components/schemas/AppScopes'
+      description: An API access token
+      example:
+        id: '0000000000000000'
+        name: API Access Token name
+        token: '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+        issuedDate: 2022-01-01T00:00:00Z
+        expirationDate: 2022-01-01T00:00:00Z
+        scopes: [account.public_profile, account.education_profile, collections.readonly]
     OrganizationInvitationCreation:
       type: object
       properties:
