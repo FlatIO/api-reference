@@ -33,7 +33,7 @@ info:
     name: Flat
     url: https://flat.io/developers/docs/api/
     email: developers@flat.io
-  version: 2.15.0
+  version: 2.16.0
   x-logo:
     url: https://prod.flat-cdn.com/img/logo-flat.svg
 servers:
@@ -67,6 +67,7 @@ tags:
 
     At this time, only `private` privacy mode is widely available. Privacy modes `public`, `organizationPublic` and `privateLink`, and 1:1 sharing will be available in an upcoming update later this year.
   x-displayName: Collections of music scores
+
 - name: User
   description: Flat users
 - name: Organization
@@ -75,6 +76,8 @@ tags:
   description: Flat for Education classes
 - name: Group
   description: Flat Groups
+- name: Task
+  description: Scheduled tasks
 paths:
   /me:
     get:
@@ -1529,6 +1532,88 @@ paths:
       - OAuth2:
         - scores
         - scores.readonly
+  /scores/{score}/revisions/{revision}/{format}/task:
+    post:
+      tags:
+      - Score
+      summary: Create a new score export task
+      description: |
+        Some of the exports of a score takes are longer to process than a simple API requests.
+        Use this endpoint to launch a new export of one score hosted on Flat.
+      operationId: createExportTask
+      parameters:
+      - name: score
+        in: path
+        description: |
+          Unique identifier of the score document. This can be a Flat Score unique identifier (i.e. `ScoreDetails.id`) or, if the score is also a Google Drive file, the Drive file unique identifier prefixed with `drive-` (e.g. `drive-0B000000000`).
+        required: true
+        schema:
+          type: string
+      - name: revision
+        in: path
+        description: |
+          Unique identifier of a score revision. You can use `last` to fetch the information related to the last version created.
+        required: true
+        schema:
+          type: string
+      - name: format
+        in: path
+        description: The format of the file that will be generated or the target service name where the file will be exported
+        required: true
+        schema:
+          type: string
+          enum:
+          - mp3
+          - wav
+          - practicefirst
+      - name: sharingKey
+        in: query
+        description: |
+          This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskExportOptions'
+        required: false
+      responses:
+        200:
+          description: Task associated to the generation of the file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        402:
+          description: Account overquota
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        403:
+          description: Not granted to access to this score
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        404:
+          description: Score or associated file not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - scores
+        - scores.readonly
+      x-codegen-request-body-name: body
   /collections:
     get:
       tags:
@@ -1994,6 +2079,37 @@ paths:
       security:
       - OAuth2:
         - collections
+  /tasks/{task}:
+    parameters:
+    - name: task
+      in: path
+      description: Unique identifier for the task
+      required: true
+      schema:
+        type: string
+    get:
+      tags:
+      - Task
+      summary: Get a task details
+      description: |
+        This method can be used to follow a task progression, for example while a score is being exported.
+      operationId: getTask
+      responses:
+        200:
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - tasks.readonly
   /users/{user}:
     parameters:
     - name: user
@@ -2008,7 +2124,7 @@ paths:
       - User
       summary: Get a public user profile
       description: |
-        Get a public profile of a Flat User.
+        Get a profile of a Flat or Flat for Education User.
       operationId: getUser
       responses:
         200:
@@ -3626,6 +3742,7 @@ components:
             edu.admin.lti.readonly: Read-only access to the LTI Credentials of an organization.
             edu.admin.users: Access and manage the users and invitations of the organization.
             edu.admin.users.readonly: Read-only access to the users and invitations of the organization.
+            tasks.readonly: Read-only access to export tasks created by this account.
   schemas:
     FlatLocales:
       type: string
@@ -4938,6 +5055,20 @@ components:
             measureUuid: 0be9f739-3213-f312-bb0a-00ad0c787ef7
         autosave: true
         description: New revision
+    TaskExportOptions:
+      type: object
+      properties:
+        parts:
+          type: array
+          description: A list of parts to specifically export
+          items:
+            type: string
+      description: |
+        Options for the requested export
+      example:
+        parts:
+        - 49b7d7c5-7490-4f76-9813-607f79e5b92b
+        - 96b5066b-54ed-4c6b-b3fc-cb7281403a89
     ScoreCommentContext:
       required:
       - measureUuids
@@ -5193,6 +5324,7 @@ components:
       - edu.admin.lti.readonly
       - edu.admin.users
       - edu.admin.users.readonly
+      - tasks.readonly
     OrganizationUserAccessTokenCreation:
       required:
       - scopes
@@ -6320,6 +6452,50 @@ components:
         thumbnailWidth: 1868
         authorName: Flat
         authorUrl: https://www.youtube.com/channel/UCEUIbEP9Rba_g0r4eeGhmXw
+    Task:
+      type: object
+      description: An asynchronous task
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the task
+        type:
+          type: string
+          description: Type of the task
+          enum:
+          - audio-export
+          - audio-low-prio
+        state:
+          type: string
+          description: State of the Task
+          enum:
+          - created
+          - doing
+          - done
+          - canceled
+          - error
+        progress:
+          type: object
+          description: Details about the task progression
+          properties:
+            percent:
+              type: number
+              description: Percent of the task progression
+            text:
+              type: string
+              description: Text details of the task progress
+        creationDate:
+          type: string
+          description: The creation date of the task
+          format: date-time
+        modificationDate:
+          type: string
+          description: The last modification date of the task
+          format: date-time
+        doneDate:
+          type: string
+          description: The date when the task has been completed
+          format: date-time
     FlatErrorResponse:
       description: An API Error response
       type: object
