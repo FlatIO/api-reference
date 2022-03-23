@@ -10,4 +10,4 @@ flat_api_client = flat_api.ApiClient(configuration)
 try:
     pprint(flat_api.AccountApi(flat_api_client).get_authenticated_user())
 except ApiException as e:
-    print e
+    print(e)

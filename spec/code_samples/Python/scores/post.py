@@ -1,5 +1,7 @@
 from pprint import pprint
-import os, urllib2
+import os
+from urllib.request import urlopen
+from urllib.error import HTTPError
 
 import flat_api
 from flat_api.rest import ApiException
@@ -12,7 +14,7 @@ flat_api_client = flat_api.ApiClient(configuration)
 
 try:
     # Download a MusicXML "Hello World"
-    hello_world = urllib2.urlopen(SCORE_TO_IMPORT).read()
+    hello_world = urlopen(SCORE_TO_IMPORT).read().decode('utf-8')
 
     # The new score meta, including the MusicXML file as `data`
     new_score = flat_api.ScoreCreation(
@@ -23,5 +25,5 @@ try:
 
     # Create the document and print the meta returned by the API
     pprint(flat_api.ScoreApi(flat_api_client).create_score(new_score))
-except (ApiException, urllib2.HTTPError) as e:
-    print e
+except (ApiException, HTTPError) as e:
+    print(e)
