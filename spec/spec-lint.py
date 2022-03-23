@@ -1,4 +1,7 @@
 #! /usr/bin/env python
+'''
+Copyright (c) 2022, Tutteo Limited. All rights reserved.
+'''
 
 import ruamel.yaml
 from ruamel.yaml.scalarstring import PreservedScalarString, preserve_literal

@@ -3808,137 +3808,199 @@ components:
       - distributor
       - subscription
       - appStore
-    UserBasics:
+    UserPublicSummary:
       type: object
       properties:
-        id:
-          type: string
-          description: The user unique identifier
-        type:
-          type: string
-          description: The type of user account
-          enum: [user, guest]
         username:
           type: string
           description: The user name (unique for the organization)
-        printableName:
-          type: string
-          description: The name that can be directly printed (name, firstname & lastname, or username)
-        firstname:
-          type: string
-          description: Firstname of the user (for education users)
-        lastname:
-          type: string
-          description: Lastname of the user (for education users)
-        name:
-          type: string
-          description: A displayable name for the user (for consumer users)
         picture:
           type: string
           nullable: true
           description: The URL of the picture to display
+        name:
+          type: string
+          description: A displayable name for the user (for consumer users)
+        firstname:
+          type: string
+          description: Firstname of the user (for education users)
         isPowerUser:
           type: boolean
           description: User license status. 'true' if user is an individual Power user
         isFlatTeam:
           type: boolean
           description: Will be 'true' if user is part of the Flat Team
-      example:
-        id: '000000000000000000000001'
-        username: flat
-        name: Flat Team
-        printableName: Flat Team
-        picture: https://flat.io/img/logo_flat.svg
-        isPowerUser: true
-        isFlatTeam: true
-      discriminator:
-        propertyName: type
-    UserPublicSummary:
-      description: Public User details summary
-      allOf:
-      - $ref: '#/components/schemas/UserBasics'
-      - type: object
-        properties:
-          organization:
-            type: string
-            description: Organization ID (for Edu users only)
-          organizationRole:
-            $ref: '#/components/schemas/OrganizationRoles'
-          classRole:
-            $ref: '#/components/schemas/ClassRoles'
-          htmlUrl:
-            type: string
-            description: Link to user profile (for Indiv. users only)
+        lastname:
+          type: string
+          description: Lastname of the user (for education users)
+        htmlUrl:
+          type: string
+          description: Link to user profile (for Indiv. users only)
+        printableName:
+          type: string
+          description: The name that can be directly printed (name, firstname & lastname, or username)
+        organizationRole:
+          $ref: '#/components/schemas/OrganizationRoles'
+        classRole:
+          $ref: '#/components/schemas/ClassRoles'
+        organization:
+          type: string
+          description: Organization ID (for Edu users only)
+        type:
+          type: string
+          description: The type of user account
+          enum: [user, guest]
+        id:
+          type: string
+          description: The user unique identifier
     UserPublic:
-      description: Public User details
-      allOf:
-      - $ref: '#/components/schemas/UserPublicSummary'
-      - type: object
-        properties:
-          bio:
+      type: object
+      properties:
+        username:
+          type: string
+          description: The user name (unique for the organization)
+        picture:
+          type: string
+          nullable: true
+          description: The URL of the picture to display
+        followersCount:
+          type: integer
+          description: Number of followers the user have
+        firstname:
+          type: string
+          description: Firstname of the user (for education users)
+        isPowerUser:
+          type: boolean
+          description: User license status. 'true' if user is an individual Power user
+        lastname:
+          type: string
+          description: Lastname of the user (for education users)
+        htmlUrl:
+          type: string
+          description: Link to user profile (for Indiv. users only)
+        followingCount:
+          type: integer
+          description: Number of people the user follow
+        likedScoresCount:
+          type: integer
+          description: Number of the scores liked by the user
+        printableName:
+          type: string
+          description: The name that can be directly printed (name, firstname & lastname, or username)
+        bio:
+          type: string
+          description: User's biography
+        id:
+          type: string
+          description: The user unique identifier
+        name:
+          type: string
+          description: A displayable name for the user (for consumer users)
+        isFlatTeam:
+          type: boolean
+          description: Will be 'true' if user is part of the Flat Team
+        organizationRole:
+          $ref: '#/components/schemas/OrganizationRoles'
+        profileTheme:
+          type: string
+          description: Theme (background) for the profile
+        coverPicture:
+          type: string
+          description: Cover picture (backgroud) for the profile
+        ownedPublicScoresCount:
+          type: integer
+          description: Number of public scores the user have
+        instruments:
+          type: array
+          description: |
+            An array of the instrument identifiers.
+            The format of the strings is `{instrument-group}.{instrument-id}`.
+          items:
             type: string
-            description: User's biography
-          registrationDate:
-            type: string
-            description: Date the user signed up
-            format: date-time
-          likedScoresCount:
-            type: integer
-            description: Number of the scores liked by the user
-          followersCount:
-            type: integer
-            description: Number of followers the user have
-          followingCount:
-            type: integer
-            description: Number of people the user follow
-          ownedPublicScoresCount:
-            type: integer
-            description: Number of public scores the user have
-          coverPicture:
-            type: string
-            description: Cover picture (backgroud) for the profile
-          profileTheme:
-            type: string
-            description: Theme (background) for the profile
-          instruments:
-            type: array
-            description: |
-              An array of the instrument identifiers.
-              The format of the strings is `{instrument-group}.{instrument-id}`.
-            items:
-              type: string
+        classRole:
+          $ref: '#/components/schemas/ClassRoles'
+        organization:
+          type: string
+          description: Organization ID (for Edu users only)
+        type:
+          type: string
+          description: The type of user account
+          enum: [user, guest]
+        registrationDate:
+          type: string
+          description: Date the user signed up
+          format: date-time
     UserDetailsAdmin:
-      description: User details (view for organization teacher / admin)
-      allOf:
-      - $ref: '#/components/schemas/UserPublicSummary'
-      - type: object
-        properties:
-          email:
-            type: string
-            description: Email of the user
-            format: email
-          lastActivityDate:
-            type: string
-            description: Date of the last user activity
-            format: date-time
-          license:
-            type: object
-            properties:
-              id:
-                type: string
-                description: ID of the current license
-              expirationDate:
-                type: string
-                description: Date when the license expires
-                format: date-time
-              source:
-                $ref: '#/components/schemas/LicenseSources'
-              mode:
-                $ref: '#/components/schemas/LicenseMode'
-              active:
-                type: boolean
-                description: ID of the current license
-            description: Current active license of the user
+      type: object
+      properties:
+        username:
+          type: string
+          description: The user name (unique for the organization)
+        picture:
+          type: string
+          nullable: true
+          description: The URL of the picture to display
+        license:
+          type: object
+          properties:
+            id:
+              type: string
+              description: ID of the current license
+            expirationDate:
+              type: string
+              description: Date when the license expires
+              format: date-time
+            source:
+              $ref: '#/components/schemas/LicenseSources'
+            mode:
+              $ref: '#/components/schemas/LicenseMode'
+            active:
+              type: boolean
+              description: ID of the current license
+          description: Current active license of the user
+        name:
+          type: string
+          description: A displayable name for the user (for consumer users)
+        firstname:
+          type: string
+          description: Firstname of the user (for education users)
+        isPowerUser:
+          type: boolean
+          description: User license status. 'true' if user is an individual Power user
+        isFlatTeam:
+          type: boolean
+          description: Will be 'true' if user is part of the Flat Team
+        lastname:
+          type: string
+          description: Lastname of the user (for education users)
+        lastActivityDate:
+          type: string
+          description: Date of the last user activity
+          format: date-time
+        htmlUrl:
+          type: string
+          description: Link to user profile (for Indiv. users only)
+        email:
+          type: string
+          description: Email of the user
+          format: email
+        printableName:
+          type: string
+          description: The name that can be directly printed (name, firstname & lastname, or username)
+        organizationRole:
+          $ref: '#/components/schemas/OrganizationRoles'
+        classRole:
+          $ref: '#/components/schemas/ClassRoles'
+        organization:
+          type: string
+          description: Organization ID (for Edu users only)
+        type:
+          type: string
+          description: The type of user account
+          enum: [user, guest]
+        id:
+          type: string
+          description: The user unique identifier
     UserCreation:
       required:
       - password
@@ -4011,33 +4073,97 @@ components:
           format: email
       description: User update as an organization admin
     UserDetails:
-      description: User details
-      allOf:
-      - $ref: '#/components/schemas/UserPublic'
-      - type: object
-        properties:
-          id:
+      type: object
+      properties:
+        username:
+          type: string
+          description: The user name (unique for the organization)
+        classRole:
+          $ref: '#/components/schemas/ClassRoles'
+        privateProfile:
+          type: boolean
+          description: Tell either this user profile is private or not (individual accounts only)
+        followersCount:
+          type: integer
+          description: Number of followers the user have
+        firstname:
+          type: string
+          description: Firstname of the user (for education users)
+        isPowerUser:
+          type: boolean
+          description: User license status. 'true' if user is an individual Power user
+        locale:
+          $ref: '#/components/schemas/FlatLocales'
+        instruments:
+          type: array
+          description: |
+            An array of the instrument identifiers.
+            The format of the strings is `{instrument-group}.{instrument-id}`.
+          items:
             type: string
-            description: Identifier of the user
-          type:
-            type: string
-            description: The type of account
-            enum:
-            - user
-            - guest
-          privateProfile:
-            type: boolean
-            description: Tell either this user profile is private or not (individual accounts only)
-          locale:
-            $ref: '#/components/schemas/FlatLocales'
-          pictureFile:
-            type: string
-            nullable: true
-            description: The ID of the user profile picture
-          coverPictureFile:
-            type: string
-            nullable: true
-            description: The ID of the user profile cover picture
+        htmlUrl:
+          type: string
+          description: Link to user profile (for Indiv. users only)
+        likedScoresCount:
+          type: integer
+          description: Number of the scores liked by the user
+        printableName:
+          type: string
+          description: The name that can be directly printed (name, firstname & lastname, or username)
+        bio:
+          type: string
+          description: User's biography
+        pictureFile:
+          type: string
+          nullable: true
+          description: The ID of the user profile picture
+        id:
+          type: string
+          description: Identifier of the user
+        coverPictureFile:
+          type: string
+          nullable: true
+          description: The ID of the user profile cover picture
+        picture:
+          type: string
+          nullable: true
+          description: The URL of the picture to display
+        name:
+          type: string
+          description: A displayable name for the user (for consumer users)
+        isFlatTeam:
+          type: boolean
+          description: Will be 'true' if user is part of the Flat Team
+        organizationRole:
+          $ref: '#/components/schemas/OrganizationRoles'
+        profileTheme:
+          type: string
+          description: Theme (background) for the profile
+        coverPicture:
+          type: string
+          description: Cover picture (backgroud) for the profile
+        ownedPublicScoresCount:
+          type: integer
+          description: Number of public scores the user have
+        lastname:
+          type: string
+          description: Lastname of the user (for education users)
+        followingCount:
+          type: integer
+          description: Number of people the user follow
+        organization:
+          type: string
+          description: Organization ID (for Edu users only)
+        type:
+          type: string
+          description: The type of account
+          enum:
+          - user
+          - guest
+        registrationDate:
+          type: string
+          description: Date the user signed up
+          format: date-time
     OrganizationUserSigninLinkCreation:
       type: object
       properties:
@@ -4141,33 +4267,53 @@ components:
         aclAdmin: true
         isCollaborator: true
     ResourceCollaborator:
-      description: |
-        A collaborator of a score. The `userEmail` and `group` are only available if the requesting user is a collaborator of the related score (in this case these permissions will eventualy not be listed and exposed publicly).
-      allOf:
-      - $ref: '#/components/schemas/ResourceRights'
-      - type: object
-        properties:
-          id:
-            type: string
-            description: The unique identifier of the permission
-          score:
-            type: string
-            description: If this object is a permission of a score, this property will contain the unique identifier of the score
-          collection:
-            type: string
-            description: If this object is a permission of a collection, this property will contain the unique identifier of the collection
-          user:
-            $ref: '#/components/schemas/UserPublic'
-          group:
-            $ref: '#/components/schemas/Group'
-          userEmail:
-            type: string
-            description: |
-              If the collaborator is not a user of Flat yet, this field will contain his email.
-          invited:
-            type: boolean
-            description: |
-              If this property is `true`, this is still a pending invitation
+      type: object
+      properties:
+        aclAdmin:
+          type: boolean
+          description: |
+            `True` if the current user can manage the current document (i.e. share, delete)
+
+            If this is a right of a Collection, the capabilities of the associated user can be lower than this permission, check out the `capabilities` property as the end-user to have the complete possibilities with the collection.
+          default: false
+        isCollaborator:
+          type: boolean
+          description: |
+            `True` if the current user is a collaborator of the current document (direct or via group).
+          default: false
+        group:
+          $ref: '#/components/schemas/Group'
+        aclWrite:
+          type: boolean
+          description: |
+            `True` if the current user can modify the current document.
+
+            If this is a right of a Collection, the capabilities of the associated user can be lower than this permission, check out the `capabilities` property as the end-user to have the complete possibilities with the collection.
+          default: false
+        invited:
+          type: boolean
+          description: |
+            If this property is `true`, this is still a pending invitation
+        userEmail:
+          type: string
+          description: |
+            If the collaborator is not a user of Flat yet, this field will contain his email.
+        collection:
+          type: string
+          description: If this object is a permission of a collection, this property will contain the unique identifier of the collection
+        score:
+          type: string
+          description: If this object is a permission of a score, this property will contain the unique identifier of the score
+        user:
+          $ref: '#/components/schemas/UserPublic'
+        id:
+          type: string
+          description: The unique identifier of the permission
+        aclRead:
+          type: boolean
+          description: |
+            `True` if the current user can read the current document
+          default: false
     ResourceCollaboratorCreation:
       type: object
       properties:
@@ -4206,38 +4352,6 @@ components:
         aclRead: true
         aclWrite: true
         aclAdmin: false
-    ScoreSummary:
-      type: object
-      properties:
-        id:
-          type: string
-          description: The unique identifier of the score
-        sharingKey:
-          type: string
-          description: The private sharing key of the score (available when the `privacy` mode is set to `privateLink`)
-        title:
-          type: string
-          description: The title of the score
-        privacy:
-          $ref: '#/components/schemas/ScorePrivacy'
-        user:
-          $ref: '#/components/schemas/UserPublicSummary'
-        htmlUrl:
-          type: string
-          description: The url where the score can be viewed in a web browser
-          format: url
-      description: A summary of the score details
-      example:
-        id: '000000000000000000000000'
-        title: My score
-        privacy: private
-        user:
-          id: '000000000000000000000001'
-          username: flat
-          name: Flat Team
-          printableName: Flat Team
-          picture: https://flat.io/img/logo_flat.svg
-        htmlUrl: https://flat.io/score/000000000000000000000000
     ScoreLicense:
       type: string
       description: |
@@ -4259,105 +4373,119 @@ components:
       - arrangement
       - other
     ScoreDetails:
-      description: The score and all its details
-      allOf:
-      - $ref: '#/components/schemas/ScoreSummary'
-      - type: object
-        properties:
-          subtitle:
+      type: object
+      properties:
+        subtitle:
+          type: string
+          description: Subtitle of the score
+        instruments:
+          type: array
+          description: |
+            An array of the instrument identifiers used in the last version of the score. This is mainly used to display a list of the instruments in the Flat's UI or instruments icons. The format of the strings is `{instrument-group}.{instrument-id}`.
+          items:
             type: string
-            description: Subtitle of the score
-          lyricist:
+        lyricist:
+          type: string
+          description: Lyricist of the score
+        publicationDate:
+          type: string
+          description: The date when the score was published on Flat
+          format: date-time
+        composer:
+          type: string
+          description: Composer of the score
+        licenseText:
+          type: string
+          description: Additional license text written on the exported/printed score
+        modificationDate:
+          type: string
+          description: The date of the last revision of the score
+          format: date-time
+        id:
+          type: string
+          description: The unique identifier of the score
+        plays:
+          $ref: '#/components/schemas/ScorePlaysCounts'
+        title:
+          type: string
+          description: The title of the score
+        creationType:
+          $ref: '#/components/schemas/ScoreCreationType'
+        comments:
+          $ref: '#/components/schemas/ScoreCommentsCounts'
+        collections:
+          type: array
+          description: The List of parent collections, which includes all the collections this score is included. Please note that you might not have access to all of them.
+          items:
             type: string
-            description: Lyricist of the score
-          arranger:
+        samples:
+          type: array
+          description: |
+            An array of the audio samples identifiers used the different score parts.
+            The format of the strings is `{instrument-group}.{sample-id}`.
+          items:
             type: string
-            description: Arranger of the score
-          composer:
+        numberMeasures:
+          type: integer
+          description: The number of measures in the score
+        googleDriveFileId:
+          type: string
+          description: |
+            If the user uses Google Drive and the score exists on Google Drive, this field will contain the unique identifier of the Flat score on Google Drive. You can access the document using the url: `https://drive.google.com/open?id={googleDriveFileId}`
+        description:
+          type: string
+          description: Description of the creation
+        views:
+          $ref: '#/components/schemas/ScoreViewsCounts'
+        htmlUrl:
+          type: string
+          description: The url where the score can be viewed in a web browser
+          format: url
+        durationTime:
+          type: number
+          description: In seconds, an approximative duration of the score
+        user:
+          $ref: '#/components/schemas/UserPublicSummary'
+        mainTempoQpm:
+          type: number
+          description: The main tempo of the score (in QPM)
+        creationDate:
+          type: string
+          description: The date when the score was created
+          format: date-time
+        parentScore:
+          type: string
+          description: |
+            If the score has been forked, the unique identifier of the parent score.
+        tags:
+          type: array
+          description: Tags describing the score
+          items:
+            pattern: ^[a-zA-Z0-9]{1,30}$
             type: string
-            description: Composer of the score
-          description:
-            type: string
-            description: Description of the creation
-          tags:
-            type: array
-            description: Tags describing the score
-            items:
-              pattern: ^[a-zA-Z0-9]{1,30}$
-              type: string
-          creationType:
-            $ref: '#/components/schemas/ScoreCreationType'
-          license:
-            $ref: '#/components/schemas/ScoreLicense'
-          licenseText:
-            type: string
-            description: Additional license text written on the exported/printed score
-          durationTime:
-            type: number
-            description: In seconds, an approximative duration of the score
-          numberMeasures:
-            type: integer
-            description: The number of measures in the score
-          mainTempoQpm:
-            type: number
-            description: The main tempo of the score (in QPM)
-          rights:
-            $ref: '#/components/schemas/ResourceRights'
-          collaborators:
-            type: array
-            description: The list of the collaborators of the score
-            items:
-              $ref: '#/components/schemas/ResourceCollaborator'
-          creationDate:
-            type: string
-            description: The date when the score was created
-            format: date-time
-          modificationDate:
-            type: string
-            description: The date of the last revision of the score
-            format: date-time
-          publicationDate:
-            type: string
-            description: The date when the score was published on Flat
-            format: date-time
-          organization:
-            type: string
-            description: |
-              If the score has been created in an organization, the identifier of this organization. This property is especially used with the score privacy `organizationPublic`.
-          parentScore:
-            type: string
-            description: |
-              If the score has been forked, the unique identifier of the parent score.
-          instruments:
-            type: array
-            description: |
-              An array of the instrument identifiers used in the last version of the score. This is mainly used to display a list of the instruments in the Flat's UI or instruments icons. The format of the strings is `{instrument-group}.{instrument-id}`.
-            items:
-              type: string
-          samples:
-            type: array
-            description: |
-              An array of the audio samples identifiers used the different score parts.
-              The format of the strings is `{instrument-group}.{sample-id}`.
-            items:
-              type: string
-          googleDriveFileId:
-            type: string
-            description: |
-              If the user uses Google Drive and the score exists on Google Drive, this field will contain the unique identifier of the Flat score on Google Drive. You can access the document using the url: `https://drive.google.com/open?id={googleDriveFileId}`
-          likes:
-            $ref: '#/components/schemas/ScoreLikesCounts'
-          comments:
-            $ref: '#/components/schemas/ScoreCommentsCounts'
-          views:
-            $ref: '#/components/schemas/ScoreViewsCounts'
-          plays:
-            $ref: '#/components/schemas/ScorePlaysCounts'
-          collections:
-            type: array
-            description: The List of parent collections, which includes all the collections this score is included. Please note that you might not have access to all of them.
-            items:
-              type: string
+        collaborators:
+          type: array
+          description: The list of the collaborators of the score
+          items:
+            $ref: '#/components/schemas/ResourceCollaborator'
+        sharingKey:
+          type: string
+          description: The private sharing key of the score (available when the `privacy` mode is set to `privateLink`)
+        license:
+          $ref: '#/components/schemas/ScoreLicense'
+        rights:
+          $ref: '#/components/schemas/ResourceRights'
+        privacy:
+          $ref: '#/components/schemas/ScorePrivacy'
+        arranger:
+          type: string
+          description: Arranger of the score
+        organization:
+          type: string
+          description: |
+            If the score has been created in an organization, the identifier of this organization. This property is especially used with the score privacy `organizationPublic`.
+        likes:
+          $ref: '#/components/schemas/ScoreLikesCounts'
     ScorePrivacy:
       type: string
       default: private
@@ -4643,15 +4771,13 @@ components:
       example:
         googleDrive: 0B-0000000000000001
     ScoreCreation:
-      oneOf:
-      - $ref: '#/components/schemas/ScoreCreationBuilderData'
-      - $ref: '#/components/schemas/ScoreCreationFileImport'
-      - $ref: '#/components/schemas/ScoreCreationGoogleDriveImport'
-    ScoreCreationCommon:
-      required:
-      - privacy
       type: object
       properties:
+        dataEncoding:
+          type: string
+          description: The optional encoding of the score data. This property must match the encoding used for the `data` property.
+          enum:
+          - base64
         title:
           type: string
           description: |
@@ -4663,168 +4789,105 @@ components:
               - Set a default title (e.g. "New Music Score")
         privacy:
           $ref: '#/components/schemas/ScorePrivacy'
+        builderData:
+          type: object
+          required:
+          - scoreData
+          properties:
+            scoreData:
+              required:
+              - instruments
+              type: object
+              properties:
+                useTabStaff:
+                  type: boolean
+                  description: true if the TAB staff is displayed with fretted instruments
+                useChordGrid:
+                  type: boolean
+                  description: true if the chord grid must be displayed with fretted instruments
+                fifths:
+                  type: number
+                  description: The key signature of the score (expressed between -7 and 7). Major C is used when the value is not provided.
+                nbBeats:
+                  type: number
+                  description: The number of beats in the measure
+                beatType:
+                  type: number
+                  description: The duration of a beat in the measure
+                instruments:
+                  type: array
+                  description: |
+                    The list of instruments to add to the score.
+                    See https://prod.flat-cdn.com/fixtures/instruments_en.json for the possible values for `group` and `instrument`.
+                  items:
+                    required:
+                    - group
+                    - instrument
+                    type: object
+                    properties:
+                      group:
+                        type: string
+                        description: The  of the instrument group (e.g. `keyboards`, `brass`)
+                      instrument:
+                        type: string
+                        description: The identifier of the instrument (e.g. `piano`, `trumpet`)
+                      longName:
+                        type: string
+                        description: The full name of the instrument
+                      shortName:
+                        type: string
+                        description: The abbreviation of the name of the instrument
+            layoutData:
+              type: object
+              description: Control the appearance of the score. If missing, default values are used.
+              properties:
+                notesSpacingCoeff:
+                  type: number
+                  description: A float value >= 1 that controls the spacing between notes.
+                lengthUnit:
+                  description: The unit to use for layout customizations
+                  type: string
+                  default: cm
+                  enum:
+                  - cm
+                  - inch
+                pageHeight:
+                  type: number
+                  description: The height of the page in chosen unit (`lengthUnit`).
+                pageWidth:
+                  type: number
+                  description: The width of the page in chosen unit (`lengthUnit`).
+                pageMarginTop:
+                  type: number
+                  description: The top margin of the page in chosen unit (`lengthUnit`).
+                pageMarginBottom:
+                  type: number
+                  description: The bottom margin of the page in chosen unit (`lengthUnit`).
+                pageMarginLeft:
+                  type: number
+                  description: The left margin of the page in chosen unit (`lengthUnit`).
+                pageMarginRight:
+                  type: number
+                  description: The right margin of the page in chosen unit (`lengthUnit`).
+        filename:
+          type: string
+          description: If this is an imported file, its filename
+        source:
+          $ref: '#/components/schemas/ScoreSource'
         collection:
           type: string
           description: |
             Unique identifier of a collection where the score will be created.
             If no collection identifier is provided, the score will be stored in the `root` directory.
+        data:
+          type: string
+          description: |
+            The data of the score file. It must be a MusicXML 3 file (`vnd.recordare.musicxml` or `vnd.recordare.musicxml+xml`), a MIDI file (`audio/midi`) or a Flat.json (aka Adagio.json) file.
+            Binary payloads (`vnd.recordare.musicxml` and `audio/midi`) can be encoded in Base64, in this case the `dataEncoding` property must match the encoding used for the API request.
         googleDriveFolder:
           type: string
           description: |
             If the user uses Google Drive and this properties is specified, the file will be created in this directory. The currently user creating the file must be granted to write in this directory.
-    ScoreCreationFileImport:
-      allOf:
-      - $ref: '#/components/schemas/ScoreCreationCommon'
-      - type: object
-        required:
-        - data
-        properties:
-          filename:
-            type: string
-            description: If this is an imported file, its filename
-          data:
-            type: string
-            description: |
-              The data of the score file. It must be a MusicXML 3 file (`vnd.recordare.musicxml` or `vnd.recordare.musicxml+xml`), a MIDI file (`audio/midi`) or a Flat.json (aka Adagio.json) file.
-              Binary payloads (`vnd.recordare.musicxml` and `audio/midi`) can be encoded in Base64, in this case the `dataEncoding` property must match the encoding used for the API request.
-          dataEncoding:
-            type: string
-            description: The optional encoding of the score data. This property must match the encoding used for the `data` property.
-            enum:
-            - base64
-        description: A newly created score from an imported file
-        example:
-          title: My new score
-          privacy: private
-          data: <score-partwise version="3.0">...[Your actual file will be provided in this property]...</score-partwise>
-    ScoreCreationGoogleDriveImport:
-      allOf:
-      - $ref: '#/components/schemas/ScoreCreationCommon'
-      - type: object
-        required:
-        - source
-        properties:
-          source:
-            $ref: '#/components/schemas/ScoreSource'
-        description: A newly created score from a file from Google Drive
-        example:
-          title: My new score
-          privacy: private
-          source:
-            googleDrive: 0B-0000000000000001
-            privacy: private
-    ScoreCreationBuilderData:
-      allOf:
-      - $ref: '#/components/schemas/ScoreCreationCommon'
-      - type: object
-        required:
-        - title
-        - builderData
-        properties:
-          builderData:
-            type: object
-            required:
-            - scoreData
-            properties:
-              scoreData:
-                required:
-                - instruments
-                type: object
-                properties:
-                  useTabStaff:
-                    type: boolean
-                    description: true if the TAB staff is displayed with fretted instruments
-                  useChordGrid:
-                    type: boolean
-                    description: true if the chord grid must be displayed with fretted instruments
-                  fifths:
-                    type: number
-                    description: The key signature of the score (expressed between -7 and 7). Major C is used when the value is not provided.
-                  nbBeats:
-                    type: number
-                    description: The number of beats in the measure
-                  beatType:
-                    type: number
-                    description: The duration of a beat in the measure
-                  instruments:
-                    type: array
-                    description: |
-                      The list of instruments to add to the score.
-                      See https://prod.flat-cdn.com/fixtures/instruments_en.json for the possible values for `group` and `instrument`.
-                    items:
-                      required:
-                      - group
-                      - instrument
-                      type: object
-                      properties:
-                        group:
-                          type: string
-                          description: The  of the instrument group (e.g. `keyboards`, `brass`)
-                        instrument:
-                          type: string
-                          description: The identifier of the instrument (e.g. `piano`, `trumpet`)
-                        longName:
-                          type: string
-                          description: The full name of the instrument
-                        shortName:
-                          type: string
-                          description: The abbreviation of the name of the instrument
-              layoutData:
-                type: object
-                description: Control the appearance of the score. If missing, default values are used.
-                properties:
-                  notesSpacingCoeff:
-                    type: number
-                    description: A float value >= 1 that controls the spacing between notes.
-                  lengthUnit:
-                    description: The unit to use for layout customizations
-                    type: string
-                    default: cm
-                    enum:
-                    - cm
-                    - inch
-                  pageHeight:
-                    type: number
-                    description: The height of the page in chosen unit (`lengthUnit`).
-                  pageWidth:
-                    type: number
-                    description: The width of the page in chosen unit (`lengthUnit`).
-                  pageMarginTop:
-                    type: number
-                    description: The top margin of the page in chosen unit (`lengthUnit`).
-                  pageMarginBottom:
-                    type: number
-                    description: The bottom margin of the page in chosen unit (`lengthUnit`).
-                  pageMarginLeft:
-                    type: number
-                    description: The left margin of the page in chosen unit (`lengthUnit`).
-                  pageMarginRight:
-                    type: number
-                    description: The right margin of the page in chosen unit (`lengthUnit`).
-        example:
-          title: Violin and Piano
-          privacy: private
-          builderData:
-            scoreData:
-              fifths: 8
-              nbBeats: 2
-              beatType: 4
-              instruments:
-              - group: strings
-                instrument: hq-violin
-              - group: strings
-                instrument: hq-grand-piano
-                shortName: Pno.
-                longName: Super Piano
-            layoutData:
-              notesSpacingCoeff: 2
-              lengthUnit: cm
-              pageHeight: 29.7
-              pageWidth: 21
-              pageMarginTop: 1.5
-              pageMarginBottom: 1.5
-              pageMarginLeft: 2.5
-              pageMarginRight: 2.5
     ScoreFork:
       type: object
       properties:
