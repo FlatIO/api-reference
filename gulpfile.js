@@ -21,7 +21,7 @@ gulp.task('reload', gulp.series('build'), function () {
 });
 
 gulp.task('watch', function () {
-  gulp.watch([process.env.WATCH_API_SPEC_DIR || 'spec/**/*', 'web/**/*'], gulp.series('reload'));
+  gulp.watch([process.env.API_SPEC_DIR_FILE || '.', 'spec/**/*', 'web/**/*'], gulp.series('reload'));
 });
 
 gulp.task('serve', gulp.parallel('build', 'watch', function() {
