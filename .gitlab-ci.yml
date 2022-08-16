@@ -1,7 +1,7 @@
 pages:
   script:
-    - npm install -d
-    - npm run build
+    - pnpm install -d
+    - pnpm run build
     - mv web_deploy public
   artifacts:
     paths:
