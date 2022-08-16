@@ -34,8 +34,7 @@ gulp.task('watch', function () {
   gulp.watch(['spec/**/*', 'web/**/*'], gulp.series('reload'));
 });
 
-
-gulp.task('serve', gulp.parallel('build', 'watch', 'edit'), function() {
+gulp.task('serve', gulp.parallel('build', 'watch', 'edit', function() {
   portfinder.getPort({ port: process.env.PORT_REDOC || 5000 }, function (err, port) {
     gulpConnect.server({
       root: [DIST_DIR],
@@ -48,4 +47,4 @@ gulp.task('serve', gulp.parallel('build', 'watch', 'edit'), function() {
       }
     });
   });
-});
+}));
