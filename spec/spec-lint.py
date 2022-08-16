@@ -7,7 +7,7 @@ import ruamel.yaml
 from ruamel.yaml.scalarstring import PreservedScalarString, preserve_literal
 from ruamel.yaml.compat import string_types
 
-infname = "swagger.yaml"
+infname = "openapi.yaml"
 
 def walk_tree(base):
 	if isinstance(base, dict):

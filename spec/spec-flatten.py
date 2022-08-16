@@ -8,8 +8,8 @@ import ruamel.yaml
 from ruamel.yaml.scalarstring import PreservedScalarString, preserve_literal
 from ruamel.yaml.compat import string_types
 
-infname = 'swagger.yaml'
-outfname = 'swagger-flatten.yaml'
+infname = 'openapi.yaml'
+outfname = 'openapi-flatten.yaml'
 
 models_flatten = []
 models_used_as_ref = []
