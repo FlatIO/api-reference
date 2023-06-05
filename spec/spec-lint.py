@@ -5,7 +5,6 @@ Copyright (c) 2022, Tutteo Limited. All rights reserved.
 
 import ruamel.yaml
 from ruamel.yaml.scalarstring import PreservedScalarString, preserve_literal
-from ruamel.yaml.compat import string_types
 
 infname = "openapi.yaml"
 
@@ -13,13 +12,13 @@ def walk_tree(base):
 	if isinstance(base, dict):
 		for k in base:
 			v = base[k]
-			if isinstance(v, string_types) and '\n' in v:
+			if isinstance(v, str) and '\n' in v:
 				base[k] = preserve_literal(v)
 			else:
 				walk_tree(v)
 	elif isinstance(base, list):
 		for idx, elem in enumerate(base):
-			if isinstance(elem, string_types) and '\n' in elem:
+			if isinstance(elem, str) and '\n' in elem:
 				base[idx] = preserve_literal(v)
 			else:
 				walk_tree(elem)

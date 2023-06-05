@@ -6,7 +6,6 @@ Copyright (c) 2022, Tutteo Limited.
 from copy import deepcopy
 import ruamel.yaml
 from ruamel.yaml.scalarstring import PreservedScalarString, preserve_literal
-from ruamel.yaml.compat import string_types
 
 infname = 'openapi.yaml'
 outfname = 'openapi-flatten.yaml'
@@ -21,7 +20,7 @@ def walk_tree(base, in_inheritance=False):
 			if not in_inheritance and k == '$ref':
 				schema_key = v.split('/').pop()
 				models_used_as_ref.append(schema_key)
-			if isinstance(v, string_types) and '\n' in v:
+			if isinstance(v, str) and '\n' in v:
 				base[k] = preserve_literal(v)
 			else:
 				# flatten allOf for code generator
@@ -49,7 +48,7 @@ def walk_tree(base, in_inheritance=False):
 			return 'remove'
 	elif isinstance(base, list):
 		for idx, elem in reversed(list(enumerate(base))):
-			if isinstance(elem, string_types) and '\n' in elem:
+			if isinstance(elem, str) and '\n' in elem:
 				base[idx] = preserve_literal(v)
 			else:
 				result = walk_tree(elem)
