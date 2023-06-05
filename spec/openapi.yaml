@@ -5,7 +5,7 @@
 # Some style notes:
 # - This file is used by ReDoc, which allows GitHub Flavored Markdown in descriptions.
 # - There is no maximum line length, for ease of editing and pretty diffs.
-openapi: 3.0.2
+openapi: 3.0.3
 info:
   title: Flat API
   description: |
@@ -33,7 +33,7 @@ info:
     name: Flat
     url: https://flat.io/developers/docs/api/
     email: developers@flat.io
-  version: 2.17.0
+  version: 2.18.0
   x-logo:
     url: https://prod.flat-cdn.com/img/logo-flat.svg
 servers:
@@ -42,7 +42,7 @@ tags:
 - name: Account
   description: |
     These API endpoints are related to the Flat account you are currently using. When using an OAuth2 access token, you can use [`GET /me`](#operation/getAuthenticatedUser) to get information about the account.
-  x-displayName: Flat Account
+  x-displayName: Accounts
 - name: Score
   description: |
     Sheet music is the main API object type available for all Flat account.
@@ -70,23 +70,32 @@ tags:
 
     At this time, only `private` privacy mode is widely available. Privacy modes `public`, `organizationPublic` and `privateLink`, and 1:1 sharing will be available in an upcoming update later this year.
   x-displayName: Collections of music scores
-
 - name: User
-  description: Flat users
+  x-displayName: Users profiles
+  description: API methods related to the Flat Community user profiles and Flat for Education profiles
 - name: Organization
-  description: Flat for Education organizations
+  x-displayName: Flat for Education Organizations
+  description: Flat for Education Organizations
 - name: Class
-  description: Flat for Education classes
+  x-displayName: Flat for Education Classes
+  description: Flat for Education Classes
+- name: EduResources
+  x-displayName: Flat for Education Resources [Beta]
+  description: |
+    Resource libraries in Flat for Education.
+    These API endpoints are in beta and may include breaking changes over the upcoming months.
 - name: Group
-  description: Flat Groups
+  x-displayName: Flat for Education Groups
+  description: Flat for Education Groups
 - name: Task
-  description: Scheduled tasks
+  x-displayName: Asynchronous tasks
+  description: Scheduled and asynchronous tasks
 paths:
   /me:
     get:
       tags:
       - Account
-      summary: Get current user profile
+      summary: Get current user account
       description: |
         Get details about the current authenticated User.
       operationId: getAuthenticatedUser
@@ -414,7 +423,6 @@ paths:
     post:
       tags:
       - Score
-      - Class
       summary: Fork a score
       description: |
         This API call will make a copy of the last revision of the specified score and create a new score. The copy of the score will have a privacy set to `private`.
@@ -1233,7 +1241,6 @@ paths:
       - OAuth2:
         - scores.social
         - scores
-
   /scores/{score}/revisions:
     parameters:
     - name: score
@@ -2451,14 +2458,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OrganizationUserSigninLinkCreation'
+              $ref: '#/components/schemas/UserSigninLinkCreation'
       responses:
         200:
           description: Sign in link
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrganizationUserSigninLink'
+                $ref: '#/components/schemas/UserSigninLink'
         default:
           description: Error
           content:
@@ -3050,7 +3057,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Assignment'
+                  $ref: '#/components/schemas/ClassAssignment'
         default:
           description: Error
           content:
@@ -3071,12 +3078,12 @@ paths:
         Use this method as a teacher to create and post a new assignment to a class.
 
         If the class is synchronized with Google Classroom, the assignment will be automatically posted to your Classroom course.
-      operationId: createAssignment
+      operationId: createClassAssignment
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssignmentCreation'
+              $ref: '#/components/schemas/ClassAssignmentUpdate'
         required: false
       responses:
         200:
@@ -3105,11 +3112,11 @@ paths:
       - Class
       summary: Copy an assignment
       description: |
-        Copy an assignment to a specified class.
+        Copy an assignment to a specified class or the resource library
 
-        If the original assignment has a due date in the past, this new assingment will be created without a due date.
-
-        If the new class is synchronized with an external app (e.g. Google Classroom), the copied assignment will also be posted on the external app.
+        For class assignments:
+        - If the original assignment has a due date in the past, this new assignment will be created without a due date.
+        - If the class is synchronized with an external app (e.g. Google Classroom), the copied assignment will also be posted on the external app.
       operationId: copyAssignment
       requestBody:
         content:
@@ -3119,11 +3126,11 @@ paths:
         required: true
       responses:
         200:
-          description: The new created assingment
+          description: The new created assignment
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Assignment'
+                $ref: '#/components/schemas/AssignmentCopyResponse'
         default:
           description: Error
           content:
@@ -3374,17 +3381,21 @@ paths:
     delete:
       tags:
       - Class
-      summary: Delete a submission
+      summary: Reset a submission
       description: |
-        Use this method as a teacher to delete a submission and allow student to start over the assignment
+        Use this method as a teacher to reset a submission and allow student to start over the assignment
       operationId: deleteSubmission
       parameters:
       - $ref: '#/components/parameters/class'
       - $ref: '#/components/parameters/assignment'
       - $ref: '#/components/parameters/submission'
       responses:
-        204:
-          description: The submission has been deleted
+        200:
+          description: The submission object once reset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignmentSubmission'
         default:
           description: Error
           content:
@@ -3581,6 +3592,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
+  /classes/{class}/testStudent:
+    parameters:
+    - $ref: '#/components/parameters/class'
+    post:
+      tags:
+      - Class
+      summary: Create a test student account
+      description: |
+        Test students account can be created by teachers an admin and be used to experiment the assignments.
+
+        - They are automatically added to the class.
+        - They can be reset using this API endpoint (a new account will be created and the previous one scheduled for deletion).
+        - These accounts don't use a user license.
+      operationId: createTestStudentAccount
+      parameters:
+      - name: reset
+        in: query
+        description: |
+          If true, the testing account will be re-created.
+        required: false
+        schema:
+          type: boolean
+      responses:
+        200:
+          description: Test account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetails'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.admin
+        - edu.classes
   /classes/enroll/{enrollmentCode}:
     parameters:
     - name: enrollmentCode
@@ -3717,6 +3767,393 @@ paths:
       - OAuth2:
         - scores
         - scores.readonly
+  /eduResources:
+    get:
+      tags:
+      - EduResources
+      operationId: listEduResources
+      summary: List education resources in a library or folder
+      parameters:
+      - name: parent
+        in: query
+        description: |
+          List the resources contained in this `parent` library or folder
+        schema:
+          type: string
+          default: root
+      - name: type
+        in: query
+        description: |
+          Filter the returned resources by type
+        schema:
+          type: string
+          enum:
+          - assignment
+          - folder
+      - name: sort
+        in: query
+        description: Sort
+        schema:
+          type: string
+          enum:
+          - creationDate
+          - updateDate
+          - title
+          default: creationDate
+      - $ref: '#/components/parameters/sortDirection'
+      - name: limit
+        in: query
+        description: This is the maximum number of resources that may be returned
+        schema:
+          maximum: 100
+          minimum: 1
+          type: integer
+          default: 25
+      - $ref: '#/components/parameters/next'
+      - $ref: '#/components/parameters/previous'
+      responses:
+        200:
+          description: List of resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EduResource'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.resources
+        - edu.resources.readonly
+        - edu.assignments
+        - edu.assignments.readonly
+    post:
+      tags:
+      - EduResources
+      operationId: createEduResource
+      summary: Create a new education resource
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EduResourceCreation'
+        required: true
+      responses:
+        200:
+          description: Fetched resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EduResource'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.resources
+        - edu.assignments
+  /eduResources/libraries:
+    get:
+      tags:
+      - EduResources
+      operationId: listEduLibraries
+      summary: List the education libraries
+      responses:
+        200:
+          description: Fetched resource
+          content:
+            application/json:
+              schema:
+                type: array
+                description: List of libraries to display
+                items:
+                  $ref: '#/components/schemas/EduLibrary'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.resources
+        - edu.resources.readonly
+        - edu.assignments
+        - edu.assignments.readonly
+  /eduResources/{resource}:
+    parameters:
+    - name: resource
+      in: path
+      required: true
+      description: Unique identifier of the resource
+      schema:
+        type: string
+    get:
+      tags:
+      - EduResources
+      operationId: getEduResource
+      summary: Get an education resource
+      responses:
+        200:
+          description: Fetched resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EduResource'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.resources
+        - edu.resources.readonly
+        - edu.assignments
+        - edu.assignments.readonly
+    put:
+      tags:
+      - EduResources
+      operationId: updateEduResource
+      summary: Update an education resource metadata
+      description: |
+        Update any resources metadata (e.g. title).
+
+        Use this method to rename education resources folders or assignments.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EduResourceUpdate'
+        required: true
+      responses:
+        200:
+          description: Fetched resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EduResource'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.resources
+        - edu.assignments
+    delete:
+      tags:
+      - EduResources
+      operationId: deleteEduResource
+      summary: Delete an education resource
+      responses:
+        204:
+          description: Resource deleted
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.resources
+        - edu.assignments
+  /eduResources/{resource}/move:
+    parameters:
+    - name: resource
+      in: path
+      required: true
+      description: Unique identifier of the resource
+      schema:
+        type: string
+    post:
+      tags:
+      - EduResources
+      operationId: moveEduResource
+      summary: Move an education resource
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EduResourceMove'
+        required: true
+      responses:
+        200:
+          description: Fetched resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EduResource'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.resources
+        - edu.assignments
+  /eduResources/{resource}/copy:
+    parameters:
+    - name: resource
+      in: path
+      required: true
+      description: Unique identifier of the resource
+      schema:
+        type: string
+    post:
+      tags:
+      - EduResources
+      operationId: copyEduResource
+      summary: Copy an education resource to a Resource Library
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EduResourceCopy'
+        required: true
+      responses:
+        200:
+          description: Fetched resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EduResource'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.resources
+        - edu.assignments
+  /eduResources/{resource}/copyToDemoClass:
+    parameters:
+    - name: resource
+      in: path
+      required: true
+      description: Unique identifier of the resource
+      schema:
+        type: string
+    post:
+      tags:
+      - EduResources
+      operationId: copyEduResourceToDemoClass
+      summary: Copy an education assignment to a teacher demo class
+      description: |
+        Once a resource library can be published to a class (`Assignment.capabilities.canPublishInClass = true`),
+        this endpoint can be used for the feature "View as student".
+
+        It will ensure the teacher has a demo class, then copy the assignment to the demo class.
+        You can then use `POST /classes/{class}/testStudent` to create a testing student account
+        in the demo class.
+      responses:
+        200:
+          description: Assignment copied to the demo class
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassAssignment'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.resources
+        - edu.assignments
+  /eduResources/{resource}/useInClass:
+    parameters:
+    - name: resource
+      in: path
+      required: true
+      description: Unique identifier of the resource
+      schema:
+        type: string
+    post:
+      tags:
+      - EduResources
+      operationId: useEduResourceInClass
+      summary: Use an education resource in a class
+      description: |
+        This endpoint will copy a resource and the underlying resources.
+        The assignment will be created as a draft that can be completed with other options before publishing (e.g. due date, publication date for scheduling, etc.).
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EduResourceUseInClass'
+        required: true
+      responses:
+        200:
+          description: Assignment copied to the chosen class
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassAssignment'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.resources
+        - edu.assignments
+  /eduResources/{resource}/assignment:
+    parameters:
+    - name: resource
+      in: path
+      required: true
+      description: Unique identifier of the resource
+      schema:
+        type: string
+    put:
+      tags:
+      - EduResources
+      operationId: updateEduResourceAssignment
+      summary: Update an education resource assignment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignmentUpdate'
+        required: true
+      responses:
+        200:
+          description: Fetched resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assignment'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.resources
+        - edu.assignments
 components:
   securitySchemes:
     OAuth2:
@@ -3743,6 +4180,8 @@ components:
             collections.readonly: Allow read-only access to a user's collections.
             collections.add_scores: Allow to add scores to a user's collections.
             collections: Full, permissive scope to access all of a user's collections.
+            edu.resources: Read-write access to the resource library.
+            edu.resources.readonly: Read-only access to the resource library.
             edu.classes: Full, permissive scope to manage the classes.
             edu.classes.readonly: Read-only access to the classes.
             edu.assignments: Read-write access to the assignments and submissions.
@@ -3808,8 +4247,15 @@ components:
       - distributor
       - subscription
       - appStore
+      - playStore
+      - musicfirst
     UserBasics:
       type: object
+      required:
+      - id
+      - type
+      - username
+      - picture
       properties:
         id:
           type: string
@@ -3837,22 +4283,19 @@ components:
           type: string
           nullable: true
           description: The URL of the picture to display
-        isPowerUser:
-          type: boolean
-          description: User license status. 'true' if user is an individual Power user
-        isFlatTeam:
-          type: boolean
-          description: Will be 'true' if user is part of the Flat Team
+        badges:
+          type: array
+          description: List of badges for the user profile
+          items:
+            type: string
+            description: Badge name, e.g. `power`, `staff`, `composerOfTheMonth`
       example:
         id: '000000000000000000000001'
         username: flat
         name: Flat Team
         printableName: Flat Team
         picture: https://flat.io/img/logo_flat.svg
-        isPowerUser: true
-        isFlatTeam: true
-      discriminator:
-        propertyName: type
+        badges: [power, staff]
     UserPublicSummary:
       description: Public User details summary
       allOf:
@@ -3907,6 +4350,8 @@ components:
               The format of the strings is `{instrument-group}.{instrument-id}`.
             items:
               type: string
+          links:
+            $ref: '#/components/schemas/UserCommunityProfileLinks'
     UserDetailsAdmin:
       description: User details (view for organization teacher / admin)
       allOf:
@@ -3939,6 +4384,12 @@ components:
                 type: boolean
                 description: ID of the current license
             description: Current active license of the user
+          groups:
+            description: For Flat for Education accounts, list of Group identifiers the user is part of.
+            type: array
+            items:
+              type: string
+              description: Unique group identifier
     UserCreation:
       required:
       - password
@@ -4010,6 +4461,18 @@ components:
           description: Email of the account
           format: email
       description: User update as an organization admin
+    UserAzureDetails:
+      type: object
+      properties:
+        oid:
+          type: string
+          description: User object identifier on Azure AD
+        hd:
+          type: string
+          description: User tenant (domain name)
+        preferredUsername:
+          type: string
+          description: User Preferred Username (UPN), i.e. the main email of the user
     UserDetails:
       description: User details
       allOf:
@@ -4025,11 +4488,19 @@ components:
             enum:
             - user
             - guest
+          azureDetails:
+            $ref: '#/components/schemas/UserAzureDetails'
           privateProfile:
             type: boolean
             description: Tell either this user profile is private or not (individual accounts only)
           locale:
             $ref: '#/components/schemas/FlatLocales'
+          groups:
+            description: For Flat for Education accounts, list of Group identifiers the user is part of.
+            type: array
+            items:
+              type: string
+              description: Unique group identifier
           pictureFile:
             type: string
             nullable: true
@@ -4038,7 +4509,7 @@ components:
             type: string
             nullable: true
             description: The ID of the user profile cover picture
-    OrganizationUserSigninLinkCreation:
+    UserSigninLinkCreation:
       type: object
       properties:
         destinationPath:
@@ -4047,7 +4518,7 @@ components:
           default: /
       example:
         destinationPath: /class
-    OrganizationUserSigninLink:
+    UserSigninLink:
       type: object
       properties:
         url:
@@ -4163,7 +4634,7 @@ components:
           userEmail:
             type: string
             description: |
-              If the collaborator is not a user of Flat yet, this field will contain his email.
+              If the collaborator is not a user of Flat yet, this field will contain their email.
           invited:
             type: boolean
             description: |
@@ -4208,6 +4679,12 @@ components:
         aclAdmin: false
     ScoreSummary:
       type: object
+      required:
+      - id
+      - title
+      - privacy
+      - user
+      - htmlUrl
       properties:
         id:
           type: string
@@ -4628,6 +5105,14 @@ components:
         deletions:
           type: number
           description: The number of deletions operations in the last revision
+        startDate:
+          type: string
+          format: date-time
+          description: The date of the first action included in this revision
+        endDate:
+          type: string
+          format: date-time
+          description: The date of the latest action included in this revision
       description: |
         The statistics related to the score revision (additions and deletions)
       example:
@@ -4769,6 +5254,9 @@ components:
                         shortName:
                           type: string
                           description: The abbreviation of the name of the instrument
+                        hasQuarterTone:
+                          type: boolean
+                          description: True if the part can use quarter tone (prevent the part to have a TAB/chord grid)
               layoutData:
                 type: object
                 description: Control the appearance of the score. If missing, default values are used.
@@ -4831,9 +5319,15 @@ components:
         collection:
           type: string
           default: root
+          nullable: true
           description: |
             Unique identifier of a collection where the score will be copied.
             If no collection identifier is provided, the score will be stored in the `root` directory.
+            If null is provided, the score won't be added to any collections
+        keepOriginalTitle:
+          type: boolean
+          description: |
+            Option to keep the original title of the score (i.e. don't prepend it with "Copy of ", or add the student name in assignment usage).
       description: Options to fork the score
     ScoreModification:
       type: object
@@ -5344,6 +5838,8 @@ components:
       - collections.readonly
       - collections.add_scores
       - collections
+      - edu.resources
+      - edu.resources.readonly
       - edu.classes
       - edu.classes.readonly
       - edu.assignments
@@ -5534,6 +6030,15 @@ components:
           maxLength: 255
           type: string
           description: The section of the new class
+        level:
+          $ref: '#/components/schemas/ClassGradeLevel'
+        skillsFocused:
+          $ref: '#/components/schemas/EduSkillsFocused'
+        size:
+          type: number
+          minimum: 0
+          nullable: true
+          description: Number of students in the classroom
       description: Creation of a classroom
       example:
         name: Music Theory Course
@@ -5549,6 +6054,15 @@ components:
           maxLength: 255
           type: string
           description: The section of the class
+        level:
+          $ref: '#/components/schemas/ClassGradeLevel'
+        skillsFocused:
+          $ref: '#/components/schemas/EduSkillsFocused'
+        size:
+          type: number
+          minimum: 0
+          nullable: true
+          description: Number of students in the classroom
       description: Update of a classroom
       example:
         name: Music Theory Course
@@ -5717,6 +6231,14 @@ components:
               description: End date of the term
               format: date-time
           description: Clever.com section-related information
+        level:
+          $ref: '#/components/schemas/ClassGradeLevel'
+        skillsFocused:
+          $ref: '#/components/schemas/EduSkillsFocused'
+        size:
+          type: number
+          nullable: true
+          description: Number of students in the classroom
       description: A classroom
       example:
         id: '100000000000000000000001'
@@ -5748,12 +6270,19 @@ components:
       properties:
         type:
           type: string
-          description: The type of the attachment posted
+          description: |
+            The type of the attachment posted:
+            * `rich`, `photo`, `video` are attachment types that are automatically resolved from a `link` attachment.
+            * A `flat` attachment is a score document where the unique identifier will be specified in the `score` property. Its sharing mode will be provided in the `sharingMode` property.
           enum:
-          - flat
+          - rich
+          - photo
+          - video
           - link
+          - flat
           - googleDrive
           - worksheet
+          - performance
         score:
           type: string
           description: |
@@ -5780,20 +6309,41 @@ components:
         type: flat
         score: '000000000000000001'
         sharingMode: copy
-    AssignmentCreation:
+    ClassGradeLevel:
+      type: string
+      description: Class grade level
+      enum:
+      - elementary
+      - middle
+      - high
+      - university
+      - other
+    EduSkillsFocused:
+      type: array
+      description: Specific skills that will be focused in classroom
+      items:
+        type: string
+        enum:
+        - notation
+        - sight-reading
+        - performance-instrumental
+        - ear-training
+        - music-theory
+        - composition
+        - jazz-ensemble
+        - music-technology
+        - other
+    AssignmentUpdate:
       type: object
+      description: Assignment Resource Editing
       properties:
         type:
           $ref: '#/components/schemas/AssignmentType'
-        state:
-          type: string
-          description: State of the assignment
-          enum:
-          - draft
-          - active
         title:
           type: string
           description: Title of the assignment
+          maxLength: 1000
+          minLength: 1
         description:
           type: string
           description: Description and content of the assignment
@@ -5801,19 +6351,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ClassAttachmentCreation'
-        dueDate:
-          type: string
-          nullable: true
-          description: |
-            The due date of this assignment, late submissions will be marked as paste due. If not set, the assignment won't have a due date.
-          format: date-time
-        scheduledDate:
-          type: string
-          nullable: true
-          description: |
-            The publication (scheduled) date of the assignment.
-            If this one is specified, the assignment will only be listed to the teachers of the class.
-          format: date-time
         nbPlaybackAuthorized:
           type: number
           nullable: true
@@ -5821,7 +6358,10 @@ components:
         toolset:
           type: string
           nullable: true
-          description: The id of the associated toolset
+          description: |
+            The id of the toolset to apply to this assignment.
+            The toolset will be copied to the assignment as a dedicated object to prevent unexpected changes when making modifications to the template toolset.
+            This property can be set to null to delete the linked toolset and switch back to all the tools available for this assignment.
         coverFile:
           type: string
           nullable: true
@@ -5837,39 +6377,16 @@ components:
           maximum: 100
           description: |
             If set, the grading will be enabled for the assignement with this value as the maximum of points
-        googleClassroom:
-          type: object
-          description: Google Classroom options for this assignment
-          properties:
-            topicId:
-              type: string
-              nullable: true
-              description: Identifier of the topic where the assignment is created
-        microsoftGraph:
-          type: object
-          description: Microsoft Graph options for this assignment
-          properties:
-            categories:
-              description: List of categories this assignment belongs to
-              type: array
-              nullable: true
-              items:
-                type: string
-        assigneeMode:
+        releaseGrades:
           type: string
-          description: Possible modes of assigning assignments
-          enum:
-          - everyone
-          - selected
-        assignedStudents:
-          type: array
-          items:
-            type: string
-          description: Identifiers for the students that have access to the assignment
+          enum: [auto, manual]
+          description: |
+            For worksheets, how grading will work for the assignment:
+            - If set to `auto`, the grades will be automatically released when the student submits the submissions
+            - If set to `manual`, the grades will only be set as `draftGrade` and will be released when the teacher returns the submissions
         shuffleExercises:
           type: boolean
-          description: Mixing exercises for each students
-      description: Assignment creation details
+          description: Mixing worksheets exercises for each student
       example:
         title: First assignment
         description: Get started with Flat
@@ -5879,10 +6396,92 @@ components:
           score: '0000000000000000'
         - type: link
           url: https://flat.io/developers
-        scheduledDate: 2017-06-20T13:56:19.613000Z
-        dueDate: 2017-07-12T13:56:19.613000Z
-    AssignmentCopy:
+    ClassAssignmentUpdate:
       type: object
+      allOf:
+      - $ref: '#/components/schemas/AssignmentUpdate'
+      - type: object
+        properties:
+          state:
+            type: string
+            description: State of the assignment
+            enum:
+            - draft
+            - active
+          dueDate:
+            type: string
+            nullable: true
+            description: |
+              The due date of this assignment, late submissions will be marked as paste due. If not set, the assignment won't have a due date.
+            format: date-time
+          scheduledDate:
+            type: string
+            nullable: true
+            description: |
+              The publication (scheduled) date of the assignment.
+              If this one is specified, the assignment will only be listed to the teachers of the class.
+            format: date-time
+          googleClassroom:
+            type: object
+            description: Google Classroom options for this assignment
+            properties:
+              topicId:
+                type: string
+                nullable: true
+                description: Identifier of the topic where the assignment is created
+          microsoftGraph:
+            type: object
+            description: Microsoft Graph options for this assignment
+            properties:
+              categories:
+                description: List of categories this assignment belongs to
+                type: array
+                nullable: true
+                items:
+                  type: string
+          assigneeMode:
+            type: string
+            description: Possible modes of assigning assignments
+            enum:
+            - everyone
+            - selected
+          assignedStudents:
+            type: array
+            items:
+              type: string
+            description: Identifiers for the students that have access to the assignment
+        description: Assignment creation details
+        example:
+          title: First assignment
+          description: Get started with Flat
+          maxPoints: 100
+          attachments:
+          - type: flat
+            score: '0000000000000000'
+          - type: link
+            url: https://flat.io/developers
+          scheduledDate: 2017-06-20T13:56:19.613000Z
+          dueDate: 2017-07-12T13:56:19.613000Z
+    AssignmentCopy:
+      oneOf:
+      - $ref: '#/components/schemas/AssignmentCopyToClass'
+      - $ref: '#/components/schemas/AssignmentCopyToResourceLibrary'
+    AssignmentCopyToResourceLibrary:
+      type: object
+      description: Copy the assignment to the EDU Resource Library
+      required:
+      - libraryParent
+      properties:
+        libraryParent:
+          type: string
+          description: Identifier of the parent resource where the new one will created, e.g. a folder id or `root`
+      example:
+        libraryParent: '0000000000000000'
+    AssignmentCopyToClass:
+      type: object
+      description: Copy the assignment to a class
+      required:
+      - classroom
       properties:
         classroom:
           type: string
@@ -5897,9 +6496,16 @@ components:
             If this one is specified, the assignment will only be listed to the teachers of the class.
             Alternatively the existing `scheduledDate` from the copied assignment will be used.
           format: date-time
-      description: Assignment copy operation
       example:
         classroom: '0000000000000000'
+    AssignmentCopyResponse:
+      allOf:
+      - $ref: '#/components/schemas/Assignment'
+      - type: object
+        properties:
+          resource:
+            type: string
+            description: If this assignment is stored as a resource in the Flat for Education Resource Library, the unique identifier of the resource.
     AssignmentType:
       type: string
       description: Type of the assignment
@@ -5912,22 +6518,60 @@ components:
       - performance
     Assignment:
       type: object
+      required:
+      - id
+      - type
+      - title
+      - attachments
+      - capabilities
       properties:
-        state:
+        id:
           type: string
-          description: State of the assignment
-          enum:
-          - draft
-          - active
-          - archived
+          description: Unique identifier of the assignment
         type:
           $ref: '#/components/schemas/AssignmentType'
+        capabilities:
+          required:
+          - canEdit
+          - canPublishInClass
+          - canArchive
+          - canUnarchive
+          type: object
+          description: Capabilities the current user has on this assignment. Each capability corresponds to a fine-grained action that a user may take.
+          properties:
+            canEdit:
+              type: boolean
+              description: |
+                Whether the current user can edit the assignment
+            canPublishInClass:
+              type: boolean
+              description: |
+                Whether this assignment can be published in a class
+            canPublishInClassError:
+              type: object
+              required:
+              - code
+              - message
+              description: |
+                If `canPublishInClass` and `canEdit` are false, the issue why this assignment cannot be published in a class
+              properties:
+                code:
+                  type: string
+                  description: A corresponding code for this error
+                message:
+                  type: string
+                  description: A printable and localized message for this error
+            canArchive:
+              type: boolean
+              description: |
+                Whether the current user can archive the assignment
+            canUnarchive:
+              type: boolean
+              description: |
+                Whether the current user can unarchive the assignment
         title:
           type: string
           description: Title of the assignment
-        classroom:
-          type: string
-          description: The unique identifier of the class where this assignment was posted
         description:
           type: string
           description: Description and content of the assignment
@@ -5941,75 +6585,36 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MediaAttachment'
-        submissions:
-          type: array
-          items:
-            $ref: '#/components/schemas/AssignmentSubmission'
-        creator:
-          type: string
+        useDedicatedAttachments:
+          type: boolean
           description: |
-            The User unique identifier of the creator of this assignment
-        creationDate:
-          type: string
-          description: The creation date of this assignment
-          format: date-time
-        scheduledDate:
-          type: string
-          description: |
-            The publication (scheduled) date of the assignment.
-            If this one is specified, the assignment will only be listed to the teachers of the class.
-          format: date-time
-        dueDate:
-          type: string
-          description: |
-            The due date of this assignment, late submissions will be marked as
-            paste due.
-          format: date-time
+            For all assignments created after 02/2023, all the underlying resources must be dedicated and stored in the assignment.
+            This boolean indicates that this assignment only supports dedicated attachments.
         maxPoints:
           type: number
           description: |
             If set, the grading will be enabled for the assignement
-        googleClassroom:
-          $ref: '#/components/schemas/GoogleClassroomCoursework'
-        microsoftGraph:
-          $ref: '#/components/schemas/MicrosoftGraphAssignment'
-        mfc:
-          type: object
-          description: A MusicFirst Classroom assignment
-          properties:
-            id:
-              type: string
-              description: Unique identifier of the course on MusicFirst Task
-            alternateLink:
-              type: string
-              description: Link to MusicFirst Classroom task
-        canvas:
-          type: object
-          description: A Canvas LMS assignment
-          properties:
-            id:
-              type: string
-              description: Unique identifier of the course on Canvas assignment
-            alternateLink:
-              type: string
-              description: Link to Canvas assignment
-        lti:
-          type: object
-          description: An LTI assignment
-          properties:
-            id:
-              type: string
-              description: Resource ID in the LMS
+        releaseGrades:
+          type: string
+          enum: [auto, manual]
+          description: |
+            For worksheets, how grading will work for the assignment:
+            - If set to `auto`, the grades will be automatically released when the student submits the submissions
+            - If set to `manual`, the grades will only be set as `draftGrade` and will be released when the teacher returns the submissions
+        shuffleExercises:
+          type: boolean
+          description: Mixing worksheets exercises for each student
+        toolset:
+          type: string
+          description: The id of the associated toolset
+        nbPlaybackAuthorized:
+          type: number
+          description: The number of playback authorized on the scores of the assignment.
       description: Assignment details
       example:
+        id: 636a724a89a6eaa0a54c3900
         title: My first assignment
         description: Get started with Flat
-        state: active
-        creator: 5832bf149995c4024bd6de7d
-        classroom: 58c4725345cd836264f0b29e
-        creationDate: 2017-06-12T13:56:19.613000Z
-        dueDate: 2017-07-12T13:56:19.613000Z
-        scheduledDate: 2017-06-18T13:56:19.613000Z
         maxPoints: 100
         attachments:
         - type: flat
@@ -6026,29 +6631,143 @@ components:
           thumbnailWidth: 1868
           authorName: Flat
           authorUrl: https://www.youtube.com/channel/UCEUIbEP9Rba_g0r4eeGhmXw
-        googleClassroom:
-          id: '1235665432'
-          alternateLink: http://classroom.google.com/c/music-theory/a/first-assignment/detail
-        lti:
-          id: '12345'
-        canvas:
-          id: '12345'
-          alternateLink: https://canvas.instructure.com/courses/00000/assignments/12345
-        submissions:
-        - id: 58c4955c226ffff257211a90
+    ClassAssignment:
+      allOf:
+      - $ref: '#/components/schemas/Assignment'
+      - type: object
+        required:
+        - state
+        - creationDate
+        - submissions
+        properties:
+          creator:
+            type: string
+            description: |
+              The User unique identifier of the creator of this assignment
+          state:
+            type: string
+            description: State of the assignment
+            enum:
+            - draft
+            - active
+            - archived
+          classroom:
+            type: string
+            description: The unique identifier of the class where this assignment was posted
+          creationDate:
+            type: string
+            description: The creation date of this assignment
+            format: date-time
+          scheduledDate:
+            type: string
+            description: |
+              The publication (scheduled) date of the assignment.
+              If this one is specified, the assignment will only be listed to the teachers of the class.
+            format: date-time
+          dueDate:
+            type: string
+            description: |
+              The due date of this assignment, late submissions will be marked as
+              paste due.
+            format: date-time
+          assigneeMode:
+            type: string
+            description: Possible modes of assigning assignments
+            enum:
+            - everyone
+            - selected
+          assignedStudents:
+            type: array
+            items:
+              type: string
+            description: Identifiers for the students that have access to the assignment
+          submissions:
+            type: array
+            items:
+              $ref: '#/components/schemas/AssignmentSubmission'
+          googleClassroom:
+            $ref: '#/components/schemas/GoogleClassroomCoursework'
+          microsoftGraph:
+            $ref: '#/components/schemas/MicrosoftGraphAssignment'
+          mfc:
+            type: object
+            description: A MusicFirst Classroom assignment
+            properties:
+              id:
+                type: string
+                description: Unique identifier of the course on MusicFirst Task
+              alternateLink:
+                type: string
+                description: Link to MusicFirst Classroom task
+          canvas:
+            type: object
+            description: A Canvas LMS assignment
+            properties:
+              id:
+                type: string
+                description: Unique identifier of the course on Canvas assignment
+              alternateLink:
+                type: string
+                description: Link to Canvas assignment
+          lti:
+            type: object
+            description: An LTI assignment
+            properties:
+              id:
+                type: string
+                description: Resource ID in the LMS
+          issue:
+            type: string
+            description: Detected issue for this assignment
+        example:
+          id: 636a724a89a6eaa0a54c3900
+          title: My first assignment
+          description: Get started with Flat
+          state: active
+          creator: 5832bf149995c4024bd6de7d
           classroom: 58c4725345cd836264f0b29e
-          assignment: 58c49068524c03ec576ca43c
-          creator: 559eb5c7f0d4d5e46d03781d
-          creationDate: 2017-03-12T00:25:00.748000Z
-          submissionDate: 2017-03-12T00:25:22.748000Z
+          creationDate: 2017-06-12T13:56:19.613000Z
+          dueDate: 2017-07-12T13:56:19.613000Z
+          scheduledDate: 2017-06-18T13:56:19.613000Z
+          maxPoints: 100
           attachments:
           - type: flat
-            score: 58c4955a226ffff257211a8d
-            title: Hello - Student
+            score: '0000000000000000'
+          - type: link
+            url: https://flat.io/developers
+          - type: video
+            url: https://www.youtube.com/watch?v=SNbRUiBZ4Uw
+            title: Flat - The online collaborative music notation software
+            description: Discover Flat on https://flat.io
+            html: <iframe width="560" height="315" src="https://www.youtube.com/embed/SNbRUiBZ4Uw" frameborder="0" allowfullscreen></iframe>
+            thumbnailUrl: https://i.ytimg.com/vi/SNbRUiBZ4Uw/maxresdefault.jpg
+            thumbnailHeight: 1052
+            thumbnailWidth: 1868
+            authorName: Flat
+            authorUrl: https://www.youtube.com/channel/UCEUIbEP9Rba_g0r4eeGhmXw
           googleClassroom:
-            id: CgsI-00000000000
-            state: turned_in
-            alternateLink: http://classroom.google.com/c/music-theory/a/first-assignment/submissions/student/my-submission
+            id: '1235665432'
+            alternateLink: http://classroom.google.com/c/music-theory/a/first-assignment/detail
+          lti:
+            id: '12345'
+          canvas:
+            id: '12345'
+            alternateLink: https://canvas.instructure.com/courses/00000/assignments/12345
+          submissions:
+          - id: 58c4955c226ffff257211a90
+            classroom: 58c4725345cd836264f0b29e
+            assignment: 58c49068524c03ec576ca43c
+            creator: 559eb5c7f0d4d5e46d03781d
+            creationDate: 2017-03-12T00:25:00.748000Z
+            submissionDate: 2017-03-12T00:25:22.748000Z
+            attachments:
+            - type: flat
+              score: 58c4955a226ffff257211a8d
+              title: Hello - Student
+            googleClassroom:
+              id: CgsI-00000000000
+              state: turned_in
+              alternateLink: http://classroom.google.com/c/music-theory/a/first-assignment/submissions/student/my-submission
     AssignmentSubmissionUpdate:
       type: object
       properties:
@@ -6103,8 +6822,23 @@ components:
       - created
       - turnedIn
       - returned
+    AssignmentSubmissionHistoryState:
+      type: string
+      description: State of the submission history
+      enum:
+      - created
+      - turnedIn
+      - returned
+      - reset
     AssignmentSubmission:
       type: object
+      required:
+      - id
+      - state
+      - classroom
+      - assignment
+      - creator
+      - attachments
       properties:
         id:
           type: string
@@ -6130,7 +6864,7 @@ components:
             $ref: '#/components/schemas/MediaAttachment'
         submissionDate:
           type: string
-          description: The date when the student submitted his work
+          description: The date when the student submitted their work
         returnDate:
           type: string
           description: The date when the teacher returned the work
@@ -6228,8 +6962,15 @@ components:
           type: array
           items:
             type: string
+        source:
+          description: The source of the change if the change was made by a third-party software
+          type: string
+          enum:
+          - lti
+          - googleClassroom
+          - microsoftGraph
         state:
-          $ref: '#/components/schemas/AssignmentSubmissionState'
+          $ref: '#/components/schemas/AssignmentSubmissionHistoryState'
         draftGrade:
           type: number
           description: The numerator of the grade at this time in the submission grade history
@@ -6239,6 +6980,13 @@ components:
         maxPoints:
           type: number
           description: The denominator of the grade at this time in the submission grade history
+        comment:
+          type: string
+          description: The comment that is made to this submission
+        dueDate:
+          type: string
+          description: The due date of this assignment
+          format: date-time
         attachment:
           type: object
           properties:
@@ -6248,6 +6996,180 @@ components:
             revision:
               type: string
               description: The revision identifier that changed
+            title:
+              type: string
+              description: The title of the score that changed
+    EduLibrary:
+      description: A Flat for Education Library
+      type: object
+      properties:
+        id:
+          type: string
+          description: |
+            Unique identifier of the library.
+
+            This one can be used to list the underlying resources using
+            `GET /v2/eduResources?parent={library-id}`
+        name:
+          type: string
+          description: Name of the lirbary
+        type:
+          type: string
+          description: Type of the library
+          enum:
+          - myResources
+          - flatEduSamples
+        visibility:
+          description: Visibility of the library
+          type: string
+          enum:
+          - private
+          - organization
+          - public
+      example:
+        id: root
+        name: My resources
+        visibility: private
+    EduResourcePrivacy:
+      type: string
+      description: |
+        The Education resource privacy mode.
+      default: private
+      enum:
+      - private
+      - public
+    EduResource:
+      description: A Flat for Education resource contained in a resources library
+      type: object
+      required:
+      - id
+      - type
+      - title
+      - capabilities
+      properties:
+        id:
+          type: string
+          description: Resource unique identifier
+        creator:
+          type: string
+          description: The User identifier of the resource creator
+        type:
+          $ref: '#/components/schemas/EduResourceType'
+        privacy:
+          $ref: '#/components/schemas/EduResourcePrivacy'
+        tags:
+          type: array
+          description: Specific attributes for the resource (e.g. sample resources with custom design)
+          items:
+            type: string
+        parent:
+          type: string
+          description: Identifier of the parent resource, e.g. a folder or root
+        title:
+          type: string
+          description: Title of the resource
+        creationDate:
+          type: string
+          format: date-time
+          description: The date when the resource was created
+        updateDate:
+          type: string
+          format: date-time
+          description: The date when the resource was updated
+        resource:
+          oneOf:
+          - $ref: '#/components/schemas/Assignment'
+          - $ref: '#/components/schemas/EduResourceFolder'
+        capabilities:
+          description: Capabilities available for this resource
+          type: object
+          properties:
+            canEdit:
+              type: boolean
+              description: |
+                Whether the current user can modify this resource
+            canAddResources:
+              type: boolean
+              description: |
+                Whether the current user can add resources within this resource (e.g. `assignment` inside a `folder`)
+            canAddFolders:
+              type: boolean
+              description: |
+                Whether the current user can add folders within this resource (e.g. `folder` inside `root`)
+    EduResourceCreation:
+      description: Creation of an education resource
+      type: object
+      required:
+      - type
+      - title
+      properties:
+        type:
+          $ref: '#/components/schemas/EduResourceType'
+        title:
+          type: string
+          description: Title of the resource
+          maxLength: 1000
+          minLength: 1
+        parent:
+          type: string
+          default: root
+          description: Identifier of the parent resource where the new one will created, e.g. a folder id or `root`
+    EduResourceUpdate:
+      description: Update of an education resource
+      type: object
+      properties:
+        title:
+          type: string
+          description: Title of the resource
+          maxLength: 1000
+          minLength: 1
+    EduResourceType:
+      description: Type of an education resource
+      type: string
+      enum:
+      - assignment
+      - folder
+    EduResourceFolder:
+      description: Education resources folder
+      type: object
+      properties:
+        title:
+          type: string
+          description: Title of the folder
+    EduResourceMove:
+      description: Move an education resource
+      type: object
+      required:
+      - destination
+      properties:
+        destination:
+          type: string
+          description: |
+            Unique identifier of the destination of the folder where to move this resource.
+            This can also be `root` to move the resource at the root of the user resource library.
+    EduResourceCopy:
+      description: Copy an education resource
+      type: object
+      required:
+      - destination
+      properties:
+        destination:
+          type: string
+          description: |
+            Unique identifier of the destination of the folder where to copy this resource.
+            This can also be `root` to copy the resource at the root of the user resource library.
+    EduResourceUseInClass:
+      description: Use an education resource in class
+      type: object
+      required:
+      - classroom
+      properties:
+        classroom:
+          type: string
+          description: The destination classroom where the resource will be copied.
+        assignment:
+          type: string
+          description: An optional destination assignment where the original assignement will be copied. Must be a draft.
     MicrosoftGraphAssignment:
       type: object
       description: A Microsoft Teams asignment
@@ -6386,12 +7308,14 @@ components:
       - performance
     MediaAttachment:
       type: object
+      required:
+      - type
       properties:
         type:
           type: string
           description: |
             The type of the assignment resolved:
-            * `rich`, `photo`, `video` are attachment types that are automatically resolved from a `link` attachment.
+            * `rich`, `photo`, `video` are automatically resolved as `link`
             * A `flat` attachment is a score document where the unique identifier will be specified in the `score` property. Its sharing mode will be provided in the `sharingMode` property.
           enum:
           - rich
@@ -6411,6 +7335,9 @@ components:
         worksheet:
           type: string
           description: An unique worksheet identifier
+        dedicated:
+          type: boolean
+          description: True if the resource is dedicated for the assignment (for scores and worksheets), meaning on the user-side this one is stored in the assignment
         track:
           type: string
           description: A unique track identifier
@@ -6490,10 +7417,7 @@ components:
           description: Unique identifier of the task
         type:
           type: string
-          description: Type of the task
-          enum:
-          - audio-export
-          - audio-low-prio
+          description: Type of the task (e.g. audio-export)
         state:
           type: string
           description: State of the Task
@@ -6503,6 +7427,12 @@ components:
           - done
           - canceled
           - error
+        format:
+          type: string
+          description: For files processing, the file format (e.g. `mp3`, `wav`)
+        score:
+          type: string
+          description: The score unique identifier for tasks related to scores
         progress:
           type: object
           description: Details about the task progression
@@ -6525,16 +7455,34 @@ components:
           type: string
           description: The date when the task has been completed
           format: date-time
+        result:
+          type: object
+          description: Optional result information about this task
+          properties:
+            url:
+              description: URL returned by the task worker
+              type: string
+            error:
+              description: Error returned by task worker
+              type: string
+        errorHistory:
+          type: array
+          description: If any errors happened when processing this task, the list of errors identifiers
+          items:
+            type: string
     FlatErrorResponse:
       description: An API Error response
       type: object
+      required:
+      - code
+      - message
       properties:
         code:
           type: string
           description: A corresponding code for this error
         message:
           type: string
-          description: A printable message for this message
+          description: A printable message for this error
         id:
           type: string
           description: An unique error identifier generated for the request
@@ -6545,6 +7493,34 @@ components:
         code: CLIENT_ERROR
         message: Invalid request
         id: '123456789'
+    UserCommunityProfileLinks:
+      type: object
+      description: Social networks links
+      properties:
+        spotifyUrl:
+          type: string
+          nullable: true
+          description: Spotify Profile URL
+        youtubeUrl:
+          type: string
+          nullable: true
+          description: YouTube channel URL
+        soundcloudUrl:
+          type: string
+          nullable: true
+          description: SoundCloud Profile URL
+        tiktokUrl:
+          type: string
+          nullable: true
+          description: TikTok profile URL. For updates, also accepts TikTok usernames
+        instagramUrl:
+          type: string
+          nullable: true
+          description: Instagram profile URL. For updates, also accepts Instagram usernames
+        websiteUrl:
+          type: string
+          nullable: true
+          description: Personnal website URL
   parameters:
     limit:
       name: limit
