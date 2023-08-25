@@ -1,6 +1,6 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 '''
-Copyright (c) 2022, Tutteo Limited.
+Copyright (c) 2022-2023, Tutteo Limited.
 '''
 
 from copy import deepcopy
@@ -26,18 +26,34 @@ def walk_tree(base, in_inheritance=False):
 				# flatten allOf for code generator
 				if k == 'allOf' or k == 'oneOf':
 					children_props = {}
+					required = []
 					for children_set in base[k]:
 						# $ref to another schema
 						if '$ref' in children_set:
 							schema_key = children_set['$ref'].split('/').pop()
 							models_flatten.append(schema_key)
 							children_ref = walk_tree(data['components']['schemas'][schema_key], in_inheritance=True)
+
 							if children_ref != 'remove':
+								# Properties from children
 								children_props.update(deepcopy(walk_tree(children_ref['properties'])))
+								# Combine required arrays
+								if 'required' in children_ref and children_ref['required'] is not None:
+									required.extend(children_ref['required'])
+
 						# direct children props
 						else:
 							children_props.update(deepcopy(walk_tree(children_set['properties'])))
-					return {'type': 'object', 'properties': children_props}
+
+					result = {
+						'type': 'object',
+						'properties': children_props,
+					}
+					if len(required) > 0:
+						required.sort()
+						result['required'] = required
+					return result
+
 				# walk childrens
 				result = walk_tree(v)
 				if result == 'remove':
