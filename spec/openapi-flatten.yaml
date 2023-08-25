@@ -33,7 +33,7 @@ info:
     name: Flat
     url: https://flat.io/developers/docs/api/
     email: developers@flat.io
-  version: 2.18.0
+  version: 2.19.0
   x-logo:
     url: https://prod.flat-cdn.com/img/logo-flat.svg
 servers:
@@ -107,7 +107,7 @@ paths:
           type: boolean
           default: false
       responses:
-        200:
+        '200':
           description: Current user details
           content:
             application/json:
@@ -152,19 +152,19 @@ paths:
               $ref: '#/components/schemas/ScoreCreation'
         required: true
       responses:
-        200:
+        '200':
           description: Score created
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScoreDetails'
-        400:
+        '400':
           description: Bad score creation request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        402:
+        '402':
           description: Account overquota
           content:
             application/json:
@@ -205,25 +205,25 @@ paths:
         schema:
           type: string
       responses:
-        200:
+        '200':
           description: Score details
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScoreDetails'
-        402:
+        '402':
           description: Account overquota and this document is out of the granted quota
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        403:
+        '403':
           description: Not granted to access to this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score not found
           content:
             application/json:
@@ -258,25 +258,25 @@ paths:
               $ref: '#/components/schemas/ScoreModification'
         required: false
       responses:
-        200:
+        '200':
           description: Score details
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScoreDetails'
-        402:
+        '402':
           description: Account overquota
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        403:
+        '403':
           description: Not granted to access to this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score not found
           content:
             application/json:
@@ -312,15 +312,15 @@ paths:
           type: boolean
           default: false
       responses:
-        204:
+        '204':
           description: The score has been removed
-        403:
+        '403':
           description: Not granted to manage this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score not found
           content:
             application/json:
@@ -352,15 +352,15 @@ paths:
         This method will remove the score from the `trash` collection and from the deletion queue, and add it back to the original collections.
       operationId: untrashScore
       responses:
-        204:
+        '204':
           description: The score has been untrashed
-        403:
+        '403':
           description: Not granted to manage this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score not found
           content:
             application/json:
@@ -393,7 +393,7 @@ paths:
         This API call will list the different assignments submissions where the score is attached. This method can be used by anyone that are part of the organization and have at least read access to the document.
       operationId: getScoreSubmissions
       responses:
-        200:
+        '200':
           description: List of submissions
           content:
             application/json:
@@ -443,25 +443,25 @@ paths:
               $ref: '#/components/schemas/ScoreFork'
         required: true
       responses:
-        200:
+        '200':
           description: Score details
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScoreDetails'
-        402:
+        '402':
           description: Account overquota
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        403:
+        '403':
           description: Not granted to access to this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score not found
           content:
             application/json:
@@ -503,7 +503,7 @@ paths:
         schema:
           type: string
       responses:
-        200:
+        '200':
           description: List of collaborators
           content:
             application/json:
@@ -511,19 +511,19 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ResourceCollaborator'
-        402:
+        '402':
           description: Account overquota
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        403:
+        '403':
           description: Not granted to access to this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score not found
           content:
             application/json:
@@ -557,25 +557,25 @@ paths:
               $ref: '#/components/schemas/ResourceCollaboratorCreation'
         required: true
       responses:
-        200:
+        '200':
           description: The newly added collaborator metadata
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ResourceCollaborator'
-        402:
+        '402':
           description: Account overquota
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        403:
+        '403':
           description: Not granted to manage this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score not found
           content:
             application/json:
@@ -622,25 +622,25 @@ paths:
         schema:
           type: string
       responses:
-        200:
+        '200':
           description: Collaborator information
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ResourceCollaborator'
-        402:
+        '402':
           description: Account overquota
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        403:
+        '403':
           description: Not granted to access to this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score or collaborator not found
           content:
             application/json:
@@ -663,15 +663,15 @@ paths:
         Remove the specified collaborator from the score
       operationId: removeScoreCollaborator
       responses:
-        204:
+        '204':
           description: The collaborator has been removed
-        403:
+        '403':
           description: Not granted to manage this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score or collaborator not found
           content:
             application/json:
@@ -720,7 +720,7 @@ paths:
         schema:
           type: boolean
       responses:
-        200:
+        '200':
           description: List of tracks
           content:
             application/json:
@@ -728,13 +728,13 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ScoreTrack'
-        403:
+        '403':
           description: Not granted to access to this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score not found
           content:
             application/json:
@@ -765,19 +765,19 @@ paths:
               $ref: '#/components/schemas/ScoreTrackCreation'
         required: true
       responses:
-        200:
+        '200':
           description: Created track
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScoreTrack'
-        403:
+        '403':
           description: Not granted to access to this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score not found
           content:
             application/json:
@@ -822,19 +822,19 @@ paths:
         schema:
           type: string
       responses:
-        200:
+        '200':
           description: Track details
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScoreTrack'
-        403:
+        '403':
           description: Not granted to access to this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score or Track not found
           content:
             application/json:
@@ -862,19 +862,19 @@ paths:
               $ref: '#/components/schemas/ScoreTrackUpdate'
         required: true
       responses:
-        200:
+        '200':
           description: Updated track
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScoreTrack'
-        403:
+        '403':
           description: Not granted to access to this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score or Track not found
           content:
             application/json:
@@ -896,15 +896,15 @@ paths:
       summary: Remove an audio or video track linked to the score
       operationId: deleteScoreTrack
       responses:
-        204:
+        '204':
           description: Track removed
-        403:
+        '403':
           description: Not granted to access to this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score or Track not found
           content:
             application/json:
@@ -965,7 +965,7 @@ paths:
           - asc
           - desc
       responses:
-        200:
+        '200':
           description: The comments of the score
           content:
             application/json:
@@ -973,19 +973,19 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ScoreComment'
-        402:
+        '402':
           description: Account overquota
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        403:
+        '403':
           description: Not granted to access to this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score not found
           content:
             application/json:
@@ -1018,25 +1018,25 @@ paths:
               $ref: '#/components/schemas/ScoreCommentCreation'
         required: true
       responses:
-        200:
+        '200':
           description: The new comment
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScoreComment'
-        402:
+        '402':
           description: Account overquota
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        403:
+        '403':
           description: Not granted to access to this score, to post a comment, or your API call triggered our spam filter.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score not found
           content:
             application/json:
@@ -1087,25 +1087,25 @@ paths:
               $ref: '#/components/schemas/ScoreCommentUpdate'
         required: true
       responses:
-        200:
+        '200':
           description: The edited comment
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScoreComment'
-        402:
+        '402':
           description: Account overquota
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        403:
+        '403':
           description: Not granted to access to this score or not the original comment creator
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score not found
           content:
             application/json:
@@ -1128,15 +1128,15 @@ paths:
       summary: Delete a comment
       operationId: deleteScoreComment
       responses:
-        204:
+        '204':
           description: The comment has been deleted
-        403:
+        '403':
           description: Not granted to access to this score or not the original comment creator
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score or comment not found
           content:
             application/json:
@@ -1180,15 +1180,15 @@ paths:
       summary: Mark the comment as resolved
       operationId: markScoreCommentResolved
       responses:
-        204:
+        '204':
           description: The comment has been marked as resolved
-        403:
+        '403':
           description: Not granted to mark this comment as resolved
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score or comment not found
           content:
             application/json:
@@ -1217,15 +1217,15 @@ paths:
         schema:
           type: string
       responses:
-        204:
+        '204':
           description: The comment has been unmarked as resolved
-        403:
+        '403':
           description: Not granted to unmark this comment as resolved
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score or comment not found
           content:
             application/json:
@@ -1267,7 +1267,7 @@ paths:
         schema:
           type: string
       responses:
-        200:
+        '200':
           description: List of revisions
           content:
             application/json:
@@ -1275,19 +1275,19 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ScoreRevision'
-        402:
+        '402':
           description: Account overquota
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        403:
+        '403':
           description: Not granted to access to this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score not found
           content:
             application/json:
@@ -1317,25 +1317,25 @@ paths:
               $ref: '#/components/schemas/ScoreRevisionCreation'
         required: true
       responses:
-        200:
+        '200':
           description: The new created revision metadata
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScoreRevision'
-        402:
+        '402':
           description: Account overquota
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        403:
+        '403':
           description: Not granted to modify this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score not found
           content:
             application/json:
@@ -1382,25 +1382,25 @@ paths:
         revision metadata.
       operationId: getScoreRevision
       responses:
-        200:
+        '200':
           description: Revision metadata
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScoreRevision'
-        402:
+        '402':
           description: Account overquota
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        403:
+        '403':
           description: Not granted to access to this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score not found
           content:
             application/json:
@@ -1482,7 +1482,7 @@ paths:
         schema:
           type: boolean
       responses:
-        200:
+        '200':
           description: Revision data
           content:
             application/json:
@@ -1513,19 +1513,19 @@ paths:
               schema:
                 type: string
                 format: binary
-        402:
+        '402':
           description: Account overquota
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        403:
+        '403':
           description: Not granted to access to this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score or associated file not found
           content:
             application/json:
@@ -1588,25 +1588,25 @@ paths:
               $ref: '#/components/schemas/TaskExportOptions'
         required: false
       responses:
-        200:
+        '200':
           description: Task associated to the generation of the file
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Task'
-        402:
+        '402':
           description: Account overquota
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        403:
+        '403':
           description: Not granted to access to this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score or associated file not found
           content:
             application/json:
@@ -1687,7 +1687,7 @@ paths:
         schema:
           type: string
       responses:
-        200:
+        '200':
           description: List of collections
           content:
             application/json:
@@ -1719,13 +1719,13 @@ paths:
               $ref: '#/components/schemas/CollectionCreation'
         required: true
       responses:
-        200:
+        '200':
           description: Collection created
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Collection'
-        400:
+        '400':
           description: Bad collection creation request
           content:
             application/json:
@@ -1768,19 +1768,19 @@ paths:
         schema:
           type: string
       responses:
-        200:
+        '200':
           description: Collection details
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Collection'
-        403:
+        '403':
           description: Not granted to access to this collection
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Collection not found
           content:
             application/json:
@@ -1808,19 +1808,19 @@ paths:
               $ref: '#/components/schemas/CollectionModification'
         required: false
       responses:
-        200:
+        '200':
           description: Collection details
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Collection'
-        403:
+        '403':
           description: Not granted to access to this collection
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Collection not found
           content:
             application/json:
@@ -1844,15 +1844,15 @@ paths:
         This method will schedule the deletion of the collection. Until deleted, the collection will be available in the `trash`.
       operationId: deleteCollection
       responses:
-        204:
+        '204':
           description: Collection deleted
-        403:
+        '403':
           description: Not granted to access to this collection
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Collection not found
           content:
             application/json:
@@ -1889,15 +1889,15 @@ paths:
         This method will restore the collection by removing it from the `trash` and add it back to the `root` collection.
       operationId: untrashCollection
       responses:
-        204:
+        '204':
           description: The score has been untrashed
-        403:
+        '403':
           description: Not granted to manage this score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Score not found
           content:
             application/json:
@@ -1983,7 +1983,7 @@ paths:
         schema:
           type: string
       responses:
-        200:
+        '200':
           description: List of scores
           content:
             application/json:
@@ -2036,19 +2036,19 @@ paths:
         You must have the capability `canAddScores` on the provided `collection` to perform the action.
       operationId: addScoreToCollection
       responses:
-        200:
+        '200':
           description: Score details
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScoreDetails'
-        403:
+        '403':
           description: Not granted to access to this collection or score
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Collection or score not found
           content:
             application/json:
@@ -2073,15 +2073,15 @@ paths:
         This can be used to *move* a score from one collection to another, or simply remove a score from one collection when this one is contained in multiple collections.
       operationId: deleteScoreFromCollection
       responses:
-        204:
+        '204':
           description: Score removed from the collection
-        403:
+        '403':
           description: Not granted to access to this collection
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Collection not found
           content:
             application/json:
@@ -2112,7 +2112,7 @@ paths:
         This method can be used to follow a task progression, for example while a score is being exported.
       operationId: getTask
       responses:
-        200:
+        '200':
           description: Task details
           content:
             application/json:
@@ -2144,7 +2144,7 @@ paths:
         Get a profile of a Flat or Flat for Education User.
       operationId: getUser
       responses:
-        200:
+        '200':
           description: The user public details
           content:
             application/json:
@@ -2182,7 +2182,7 @@ paths:
         schema:
           type: boolean
       responses:
-        200:
+        '200':
           description: List of liked scores
           content:
             application/json:
@@ -2227,7 +2227,7 @@ paths:
         schema:
           type: string
       responses:
-        200:
+        '200':
           description: The user scores
           content:
             application/json:
@@ -2292,7 +2292,7 @@ paths:
           type: integer
           default: 25
       responses:
-        200:
+        '200':
           description: List of users
           content:
             application/json:
@@ -2323,7 +2323,7 @@ paths:
               $ref: '#/components/schemas/UserCreation'
         required: false
       responses:
-        200:
+        '200':
           description: New user created
           content:
             application/json:
@@ -2352,7 +2352,7 @@ paths:
       - $ref: '#/components/parameters/groupIds'
       - $ref: '#/components/parameters/noActiveLicense'
       responses:
-        200:
+        '200':
           description: Number of users
           content:
             application/json:
@@ -2392,7 +2392,7 @@ paths:
               $ref: '#/components/schemas/UserAdminUpdate'
         required: true
       responses:
-        200:
+        '200':
           description: User updated
           content:
             application/json:
@@ -2428,7 +2428,7 @@ paths:
         schema:
           type: boolean
       responses:
-        204:
+        '204':
           description: User deleted
         default:
           description: Error
@@ -2460,7 +2460,7 @@ paths:
             schema:
               $ref: '#/components/schemas/UserSigninLinkCreation'
       responses:
-        200:
+        '200':
           description: Sign in link
           content:
             application/json:
@@ -2499,7 +2499,7 @@ paths:
             schema:
               $ref: '#/components/schemas/OrganizationUserAccessTokenCreation'
       responses:
-        200:
+        '200':
           description: Created API access token
           content:
             application/json:
@@ -2554,7 +2554,7 @@ paths:
         schema:
           type: string
       responses:
-        200:
+        '200':
           description: List of invitations
           content:
             application/json:
@@ -2591,7 +2591,7 @@ paths:
               $ref: '#/components/schemas/OrganizationInvitationCreation'
         required: false
       responses:
-        200:
+        '200':
           description: New invitation created
           content:
             application/json:
@@ -2622,7 +2622,7 @@ paths:
       summary: Remove an organization invitation
       operationId: removeOrganizationInvitation
       responses:
-        204:
+        '204':
           description: The invitation has been removed
         default:
           description: Error
@@ -2641,7 +2641,7 @@ paths:
       summary: List LTI 1.x credentials
       operationId: listLtiCredentials
       responses:
-        200:
+        '200':
           description: The list of LTI Credentials
           content:
             application/json:
@@ -2649,7 +2649,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/LtiCredentials'
-        403:
+        '403':
           description: Not admin of an organization
           content:
             application/json:
@@ -2680,13 +2680,13 @@ paths:
               $ref: '#/components/schemas/LtiCredentialsCreation'
         required: true
       responses:
-        200:
+        '200':
           description: The LTI Credentials
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LtiCredentials'
-        403:
+        '403':
           description: Not admin of an organization
           content:
             application/json:
@@ -2718,15 +2718,15 @@ paths:
       summary: Revoke LTI 1.x credentials
       operationId: revokeLtiCredentials
       responses:
-        204:
+        '204':
           description: Credentials revoked
-        403:
+        '403':
           description: Not admin of an organization
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Credentials not found
           content:
             application/json:
@@ -2760,7 +2760,7 @@ paths:
           - inactive
           - archived
       responses:
-        200:
+        '200':
           description: The list of classes
           content:
             application/json:
@@ -2798,13 +2798,13 @@ paths:
               $ref: '#/components/schemas/ClassCreation'
         required: true
       responses:
-        200:
+        '200':
           description: The new class details
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ClassDetails'
-        402:
+        '402':
           description: Account overquota
           content:
             application/json:
@@ -2829,7 +2829,7 @@ paths:
       summary: Get the details of a single class
       operationId: getClass
       responses:
-        200:
+        '200':
           description: The new class details
           content:
             application/json:
@@ -2860,7 +2860,7 @@ paths:
               $ref: '#/components/schemas/ClassUpdate'
         required: false
       responses:
-        200:
+        '200':
           description: The new class details
           content:
             application/json:
@@ -2887,7 +2887,7 @@ paths:
         Mark the class as `archived`. When this course is synchronized with another app, like Google Classroom, this state will be automatically be updated.
       operationId: archiveClass
       responses:
-        200:
+        '200':
           description: The class details
           content:
             application/json:
@@ -2910,7 +2910,7 @@ paths:
         Mark the class as `active`. When this course is synchronized with another app, like Google Classroom, this state will be automatically be updated.
       operationId: unarchiveClass
       responses:
-        200:
+        '200':
           description: The class details
           content:
             application/json:
@@ -2936,7 +2936,7 @@ paths:
         Mark the class as `active`. This is mainly used for classes synchronized from Clever that are initially with an `inactive` state and hidden in the UI.
       operationId: activateClass
       responses:
-        200:
+        '200':
           description: The class details
           content:
             application/json:
@@ -2972,7 +2972,7 @@ paths:
         When enrolling a user in the class, Flat will automatically add this user to the corresponding Class group, based on this role in the Organization.
       operationId: addClassUser
       responses:
-        204:
+        '204':
           description: The user has been added to the class
         default:
           description: Error
@@ -2993,7 +2993,7 @@ paths:
         Warning: Removing a user from the class will remove the associated resources, including the submissions and feedback related to these submissions.
       operationId: deleteClassUser
       responses:
-        204:
+        '204':
           description: The user has been removed from the class
         default:
           description: Error
@@ -3021,7 +3021,7 @@ paths:
         Use this method as a teacher to list all the assignment submissions sent by a student of the class
       operationId: listClassStudentSubmissions
       responses:
-        200:
+        '200':
           description: The list of submissions
           content:
             application/json:
@@ -3050,7 +3050,7 @@ paths:
       summary: Assignments listing
       operationId: listAssignments
       responses:
-        200:
+        '200':
           description: List of assignments for the class
           content:
             application/json:
@@ -3086,7 +3086,7 @@ paths:
               $ref: '#/components/schemas/ClassAssignmentUpdate'
         required: false
       responses:
-        200:
+        '200':
           description: The assignment has been created
           content:
             application/json:
@@ -3125,7 +3125,7 @@ paths:
               $ref: '#/components/schemas/AssignmentCopy'
         required: true
       responses:
-        200:
+        '200':
           description: The new created assignment
           content:
             application/json:
@@ -3154,7 +3154,7 @@ paths:
         Archive the assignment
       operationId: archiveAssignment
       responses:
-        200:
+        '200':
           description: The assignment details
           content:
             application/json:
@@ -3178,7 +3178,7 @@ paths:
         Mark the assignment as `active`.
       operationId: unarchiveAssignment
       responses:
-        200:
+        '200':
           description: The assignment details
           content:
             application/json:
@@ -3204,7 +3204,7 @@ paths:
       summary: List the students' submissions
       operationId: getSubmissions
       responses:
-        200:
+        '200':
           description: The submissions
           content:
             application/json:
@@ -3240,7 +3240,7 @@ paths:
               $ref: '#/components/schemas/AssignmentSubmissionUpdate'
         required: true
       responses:
-        200:
+        '200':
           description: The submission
           content:
             application/json:
@@ -3268,7 +3268,7 @@ paths:
       description: Export list of submissions grades to a CSV file
       operationId: exportSubmissionsReviewsAsCsv
       responses:
-        200:
+        '200':
           description: List of submissions
           content:
             text/csv:
@@ -3298,7 +3298,7 @@ paths:
       description: Export list of submissions grades to an Excel file
       operationId: exportSubmissionsReviewsAsExcel
       responses:
-        200:
+        '200':
           description: List of submissions
           content:
             application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
@@ -3328,7 +3328,7 @@ paths:
       summary: Get a student submission
       operationId: getSubmission
       responses:
-        200:
+        '200':
           description: A submission
           content:
             application/json:
@@ -3361,7 +3361,7 @@ paths:
               $ref: '#/components/schemas/AssignmentSubmissionUpdate'
         required: true
       responses:
-        200:
+        '200':
           description: The submission
           content:
             application/json:
@@ -3390,7 +3390,7 @@ paths:
       - $ref: '#/components/parameters/assignment'
       - $ref: '#/components/parameters/submission'
       responses:
-        200:
+        '200':
           description: The submission object once reset
           content:
             application/json:
@@ -3424,7 +3424,7 @@ paths:
         - edu.assignments
         - edu.assignments.readonly
       responses:
-        200:
+        '200':
           description: The history of the submission
           content:
             application/json:
@@ -3432,13 +3432,13 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AssignmentSubmissionHistory'
-        403:
+        '403':
           description: Not granted to access to this submission
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Submission not found
           content:
             application/json:
@@ -3465,7 +3465,7 @@ paths:
         - edu.assignments
         - edu.assignments.readonly
       responses:
-        200:
+        '200':
           description: The comments of the score
           content:
             application/json:
@@ -3473,13 +3473,13 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AssignmentSubmissionComment'
-        403:
+        '403':
           description: Not granted to access to this submission
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Submission not found
           content:
             application/json:
@@ -3506,19 +3506,19 @@ paths:
               $ref: '#/components/schemas/AssignmentSubmissionCommentCreation'
         required: true
       responses:
-        200:
+        '200':
           description: The comment
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssignmentSubmissionComment'
-        403:
+        '403':
           description: Not granted to access to this submission
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Submission not found
           content:
             application/json:
@@ -3551,19 +3551,19 @@ paths:
               $ref: '#/components/schemas/AssignmentSubmissionCommentCreation'
         required: true
       responses:
-        200:
+        '200':
           description: The comment
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssignmentSubmissionComment'
-        403:
+        '403':
           description: Not granted to access to this submission
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FlatErrorResponse'
-        404:
+        '404':
           description: Submission not found
           content:
             application/json:
@@ -3584,7 +3584,7 @@ paths:
       - OAuth2:
         - edu.assignments
       responses:
-        204:
+        '204':
           description: The comment has been deleted
         default:
           description: Error
@@ -3615,7 +3615,7 @@ paths:
         schema:
           type: boolean
       responses:
-        200:
+        '200':
           description: Test account created
           content:
             application/json:
@@ -3650,7 +3650,7 @@ paths:
         Flat will automatically add the user to the corresponding class group based on this role in the organization.
       operationId: enrollClass
       responses:
-        200:
+        '200':
           description: The new class details
           content:
             application/json:
@@ -3674,7 +3674,7 @@ paths:
       summary: Get group information
       operationId: getGroupDetails
       responses:
-        200:
+        '200':
           description: The group details
           content:
             application/json:
@@ -3710,7 +3710,7 @@ paths:
           type: string
           enum: [googleClassroom, microsoftGraph, clever]
       responses:
-        200:
+        '200':
           description: The list of users member of the group
           content:
             application/json:
@@ -3749,7 +3749,7 @@ paths:
         schema:
           type: string
       responses:
-        200:
+        '200':
           description: The group's scores
           content:
             application/json:
@@ -3812,7 +3812,7 @@ paths:
       - $ref: '#/components/parameters/next'
       - $ref: '#/components/parameters/previous'
       responses:
-        200:
+        '200':
           description: List of resources
           content:
             application/json:
@@ -3844,7 +3844,7 @@ paths:
               $ref: '#/components/schemas/EduResourceCreation'
         required: true
       responses:
-        200:
+        '200':
           description: Fetched resource
           content:
             application/json:
@@ -3867,7 +3867,7 @@ paths:
       operationId: listEduLibraries
       summary: List the education libraries
       responses:
-        200:
+        '200':
           description: Fetched resource
           content:
             application/json:
@@ -3902,7 +3902,7 @@ paths:
       operationId: getEduResource
       summary: Get an education resource
       responses:
-        200:
+        '200':
           description: Fetched resource
           content:
             application/json:
@@ -3936,7 +3936,7 @@ paths:
               $ref: '#/components/schemas/EduResourceUpdate'
         required: true
       responses:
-        200:
+        '200':
           description: Fetched resource
           content:
             application/json:
@@ -3958,7 +3958,7 @@ paths:
       operationId: deleteEduResource
       summary: Delete an education resource
       responses:
-        204:
+        '204':
           description: Resource deleted
         default:
           description: Error
@@ -3990,7 +3990,7 @@ paths:
               $ref: '#/components/schemas/EduResourceMove'
         required: true
       responses:
-        200:
+        '200':
           description: Fetched resource
           content:
             application/json:
@@ -4026,7 +4026,7 @@ paths:
               $ref: '#/components/schemas/EduResourceCopy'
         required: true
       responses:
-        200:
+        '200':
           description: Fetched resource
           content:
             application/json:
@@ -4063,7 +4063,7 @@ paths:
         You can then use `POST /classes/{class}/testStudent` to create a testing student account
         in the demo class.
       responses:
-        200:
+        '200':
           description: Assignment copied to the demo class
           content:
             application/json:
@@ -4102,12 +4102,45 @@ paths:
               $ref: '#/components/schemas/EduResourceUseInClass'
         required: true
       responses:
-        200:
+        '200':
           description: Assignment copied to the chosen class
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ClassAssignment'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.resources
+        - edu.assignments
+  /eduResources/{resource}/createLtiLink:
+    parameters:
+    - name: resource
+      in: path
+      required: true
+      description: Unique identifier of the resource
+      schema:
+        type: string
+    post:
+      tags:
+      - EduResources
+      operationId: createEduResourceLtiLink
+      summary: Create an LTI link for an education resource
+      description: |
+        This endpoint will return an LTI link that can be used to launch Flat for Education.
+        The link, in a context from a class, will ensure the assignment has been copied in the class.
+      responses:
+        '200':
+          description: Created LTI Link
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EduResourceLtiLink'
         default:
           description: Error
           content:
@@ -4138,7 +4171,7 @@ paths:
               $ref: '#/components/schemas/AssignmentUpdate'
         required: true
       responses:
-        200:
+        '200':
           description: Fetched resource
           content:
             application/json:
@@ -4294,6 +4327,11 @@ components:
         htmlUrl:
           type: string
           description: Link to user profile (for Indiv. users only)
+      required:
+      - id
+      - picture
+      - type
+      - username
     UserPublic:
       type: object
       properties:
@@ -4373,6 +4411,11 @@ components:
             type: string
         links:
           $ref: '#/components/schemas/UserCommunityProfileLinks'
+      required:
+      - id
+      - picture
+      - type
+      - username
     UserDetailsAdmin:
       type: object
       properties:
@@ -4450,6 +4493,11 @@ components:
           items:
             type: string
             description: Unique group identifier
+      required:
+      - id
+      - picture
+      - type
+      - username
     UserCreation:
       required:
       - password
@@ -4635,6 +4683,11 @@ components:
           type: string
           nullable: true
           description: The ID of the user profile cover picture
+      required:
+      - id
+      - picture
+      - type
+      - username
     UserSigninLinkCreation:
       type: object
       properties:
@@ -4825,6 +4878,7 @@ components:
         aclAdmin: false
     ScoreLicense:
       type: string
+      nullable: true
       description: |
         License of the creation. Read more about the Creative Commons licenses on https://creativecommons.org/licenses/
       enum:
@@ -4836,13 +4890,16 @@ components:
       - cc-by-nc
       - cc-by-nc-sa
       - cc-by-nc-nd
+      - 
     ScoreCreationType:
       type: string
+      nullable: true
       description: The type of creation (an orginal, an arrangement)
       enum:
       - original
       - arrangement
       - other
+      - 
     ScoreDetails:
       type: object
       properties:
@@ -4858,7 +4915,7 @@ components:
         privacy:
           $ref: '#/components/schemas/ScorePrivacy'
         user:
-          $ref: '#/components/schemas/UserPublicSummary'
+          $ref: '#/components/schemas/UserPublic'
         htmlUrl:
           type: string
           description: The url where the score can be viewed in a web browser
@@ -4957,6 +5014,12 @@ components:
           description: The List of parent collections, which includes all the collections this score is included. Please note that you might not have access to all of them.
           items:
             type: string
+      required:
+      - htmlUrl
+      - id
+      - privacy
+      - title
+      - user
     ScorePrivacy:
       type: string
       default: private
@@ -5139,16 +5202,23 @@ components:
       - completed
       - deleted
     ScoreLikesCounts:
+      required:
+      - total
+      - weekly
+      - monthly
       type: object
       properties:
         total:
           type: number
+          default: 0
           description: The total number of likes of the score
         weekly:
           type: number
+          default: 0
           description: The number of new likes during the last week
         monthly:
           type: number
+          default: 0
           description: The number of new likes during the last month
       description: |
         A computed version of the weekly, monthly and total of number of likes
@@ -5394,15 +5464,19 @@ components:
           description: The title of the score
         subtitle:
           type: string
+          nullable: true
           description: The subtitle of the score
         composer:
           type: string
+          nullable: true
           description: The composer of the score
         lyricist:
           type: string
+          nullable: true
           description: The lyricist of the score
         arranger:
           type: string
+          nullable: true
           description: The arranger of the score
         privacy:
           $ref: '#/components/schemas/ScorePrivacy'
@@ -5411,8 +5485,9 @@ components:
           type: string
           description: When using the `privacy` mode `privateLink`, this property can be used to set a custom sharing key, otherwise a new key will be generated.
         description:
-          maxLength: 2000
           type: string
+          maxLength: 2000
+          nullable: true
           description: Description of the creation
         tags:
           type: array
@@ -5425,6 +5500,7 @@ components:
           $ref: '#/components/schemas/ScoreLicense'
         licenseText:
           type: string
+          nullable: true
           description: The rights info written on the score
       description: Edit the score metadata
       example:
@@ -6126,6 +6202,8 @@ components:
         section: Music Theory 101
     ClassDetails:
       type: object
+      required:
+      - id
       properties:
         id:
           type: string
@@ -6431,7 +6509,7 @@ components:
           type: number
           nullable: true
           minimum: 0
-          maximum: 100
+          maximum: 10000
           description: |
             If set, the grading will be enabled for the assignement with this value as the maximum of points
         releaseGrades:
@@ -6493,7 +6571,7 @@ components:
           type: number
           nullable: true
           minimum: 0
-          maximum: 100
+          maximum: 10000
           description: |
             If set, the grading will be enabled for the assignement with this value as the maximum of points
         releaseGrades:
@@ -6573,6 +6651,9 @@ components:
         libraryParent:
           type: string
           description: Identifier of the parent resource where the new one will created, e.g. a folder id or `root`
+      required:
+      - classroom
+      - libraryParent
     AssignmentCopyResponse:
       type: object
       properties:
@@ -6664,6 +6745,12 @@ components:
         resource:
           type: string
           description: If this assignment is stored as a resource in the Flat for Education Resource Library, the unique identifier of the resource.
+      required:
+      - attachments
+      - capabilities
+      - id
+      - title
+      - type
     AssignmentType:
       type: string
       description: Type of the assignment
@@ -6956,6 +7043,12 @@ components:
         issue:
           type: string
           description: Detected issue for this assignment
+      required:
+      - attachments
+      - capabilities
+      - id
+      - title
+      - type
     AssignmentSubmissionUpdate:
       type: object
       properties:
@@ -6970,13 +7063,13 @@ components:
           type: number
           nullable: true
           minimum: 0
-          maximum: 100
+          maximum: 10000
           description: Optional grade. If unset, no grade was set. This value is only visible by the teacher, and we will be set to `grade` once the teacher returns the submission
         grade:
           type: number
           nullable: true
           minimum: 0
-          maximum: 100
+          maximum: 10000
           description: Optional grade. If unset, no grade was set.
         exercisesIds:
           type: array
@@ -7352,6 +7445,12 @@ components:
             nbPlaybackAuthorized:
               type: number
               description: The number of playback authorized on the scores of the assignment.
+          required:
+          - attachments
+          - capabilities
+          - id
+          - title
+          - type
         capabilities:
           description: Capabilities available for this resource
           type: object
@@ -7435,6 +7534,15 @@ components:
         assignment:
           type: string
           description: An optional destination assignment where the original assignement will be copied. Must be a draft.
+    EduResourceLtiLink:
+      description: LTI Link details for the class
+      type: object
+      required:
+      - ltiUrl
+      properties:
+        ltiUrl:
+          type: string
+          description: An URL that can be used to launch LTI with this resource in a classroom.
     MicrosoftGraphAssignment:
       type: object
       description: A Microsoft Teams asignment
