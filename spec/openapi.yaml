@@ -33,7 +33,7 @@ info:
     name: Flat
     url: https://flat.io/developers/docs/api/
     email: developers@flat.io
-  version: 2.19.0
+  version: 2.20.0
   x-logo:
     url: https://prod.flat-cdn.com/img/logo-flat.svg
 servers:
@@ -256,7 +256,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ScoreModification'
-        required: false
+        required: true
       responses:
         '200':
           description: Score details
@@ -1806,7 +1806,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CollectionModification'
-        required: false
+        required: true
       responses:
         '200':
           description: Collection details
@@ -2174,8 +2174,18 @@ paths:
       - User
       - Score
       summary: List liked scores
-      operationId: gerUserLikes
+      operationId: getUserLikes
       parameters:
+      - $ref: '#/components/parameters/next'
+      - $ref: '#/components/parameters/previous'
+      - name: limit
+        in: query
+        description: This is the maximum number of objects that may be returned
+        schema:
+          maximum: 100
+          minimum: 1
+          type: integer
+          default: 25
       - name: ids
         in: query
         description: Return only the identifiers of the scores
@@ -2321,7 +2331,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UserCreation'
-        required: false
+        required: true
       responses:
         '200':
           description: New user created
@@ -2459,6 +2469,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UserSigninLinkCreation'
+        required: true
       responses:
         '200':
           description: Sign in link
@@ -2498,6 +2509,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OrganizationUserAccessTokenCreation'
+        required: true
       responses:
         '200':
           description: Created API access token
@@ -2589,7 +2601,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/OrganizationInvitationCreation'
-        required: false
+        required: true
       responses:
         '200':
           description: New invitation created
@@ -2858,7 +2870,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ClassUpdate'
-        required: false
+        required: true
       responses:
         '200':
           description: The new class details
@@ -3084,7 +3096,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ClassAssignmentUpdate'
-        required: false
+        required: true
       responses:
         '200':
           description: The assignment has been created
@@ -4226,6 +4238,15 @@ components:
             edu.admin.users.readonly: Read-only access to the users and invitations of the organization.
             tasks.readonly: Read-only access to export tasks created by this account.
   schemas:
+    TutteoProduct:
+      description: The Tutteo product used by the user account
+      type: string
+      default: flat
+      enum:
+      - flat
+      - flatEdu
+      - msnippet
+      - embed
     FlatLocales:
       type: string
       description: The user language
@@ -4287,6 +4308,7 @@ components:
       required:
       - id
       - type
+      - product
       - username
       - picture
       properties:
@@ -4297,6 +4319,8 @@ components:
           type: string
           description: The type of user account
           enum: [user, guest]
+        product:
+          $ref: '#/components/schemas/TutteoProduct'
         username:
           type: string
           description: The user name (unique for the organization)
@@ -4318,10 +4342,17 @@ components:
           description: The URL of the picture to display
         badges:
           type: array
-          description: List of badges for the user profile
+          description: |
+            List of badges for the user profile:
+
+            - `power`
+            - `staff`
+            - `composerOfTheMonth`
+            - `ambassador`
+            - `challenge`
           items:
             type: string
-            description: Badge name, e.g. `power`, `staff`, `composerOfTheMonth`
+            description: Badge name
       example:
         id: '000000000000000000000001'
         username: flat
@@ -4373,6 +4404,7 @@ components:
           coverPicture:
             type: string
             description: Cover picture (backgroud) for the profile
+            nullable: true
           profileTheme:
             type: string
             description: Theme (background) for the profile
@@ -4512,15 +4544,6 @@ components:
       - $ref: '#/components/schemas/UserPublic'
       - type: object
         properties:
-          id:
-            type: string
-            description: Identifier of the user
-          type:
-            type: string
-            description: The type of account
-            enum:
-            - user
-            - guest
           azureDetails:
             $ref: '#/components/schemas/UserAzureDetails'
           privateProfile:
@@ -4613,31 +4636,41 @@ components:
         creationDate: 2015-01-19T00:22:02.387000Z
     ResourceRights:
       type: object
+      required:
+      - aclRead
+      - aclWrite
+      - aclAdmin
+      - isCollaborator
       properties:
         aclRead:
           type: boolean
+          default: false
           description: |
             `True` if the current user can read the current document
-          default: false
         aclWrite:
           type: boolean
+          default: false
           description: |
             `True` if the current user can modify the current document.
 
             If this is a right of a Collection, the capabilities of the associated user can be lower than this permission, check out the `capabilities` property as the end-user to have the complete possibilities with the collection.
-          default: false
         aclAdmin:
           type: boolean
+          default: false
           description: |
             `True` if the current user can manage the current document (i.e. share, delete)
 
             If this is a right of a Collection, the capabilities of the associated user can be lower than this permission, check out the `capabilities` property as the end-user to have the complete possibilities with the collection.
-          default: false
         isCollaborator:
           type: boolean
+          default: false
           description: |
             `True` if the current user is a collaborator of the current document (direct or via group).
-          default: false
+        collaboratorType:
+          type: string
+          enum: [owner, user, group]
+          description: |
+            The type of the collaborator for the resource
       description: The rights of the current user on a score or collection
       example:
         aclRead: true
@@ -4654,6 +4687,10 @@ components:
           id:
             type: string
             description: The unique identifier of the permission
+          date:
+            type: string
+            format: date-time
+            description: The date when the permission was added
           score:
             type: string
             description: If this object is a permission of a score, this property will contain the unique identifier of the score
@@ -4779,6 +4816,10 @@ components:
       - type: object
         required:
         - creationDate
+        - rights
+        - collaborators
+        - instruments
+        - samples
         properties:
           subtitle:
             type: string
@@ -4817,6 +4858,9 @@ components:
           mainTempoQpm:
             type: number
             description: The main tempo of the score (in QPM)
+          mainKeySignature:
+            type: number
+            description: The main key signature of the score (expressed between -7 and 7).
           rights:
             $ref: '#/components/schemas/ResourceRights'
           collaborators:
@@ -4835,6 +4879,10 @@ components:
           publicationDate:
             type: string
             description: The date when the score was published on Flat
+            format: date-time
+          highlightedDate:
+            type: string
+            description: The date when the score was highlighted (featured) on our community
             format: date-time
           organization:
             type: string
@@ -4897,6 +4945,16 @@ components:
       - privateLink
     ScoreTrack:
       type: object
+      required:
+      - id
+      - state
+      - score
+      - creator
+      - default
+      - type
+      - creationDate
+      - modificationDate
+      - purpose
       properties:
         id:
           type: string
@@ -4925,6 +4983,8 @@ components:
           $ref: '#/components/schemas/ScoreTrackState'
         type:
           $ref: '#/components/schemas/ScoreTrackType'
+        purpose:
+          $ref: '#/components/schemas/ScoreTrackPurpose'
         url:
           type: string
           description: The URL of the track
@@ -4967,6 +5027,8 @@ components:
           description: True if the track should be used as default audio source
         state:
           $ref: '#/components/schemas/ScoreTrackState'
+        purpose:
+          $ref: '#/components/schemas/ScoreTrackPurpose'
         url:
           type: string
           description: The URL of the track
@@ -5047,6 +5109,13 @@ components:
       - soundcloud
       - youtube
       - vimeo
+    ScoreTrackPurpose:
+      type: string
+      description: The purpose of the audio track
+      default: common
+      enum:
+      - common
+      - performanceSubmission
     ScoreTrackState:
       type: string
       description: State of the track
@@ -5367,6 +5436,11 @@ components:
             Unique identifier of a collection where the score will be copied.
             If no collection identifier is provided, the score will be stored in the `root` directory.
             If null is provided, the score won't be added to any collections
+        googleDriveDisabled:
+          type: boolean
+          default: false
+          description: |
+            If set to `true`, the API won't create the score on Google Drive
         keepOriginalTitle:
           type: boolean
           description: |
@@ -5423,6 +5497,8 @@ components:
         privacy: private
     Collection:
       type: object
+      required:
+      - capabilities
       properties:
         id:
           type: string
@@ -5449,6 +5525,10 @@ components:
           format: date-time
         user:
           $ref: '#/components/schemas/UserPublicSummary'
+        organization:
+          type: string
+          description: |
+            If the score has been created in an organization, the identifier of this organization. 
         rights:
           $ref: '#/components/schemas/ResourceRights'
         collaborators:
@@ -5458,6 +5538,12 @@ components:
             $ref: '#/components/schemas/ResourceCollaborator'
         capabilities:
           type: object
+          required:
+          - canEdit
+          - canShare
+          - canDelete
+          - canAddScores
+          - canDeleteScores
           properties:
             canEdit:
               type: boolean
@@ -5959,17 +6045,31 @@ components:
           type: string
           description: The email address you want to send the invitation to
         organizationRole:
-          $ref: '#/components/schemas/OrganizationRoles'
+          type: string
+          description: User's Organization Role
+          default: teacher
+          enum:
+          - admin
+          - teacher
       description: The parameters to create an organization invitation
       example:
         email: edu@flat.io
         organizationRole: teacher
     OrganizationInvitation:
       type: object
+      required:
+      - organization
+      - organizationRole
+      - customCode
+      - allowMultipleUse
       properties:
         id:
           type: string
           description: The invitation unique identifier
+        creationDate:
+          type: string
+          description: The creation date of the invitation
+          format: date-time
         organization:
           type: string
           description: The unique identifier of the Organization owning this class
@@ -5977,6 +6077,7 @@ components:
           $ref: '#/components/schemas/OrganizationRoles'
         customCode:
           type: string
+          nullable: true
           description: Enrollment code to use when joining this organization
         email:
           type: string
@@ -5984,9 +6085,16 @@ components:
         invitedBy:
           type: string
           description: The unique identifier of the User who created this invitation
+        allowMultipleUse:
+          type: boolean
+          description: |
+            If true, the invitation can be used multiple times.
+            If false, the invitation can only be used once.
         usedBy:
-          type: string
-          description: The unique identifier of the User who used this invitation
+          type: array
+          description: List of users who used this invitation
+          items:
+            type: string
       description: Details of an invitation to join an organization
       example:
         creationDate: 2017-07-02T15:05:15.576000Z
@@ -6526,6 +6634,9 @@ components:
         libraryParent:
           type: string
           description: Identifier of the parent resource where the new one will created, e.g. a folder id or `root`
+        verifyIfNotAlreadyInResourceLibrary:
+          type: boolean
+          description: Option to check if the assignment is already in Resource Library
       example:
         libraryParent: '0000000000000000'
     AssignmentCopyToClass:
@@ -6850,15 +6961,6 @@ components:
         return:
           type: boolean
           description: If `true`, the submission will be marked as done
-        comments:
-          type: object
-          properties:
-            total:
-              type: number
-              description: The total number of comments added to the submission
-            unread:
-              type: number
-              description: The number of unread comments for the current user
       description: Assignment Submission creation
       example:
         attachments:
@@ -6873,6 +6975,7 @@ components:
       - created
       - turnedIn
       - returned
+      - graded
     AssignmentSubmissionHistoryState:
       type: string
       description: State of the submission history
@@ -6880,6 +6983,7 @@ components:
       - created
       - turnedIn
       - returned
+      - graded
       - reset
     AssignmentSubmission:
       type: object
@@ -6889,7 +6993,10 @@ components:
       - classroom
       - assignment
       - creator
+      - creationDate
       - attachments
+      - playback
+      - comments
       properties:
         id:
           type: string
@@ -6936,14 +7043,45 @@ components:
           description: Optional max points for the grade. If set, a corresponding `draftGrade` or `grade` will be set.
         exercisesIds:
           type: array
-          nullable: true
           items:
             type: string
           description: The ids of exercises when they need to be in a specific order
+        playback:
+          type: array
+          items:
+            type: object
+            description: Playback used by student in this submission (used to limit the playback for the assignment)
+            required:
+            - score
+            - nbPlayAttempt
+            properties:
+              score:
+                type: string
+                description: The score unique identifier
+              nbPlayAttempt:
+                type: number
+                description: The number of playback used by the student
+        comments:
+          type: object
+          properties:
+            total:
+              type: number
+              description: The total number of comments added to the submission
+            unread:
+              type: number
+              description: The number of unread comments for the current user
         googleClassroom:
           $ref: '#/components/schemas/GoogleClassroomSubmission'
         microsoftGraph:
           $ref: '#/components/schemas/MicrosoftGraphSubmission'
+        lti:
+          type: object
+          required:
+          - sourcedid
+          properties:
+            sourcedid:
+              type: string
+              description: The sourcedid of the LTI submission when using LTI Outcomes
       description: Assignment Submission
       example:
         id: 58c4955c226ffff257211a90
@@ -7003,11 +7141,23 @@ components:
     AssignmentSubmissionHistory:
       description: History item of the submission
       type: object
+      required:
+      - date
+      - users
       properties:
         date:
           description: The date when the submission was changed
           type: string
           format: date-time
+        classroom:
+          description: The classroom unique identifier where the submission was changed
+          type: string
+        assignment:
+          description: The assignment unique identifier where the submission was changed
+          type: string
+        submission:
+          description: The submission unique identifier
+          type: string
         users:
           description: The user(s) unique identifier(s) who made the change
           type: array
@@ -7069,6 +7219,7 @@ components:
           description: Type of the library
           enum:
           - myResources
+          - organizationResources
           - flatEduSamples
         visibility:
           description: Visibility of the library
@@ -7088,6 +7239,7 @@ components:
       default: private
       enum:
       - private
+      - organizationPublic
       - public
     EduResource:
       description: A Flat for Education resource contained in a resources library
@@ -7174,6 +7326,8 @@ components:
           description: Title of the resource
           maxLength: 1000
           minLength: 1
+        privacy:
+          $ref: '#/components/schemas/EduResourcePrivacy'
     EduResourceType:
       description: Type of an education resource
       type: string
@@ -7257,6 +7411,9 @@ components:
     MicrosoftGraphSubmission:
       type: object
       description: A Microsoft Teams submission
+      required:
+      - id
+      - state
       properties:
         id:
           type: string
@@ -7264,13 +7421,9 @@ components:
         state:
           type: string
           description: State of the submission
-        alternateLink:
-          type: string
-          description: Absolute link to this submission in the Microsoft Teams web UI
       example:
         id: 8e460d32-d2d4-46b3-8e1a-9b7677a48fda
         state: returned
-        alternateLink: https://teams.microsoft.com/l/entity
     GoogleClassroomCoursework:
       type: object
       properties:
@@ -7294,6 +7447,10 @@ components:
         alternateLink: http://classroom.google.com/c/music-theory/a/first-assignment/detail
     GoogleClassroomSubmission:
       type: object
+      required:
+      - id
+      - state
+      - alternateLink
       properties:
         id:
           type: string
@@ -7471,6 +7628,9 @@ components:
     Task:
       type: object
       description: An asynchronous task
+      required:
+      - id
+      - state
       properties:
         id:
           type: string
