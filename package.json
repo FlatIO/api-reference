@@ -2,7 +2,7 @@
   "name": "@flat/api-reference",
   "version": "2.9.0",
   "dependencies": {
-    "@redocly/cli": "1.0.0-beta.127",
+    "@redocly/cli": "1.10.3",
     "bower": "^1.8.14",
     "connect": "^3.7.0",
     "cors": "^2.8.5",
