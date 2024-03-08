@@ -180,6 +180,23 @@ paths:
       - OAuth2:
         - scores
       x-codegen-request-body-name: body
+      x-codeSamples:
+        - lang: 'Ruby'
+          source: |
+            require 'flat_api'
+            FlatApi.configure do |config|
+              config.access_token = ''
+            end
+            begin
+              score_data = File.open("my-score.musicxml", "r:UTF-8") { |f| f.read }
+              body = FlatApi::ScoreCreationFileImport.new({
+                title: 'Score Title',
+                data: score_data,
+              })
+              p FlatApi::ScoreApi.new.create_score(body)
+            rescue FlatApi::ApiError => e
+              puts "Error when calling ScoreApi->create_score: #{e}"
+            end
   /scores/{score}:
     parameters:
     - name: score
