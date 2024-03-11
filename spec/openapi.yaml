@@ -33,7 +33,7 @@ info:
     name: Flat
     url: https://flat.io/developers/docs/api/
     email: developers@flat.io
-  version: 2.20.0
+  version: 2.20.1
   x-logo:
     url: https://prod.flat-cdn.com/img/logo-flat.svg
 servers:
@@ -124,37 +124,37 @@ paths:
         - account.public_profile
         - account.education_profile
       x-codeSamples:
-        - lang: 'Python'
-          source: |
-            from pprint import pprint
-            import os
+      - lang: Python
+        source: |
+          from pprint import pprint
+          import os
 
-            import flat_api
-            from flat_api.rest import ApiException
+          import flat_api
+          from flat_api.rest import ApiException
 
-            configuration = flat_api.Configuration()
-            configuration.access_token = os.environ['FLAT_ACCESS_TOKEN']
-            flat_api_client = flat_api.ApiClient(configuration)
-            try:
-                pprint(flat_api.AccountApi(flat_api_client).get_authenticated_user())
-            except ApiException as e:
-                print(e)
-        - lang: 'PHP'
-          source: |
-            <?php
-            require_once(__DIR__ . '/vendor/autoload.php');
+          configuration = flat_api.Configuration()
+          configuration.access_token = os.environ['FLAT_ACCESS_TOKEN']
+          flat_api_client = flat_api.ApiClient(configuration)
+          try:
+              pprint(flat_api.AccountApi(flat_api_client).get_authenticated_user())
+          except ApiException as e:
+              print(e)
+      - lang: PHP
+        source: |
+          <?php
+          require_once(__DIR__ . '/vendor/autoload.php');
 
-            // Configure OAuth2 access token
-            Flat\APIClient\Configuration::getDefaultConfiguration()->setAccessToken($_ENV['FLAT_ACCESS_TOKEN']);
+          // Configure OAuth2 access token
+          Flat\APIClient\Configuration::getDefaultConfiguration()->setAccessToken($_ENV['FLAT_ACCESS_TOKEN']);
 
-            $api = new Flat\APIClient\Api\AccountApi();
+          $api = new Flat\APIClient\Api\AccountApi();
 
-            try {
-                $result = $api->getAuthenticatedUser();
-                print_r($result);
-            } catch (Exception $e) {
-                echo 'Exception when calling AccountApi->getAuthenticatedUser: ', $e->getMessage(), PHP_EOL;
-            }
+          try {
+              $result = $api->getAuthenticatedUser();
+              print_r($result);
+          } catch (Exception $e) {
+              echo 'Exception when calling AccountApi->getAuthenticatedUser: ', $e->getMessage(), PHP_EOL;
+          }
   /scores:
     post:
       tags:
@@ -213,75 +213,75 @@ paths:
         - scores
       x-codegen-request-body-name: body
       x-codeSamples:
-        - lang: 'Ruby'
-          source: |
-            require 'flat_api'
-            FlatApi.configure do |config|
-              config.access_token = 'your_access_token'
-            end
-            begin
-              score_data = File.open("my-score.musicxml", "r:UTF-8") { |f| f.read }
-              body = FlatApi::ScoreCreationFileImport.new({
-                title: 'Score Title',
-                data: score_data,
-              })
-              p FlatApi::ScoreApi.new.create_score(body)
-            rescue FlatApi::ApiError => e
-              puts "Error when calling ScoreApi->create_score: #{e}"
-            end
-        - lang: 'Python'
-          source: |
-            from pprint import pprint
-            import os
-            from urllib.request import urlopen
-            from urllib.error import HTTPError
+      - lang: Ruby
+        source: |
+          require 'flat_api'
+          FlatApi.configure do |config|
+            config.access_token = 'your_access_token'
+          end
+          begin
+            score_data = File.open("my-score.musicxml", "r:UTF-8") { |f| f.read }
+            body = FlatApi::ScoreCreationFileImport.new({
+              title: 'Score Title',
+              data: score_data,
+            })
+            p FlatApi::ScoreApi.new.create_score(body)
+          rescue FlatApi::ApiError => e
+            puts "Error when calling ScoreApi->create_score: #{e}"
+          end
+      - lang: Python
+        -forrce: |
+          from pprint import pprint
+          import os
+          from urllib.request import urlopen
+          from urllib.error import HTTPError
 
-            import flat_api
-            from flat_api.rest import ApiException
+          import flat_api
+          from flat_api.rest import ApiException
 
-            SCORE_TO_IMPORT='https://gist.githubusercontent.com/gierschv/938479bec2bbe8c39eebbc9e19d027a0/raw/2caa4fa312184412d0d544feb361f918869ceaa5/hello-world.xml'
+          SCORE_TO_IMPORT='https://gist.githubusercontent.com/gierschv/938479bec2bbe8c39eebbc9e19d027a0/raw/2caa4fa312184412d0d544feb361f918869ceaa5/hello-world.xml'
 
-            configuration = flat_api.Configuration()
-            configuration.access_token = os.environ['FLAT_ACCESS_TOKEN']
-            flat_api_client = flat_api.ApiClient(configuration)
+          configuration = flat_api.Configuration()
+          configuration.access_token = os.environ['FLAT_ACCESS_TOKEN']
+          flat_api_client = flat_api.ApiClient(configuration)
 
-            try:
-                # Download a MusicXML "Hello World"
-                hello_world = urlopen(SCORE_TO_IMPORT).read().decode('utf-8')
+          try:
+              # Download a MusicXML "Hello World"
+              hello_world = urlopen(SCORE_TO_IMPORT).read().decode('utf-8')
 
-                # The new score meta, including the MusicXML file as `data`
-                new_score = flat_api.ScoreCreation(
-                    title='Hello World',
-                    privacy='private',
-                    data=hello_world
-                )
+              # The new score meta, including the MusicXML file as `data`
+              new_score = flat_api.ScoreCreation(
+                  title='Hello World',
+                  privacy='private',
+                  data=hello_world
+              )
 
-                # Create the document and print the meta returned by the API
-                pprint(flat_api.ScoreApi(flat_api_client).create_score(new_score))
-            except (ApiException, HTTPError) as e:
-                print(e)
-        - lang: 'PHP'
-          source: |
-            <?php
-            require_once(__DIR__ . '/vendor/autoload.php');
+              # Create the document and print the meta returned by the API
+              pprint(flat_api.ScoreApi(flat_api_client).create_score(new_score))
+          except (ApiException, HTTPError) as e:
+              print(e)
+      - lang: PHP
+        source: |
+          <?php
+          require_once(__DIR__ . '/vendor/autoload.php');
 
-            // Configure OAuth2 access token
-            Flat\APIClient\Configuration::getDefaultConfiguration()->setAccessToken($_ENV['FLAT_ACCESS_TOKEN']);
+          // Configure OAuth2 access token
+          Flat\APIClient\Configuration::getDefaultConfiguration()->setAccessToken($_ENV['FLAT_ACCESS_TOKEN']);
 
-            $musicXml = file_get_contents('https://gist.githubusercontent.com/gierschv/938479bec2bbe8c39eebbc9e19d027a0/raw/2caa4fa312184412d0d544feb361f918869ceaa5/hello-world.xml');
+          $musicXml = file_get_contents('https://gist.githubusercontent.com/gierschv/938479bec2bbe8c39eebbc9e19d027a0/raw/2caa4fa312184412d0d544feb361f918869ceaa5/hello-world.xml');
 
-            try {
-                $body = new \Flat\APIClient\Model\ScoreCreation();
-                $body->setTitle('Hello world');
-                $body->setPrivacy('private');
-                $body->setData($musicXml);
+          try {
+              $body = new \Flat\APIClient\Model\ScoreCreation();
+              $body->setTitle('Hello world');
+              $body->setPrivacy('private');
+              $body->setData($musicXml);
 
-                $scoreApi = new Flat\APIClient\Api\ScoreApi();
-                $result = $scoreApi->createScore($body);
-                print_r($result);
-            } catch (Exception $e) {
-                echo 'Exception when calling ScoreApi->createScore: ', $e->getMessage(), PHP_EOL;
-            }
+              $scoreApi = new Flat\APIClient\Api\ScoreApi();
+              $result = $scoreApi->createScore($body);
+              print_r($result);
+          } catch (Exception $e) {
+              echo 'Exception when calling ScoreApi->createScore: ', $e->getMessage(), PHP_EOL;
+          }
   /scores/{score}:
     parameters:
     - name: score
@@ -4918,7 +4918,6 @@ components:
       - type: object
         required:
         - creationDate
-        - rights
         - collaborators
         - instruments
         - samples
