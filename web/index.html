@@ -21,8 +21,15 @@
     <redoc spec-url="openapi.json" lazy-rendering="true"></redoc>
     <script src="js/redoc.standalone.js"> </script>
     <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-      ga('create', 'UA-35889059-4', 'auto');
+      var _paq = window._paq = window._paq || [];
+      _paq.push(['trackPageView']);
+      _paq.push(['enableLinkTracking']);
+      (function() {
+        _paq.push(['setTrackerUrl', '/_ma']);
+        _paq.push(['setSiteId', '3']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src='https://prod.flat-cdn.com/_ma.js'; s.parentNode.insertBefore(g,s);
+      })();
     </script>
   </body>
 </html>
