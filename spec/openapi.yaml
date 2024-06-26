@@ -230,7 +230,7 @@ paths:
             puts "Error when calling ScoreApi->create_score: #{e}"
           end
       - lang: Python
-        -forrce: |
+        source: |
           from pprint import pprint
           import os
           from urllib.request import urlopen
