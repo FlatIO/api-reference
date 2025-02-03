@@ -12,28 +12,28 @@ importers:
         specifier: 1.25.7
         version: 1.25.7(enzyme@3.11.0)
       bower:
-        specifier: ^1.8.14
+        specifier: 1.8.14
         version: 1.8.14
       connect:
-        specifier: ^3.7.0
+        specifier: 3.7.0
         version: 3.7.0
       cors:
-        specifier: ^2.8.5
+        specifier: 2.8.5
         version: 2.8.5
       gulp:
-        specifier: ^4.0.2
+        specifier: 4.0.2
         version: 4.0.2
       gulp-connect:
-        specifier: ^5.7.0
+        specifier: 5.7.0
         version: 5.7.0
       gulp-util:
-        specifier: ^3.0.7
+        specifier: 3.0.8
         version: 3.0.8
       portfinder:
-        specifier: ^1.0.32
+        specifier: 1.0.32
         version: 1.0.32
       shelljs:
-        specifier: ^0.8.5
+        specifier: 0.8.5
         version: 0.8.5
 
 packages:
@@ -336,7 +336,6 @@ packages:
 
   chokidar@2.1.8:
     resolution: {integrity: sha512-ZmZUazfOzf0Nve7duiCKD23PFSCs4JPoYyccjUFF3aQkQadqBhfzhjkwBH2mNOG9cTBwhamM37EIsIkZw3nRgg==}
-    deprecated: Chokidar 2 does not receive security updates since 2019. Upgrade to chokidar 3 with 15x fewer dependencies
 
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
@@ -1337,6 +1336,7 @@ packages:
 
   lodash.isequal@4.5.0:
     resolution: {integrity: sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==}
+    deprecated: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
 
   lodash.keys@3.1.2:
     resolution: {integrity: sha512-CuBsapFjcubOGMn3VD+24HOAPxM79tH+V6ivJL3CHYjtrawauDJHUk//Yew9Hvc6e9rbCrURGk8z6PC+8WJBfQ==}
@@ -1346,6 +1346,7 @@ packages:
 
   lodash.template@3.6.2:
     resolution: {integrity: sha512-0B4Y53I0OgHUJkt+7RmlDFWKjVAI/YUpWNiL9GQz5ORDr4ttgfQGo+phBWKFLJbBdtOwgMuUkdOHOnPg45jKmQ==}
+    deprecated: This package is deprecated. Use https://socket.dev/npm/package/eta instead.
 
   lodash.templatesettings@3.1.1:
     resolution: {integrity: sha512-TcrlEr31tDYnWkHFWDCV3dHYroKEXpJZ2YJYvJdhN+y4AkWMDZ5I4I8XDtUKqSAyG81N7w+I1mFEJtcED+tGqQ==}
@@ -3701,7 +3702,7 @@ snapshots:
       depd: 1.1.2
       inherits: 2.0.3
       setprototypeof: 1.1.0
-      statuses: 1.4.0
+      statuses: 1.5.0
 
   http-errors@2.0.0:
     dependencies:

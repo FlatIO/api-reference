@@ -3,14 +3,14 @@
   "version": "2.9.0",
   "dependencies": {
     "@redocly/cli": "1.25.7",
-    "bower": "^1.8.14",
-    "connect": "^3.7.0",
-    "cors": "^2.8.5",
-    "gulp": "^4.0.2",
-    "gulp-connect": "^5.7.0",
-    "gulp-util": "^3.0.7",
-    "portfinder": "^1.0.32",
-    "shelljs": "^0.8.5"
+    "bower": "1.8.14",
+    "connect": "3.7.0",
+    "cors": "2.8.5",
+    "gulp": "4.0.2",
+    "gulp-connect": "5.7.0",
+    "gulp-util": "3.0.8",
+    "portfinder": "1.0.32",
+    "shelljs": "0.8.5"
   },
   "private": true,
   "scripts": {
