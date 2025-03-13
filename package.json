@@ -10,7 +10,7 @@
     "gulp-connect": "^5.7.0",
     "gulp-util": "^3.0.7",
     "portfinder": "^1.0.32",
-    "shelljs": "^0.8.5"
+    "shelljs": "^0.9.0"
   },
   "private": true,
   "scripts": {
