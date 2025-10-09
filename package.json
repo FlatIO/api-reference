@@ -2,15 +2,15 @@
   "name": "@flat/api-reference",
   "version": "2.9.0",
   "dependencies": {
-    "@redocly/cli": "1.25.7",
+    "@redocly/cli": "2.0.0",
     "bower": "^1.8.14",
     "connect": "^3.7.0",
     "cors": "^2.8.5",
-    "gulp": "^4.0.2",
+    "gulp": "^5.0.0",
     "gulp-connect": "^5.7.0",
     "gulp-util": "^3.0.7",
     "portfinder": "^1.0.32",
-    "shelljs": "^0.8.5"
+    "shelljs": "^0.9.0"
   },
   "private": true,
   "scripts": {
