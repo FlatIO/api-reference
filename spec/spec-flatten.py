@@ -1,4 +1,8 @@
 #! /usr/bin/env python3
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["ruamel.yaml"]
+# ///
 '''
 Copyright (c) 2022-2023, Tutteo Limited.
 '''
@@ -74,8 +78,11 @@ def walk_tree(base, in_inheritance=False):
 					base[idx] = result
 	return base
 
+yaml = ruamel.yaml.YAML()
+yaml.width = 10000
+
 with open(infname, 'r') as fi:
-	data = ruamel.yaml.round_trip_load(fi)
+	data = yaml.load(fi)
 
 walk_tree(data)
 
@@ -87,4 +94,4 @@ for model in unused_models:
 		del data['components']['schemas'][model]
 
 with open(outfname, 'w') as fo:
-	ruamel.yaml.round_trip_dump(data, fo, width=10000)
+	yaml.dump(data, fo)
