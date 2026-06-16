@@ -30,7 +30,7 @@ info:
     name: Flat
     url: https://flat.io/developers/docs/api/
     email: developers@flat.io
-  version: 2.22.0
+  version: 2.23.0
   x-logo:
     url: https://prod.flat-cdn.com/img/logo-flat.svg
 servers:
@@ -83,6 +83,9 @@ tags:
 - name: Group
   x-displayName: Flat for Education Groups
   description: Flat for Education Groups
+- name: Task
+  x-displayName: Asynchronous tasks
+  description: Scheduled and asynchronous tasks
 paths:
   /classes:
     get:
@@ -3204,10 +3207,21 @@ paths:
       responses:
         '200':
           description: Score created
+          headers:
+            x-flat-score-revision:
+              $ref: '#/components/headers/X-Flat-Score-Revision'
+            x-flat-score-revision-date:
+              $ref: '#/components/headers/X-Flat-Score-Revision-Date'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ScoreDetails'
+        '202':
+          description: Score will be imported using an asynchronous task (the API client has set `supportsTasks` to true)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
         '400':
           description: Bad score creation request
           content:
@@ -4634,14 +4648,9 @@ paths:
           description: Revision data
           headers:
             x-flat-score-revision:
-              description: The unique identifier of the score revision
-              schema:
-                type: string
+              $ref: '#/components/headers/X-Flat-Score-Revision'
             x-flat-score-revision-date:
-              description: The date of the score revision (ISO 8601)
-              schema:
-                type: string
-                format: date-time
+              $ref: '#/components/headers/X-Flat-Score-Revision-Date'
           content:
             application/json:
               schema:
@@ -8555,6 +8564,7 @@ components:
       description: User's Organization Role (for Edu users only)
       enum:
       - admin
+      - accountAdmin
       - teacher
       - user
     OrganizationInvitationCreation:
@@ -8570,6 +8580,7 @@ components:
           enum:
           - admin
           - teacher
+          - accountAdmin
       description: The parameters to create an organization invitation
       example:
         email: edu@flat.io
@@ -9246,6 +9257,11 @@ components:
           description: The optional encoding of the score data. This property must match the encoding used for the `data` property.
           enum:
           - base64
+        supportsTasks:
+          type: boolean
+          description: |
+            Set this to `true` if the client supports asynchronous task flows.
+            When importing a score that requires OMR processing (e.g., a PDF), the API will return a 202 Accepted response along with a task reference. The client can then check the task status using the endpoint `GET /v2/tasks/{task}`.
         source:
           $ref: '#/components/schemas/ScoreSource'
     ScoreFork:
@@ -9682,6 +9698,7 @@ components:
             Type of the task:
             * `audio-export`: Exports a score to audio format (MP3, WAV)
             * `score-save`: Saves or updates a score document
+            * `import-omr`: Processes a PDF through OMR (Optical Music Recognition) and imports it as a score
         state:
           type: string
           description: State of the Task
@@ -10387,6 +10404,7 @@ components:
           - user
           - teacher
           - admin
+          - accountAdmin
     searchInputQuery:
       name: q
       in: query
@@ -10424,27 +10442,12 @@ components:
         - exclude
         - only
   headers:
-    X-Flat-User:
-      description: User identifier from the session
+    X-Flat-Score-Revision:
+      description: The unique identifier of the score revision
       schema:
         type: string
-    X-Flat-Access-Token:
-      description: Access token for API authentication
-      schema:
-        type: string
-    X-CSRF-Token:
-      description: CSRF protection token
-      schema:
-        type: string
-    X-Flat-Organization:
-      description: Organization identifier from the session
-      schema:
-        type: string
-    X-Server-Date:
-      description: |
-        Server timestamp (ISO 8601) captured at the start of the request.
-        Use as `modifiedSince` or `deletedSince` value for the next sync call
-        to avoid clock skew between the client and server.
+    X-Flat-Score-Revision-Date:
+      description: The date of the score revision (ISO 8601)
       schema:
         type: string
         format: date-time
