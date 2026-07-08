@@ -30,7 +30,7 @@ info:
     name: Flat
     url: https://flat.io/developers/docs/api/
     email: developers@flat.io
-  version: 2.23.0
+  version: 2.24.0
   x-logo:
     url: https://prod.flat-cdn.com/img/logo-flat.svg
 servers:
@@ -86,6 +86,14 @@ tags:
 - name: Task
   x-displayName: Asynchronous tasks
   description: Scheduled and asynchronous tasks
+- name: OMR
+  x-displayName: Optical Music Recognition
+  description: |
+    Import sheet music images and PDFs through Optical Music Recognition.
+
+    **Beta:** this API is in beta and may change. Endpoints, fields, and behavior can evolve
+    before the stable release, so pin to a generic fallback for open-ended values and expect
+    breaking changes to be announced.
 paths:
   /classes:
     get:
@@ -2456,6 +2464,461 @@ paths:
           } catch (Exception $e) {
               echo 'Exception when calling AccountApi->getAuthenticatedUser: ', $e->getMessage(), PHP_EOL;
           }
+  /omr/capabilities:
+    get:
+      tags:
+      - OMR
+      summary: OMR capabilities and limits
+      description: |
+        Advertises the supported steps, export formats, limits, cost-per-page, remaining
+        credits and locales, so clients can feature-detect instead of hardcoding behavior.
+      operationId: getOmrCapabilities
+      parameters:
+      - $ref: '#/components/parameters/xFlatLocale'
+      responses:
+        '200':
+          description: Capabilities
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OmrCapabilities'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - omr
+  /omr/jobs:
+    post:
+      tags:
+      - OMR
+      summary: Create an OMR job
+      description: |
+        Create an Optical Music Recognition job. There are two ways to call this endpoint:
+
+        * **Draft:** send the parameters without `files` to create an empty job, then add
+          files with `addOmrJobFile`, then run it with `startOmrJob`. Best for multiple
+          images or incremental mobile capture.
+        * **One-shot:** include `files` and `autoStart: true` to import in a single request.
+          Best for a single PDF or a third-party integration.
+
+        Declare the interactive steps your client supports in `interactiveSteps`: the pipeline
+        runs fully automatically and only pauses at the steps you list. Steps you do not list,
+        including ones added in the future, are auto-resolved with server defaults, so older
+        clients never break.
+      operationId: createOmrJob
+      parameters:
+      - $ref: '#/components/parameters/xFlatLocale'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OmrJobCreation'
+      responses:
+        '201':
+          description: Draft created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OmrJob'
+        '202':
+          description: One-shot job started (files provided with autoStart)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OmrJob'
+        '402':
+          description: Account overquota or feature not included
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - omr
+    get:
+      tags:
+      - OMR
+      summary: List OMR jobs
+      description: List the caller's OMR jobs, for resuming work or cleaning up abandoned drafts.
+      operationId: listOmrJobs
+      parameters:
+      - name: status
+        in: query
+        description: Filter jobs by status
+        schema:
+          $ref: '#/components/schemas/OmrJobStatus'
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/next'
+      - $ref: '#/components/parameters/previous'
+      - $ref: '#/components/parameters/xFlatLocale'
+      responses:
+        '200':
+          description: List of OMR jobs
+          headers:
+            Link:
+              description: Pagination links (next, previous)
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OmrJob'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - omr
+  /omr/jobs/{job}:
+    parameters:
+    - name: job
+      in: path
+      description: Unique identifier of the OMR job
+      required: true
+      schema:
+        type: string
+    get:
+      tags:
+      - OMR
+      summary: Get an OMR job
+      description: |
+        Get the current state of an OMR job. This is the primary polling endpoint. Pass
+        `wait` to long-poll until the state changes.
+      operationId: getOmrJob
+      parameters:
+      - name: wait
+        in: query
+        description: Long-poll up to this many seconds for a state change before returning.
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 25
+      - $ref: '#/components/parameters/xFlatLocale'
+      responses:
+        '200':
+          description: Job state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OmrJob'
+        '404':
+          description: Job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - omr
+  /omr/jobs/{job}/files:
+    parameters:
+    - name: job
+      in: path
+      description: Unique identifier of the OMR job
+      required: true
+      schema:
+        type: string
+    post:
+      tags:
+      - OMR
+      summary: Add a file to an OMR job
+      description: Add one image or PDF to a draft job. Call once per file; files keep their upload order.
+      operationId: addOmrJobFile
+      parameters:
+      - $ref: '#/components/parameters/xFlatLocale'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OmrJobFileUpload'
+      responses:
+        '200':
+          description: File added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OmrJobFileUploadResult'
+        '409':
+          description: Job is not in draft state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - omr
+  /omr/jobs/{job}/files/{index}:
+    parameters:
+    - name: job
+      in: path
+      description: Unique identifier of the OMR job
+      required: true
+      schema:
+        type: string
+    - name: index
+      in: path
+      description: 0-based index of the input file (page) to fetch.
+      required: true
+      schema:
+        type: integer
+    get:
+      tags:
+      - OMR
+      summary: Get an input page image
+      description: Fetch one of the job's input files (a page image or PDF) by index, for the review UI.
+      operationId: getOmrJobFile
+      parameters:
+      - $ref: '#/components/parameters/xFlatLocale'
+      responses:
+        '200':
+          description: Page image
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - omr
+  /omr/jobs/{job}/start:
+    parameters:
+    - name: job
+      in: path
+      description: Unique identifier of the OMR job
+      required: true
+      schema:
+        type: string
+    post:
+      tags:
+      - OMR
+      summary: Start an OMR job
+      description: Validate the attached files, run the permission, quota and credit checks, then queue the job for processing.
+      operationId: startOmrJob
+      parameters:
+      - $ref: '#/components/parameters/xFlatLocale'
+      responses:
+        '202':
+          description: Processing started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OmrJob'
+        '400':
+          description: No files attached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        '402':
+          description: Insufficient credits or quota
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - omr
+  /omr/jobs/{job}/steps/{step}:
+    parameters:
+    - name: job
+      in: path
+      description: Unique identifier of the OMR job
+      required: true
+      schema:
+        type: string
+    - name: step
+      in: path
+      description: The pending step being submitted
+      required: true
+      schema:
+        $ref: '#/components/schemas/OmrStepName'
+    post:
+      tags:
+      - OMR
+      summary: Submit an interactive step
+      description: |
+        Resolve the step the job is currently awaiting and resume the pipeline. The request
+        body shape depends on `step` (a `oneOf` discriminated by the step name).
+      operationId: submitOmrJobStep
+      parameters:
+      - $ref: '#/components/parameters/xFlatLocale'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OmrStepSubmission'
+      responses:
+        '202':
+          description: Step accepted, processing resumed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OmrJob'
+        '409':
+          description: Job is not awaiting this step
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - omr
+  /omr/jobs/{job}/exports/{format}:
+    parameters:
+    - name: job
+      in: path
+      description: Unique identifier of the OMR job
+      required: true
+      schema:
+        type: string
+    - name: format
+      in: path
+      description: |
+        Export format. New formats may be added over time; request what your client supports.
+
+        * `musicxml`: Uncompressed MusicXML (plain text `.xml`, `application/vnd.recordare.musicxml+xml`).
+        * `mxl`: Compressed MusicXML (zip archive `.mxl`, `application/vnd.recordare.musicxml`), the same notation as `musicxml` but smaller to download.
+        * `midi`: Standard MIDI file (`.mid`, `audio/midi`).
+        * `thumbnail.png`: PNG preview of the first page (`image/png`).
+      required: true
+      schema:
+        type: string
+        enum:
+        - musicxml
+        - mxl
+        - midi
+        - thumbnail.png
+    get:
+      tags:
+      - OMR
+      summary: Download the finalized result
+      description: |
+        Stream the finalized result in the requested format. Available once the job is `done`.
+        For `output: musicxml` jobs this is the primary way to retrieve the result; no library
+        score is created.
+      operationId: getOmrJobExport
+      parameters:
+      - $ref: '#/components/parameters/xFlatLocale'
+      responses:
+        '200':
+          description: Exported file (content type depends on the requested format)
+          headers:
+            Content-Disposition:
+              description: Attachment disposition carrying the recommended filename, derived from the score's resolved work title (RFC 5987 encoded for non-ASCII titles). Clients should use this filename when saving the download.
+              schema:
+                type: string
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Format not available for this job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        '409':
+          description: Job is not finished yet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - omr
+  /omr/jobs/{job}/cancel:
+    parameters:
+    - name: job
+      in: path
+      description: Unique identifier of the OMR job
+      required: true
+      schema:
+        type: string
+    post:
+      tags:
+      - OMR
+      summary: Cancel an OMR job
+      description: Cancel a draft or in-flight job. Any charged credits are reversed.
+      operationId: cancelOmrJob
+      parameters:
+      - $ref: '#/components/parameters/xFlatLocale'
+      responses:
+        '200':
+          description: Canceled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OmrJob'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - omr
   /organizations/users:
     get:
       tags:
@@ -4969,6 +5432,7 @@ components:
             edu.admin.users: Access and manage the users and invitations of the organization.
             edu.admin.users.readonly: Read-only access to the users and invitations of the organization.
             tasks.readonly: Read-only access to export tasks created by this account.
+            omr: Run Optical Music Recognition jobs and download their results. The `library` output additionally requires the `scores` scope.
   schemas:
     AppScopes:
       type: string
@@ -4996,6 +5460,7 @@ components:
       - edu.admin.users
       - edu.admin.users.readonly
       - tasks.readonly
+      - omr
     AssignmentType:
       type: string
       description: Type of the assignment
@@ -7853,6 +8318,472 @@ components:
       - '11'
       - '12'
       - university
+    OmrStepName:
+      type: string
+      description: |
+        Interactive pipeline step. Forward-compatible: new values may be added over time.
+        Only steps a client lists in `interactiveSteps` can pause that client's job; any
+        step a client does not list (including future ones) is auto-resolved by the server.
+
+        * `details`: confirm or adjust the detected title, main language and instruments
+          before assembly. Pauses after note recognition, so resuming re-runs only the
+          cheap assembly and finalize stages.
+      enum:
+      - details
+    OmrJobOutput:
+      type: string
+      description: |
+        Where the result of the job goes.
+
+        * `library`: import the result into the Flat Library and create a score (default).
+        * `musicxml`: finalize the result only, downloadable via `getOmrJobExport`. No score
+          is created, for third-party integrations that do not use the Library.
+      enum:
+      - library
+      - musicxml
+      default: library
+    OmrJobStatus:
+      type: string
+      description: |
+        Public, client-facing status of the job, derived from the internal job and task state.
+
+        * `draft`: created, files can still be added; not yet started or charged.
+        * `processing`: the pipeline is running.
+        * `awaitingInput`: paused on the `currentStep`, waiting for the client to submit it.
+        * `done`: finished. See `result`.
+        * `error`: failed. See `errorCode`.
+        * `canceled`: canceled by the client.
+      enum:
+      - draft
+      - processing
+      - awaitingInput
+      - done
+      - error
+      - canceled
+    OmrJobInputFile:
+      type: object
+      description: A single image or PDF input, base64-encoded.
+      required:
+      - file
+      properties:
+        file:
+          type: string
+          format: byte
+          description: File data, base64-encoded.
+        filename:
+          type: string
+          description: Optional original filename, used for display and extension detection.
+        mimeType:
+          type: string
+          description: MIME type of the file (e.g. `application/pdf`, `image/jpeg`). Inferred from `filename` when omitted.
+    OmrJobCreation:
+      type: object
+      description: |
+        Parameters to create an OMR job. Send without `files` to create a draft (then add
+        files with `addOmrJobFile` and run `startOmrJob`), or include `files` and
+        `autoStart: true` to import in a single request.
+      properties:
+        output:
+          $ref: '#/components/schemas/OmrJobOutput'
+        interactiveSteps:
+          type: array
+          description: |
+            Steps at which the pipeline should pause for this client. Omit or send `[]` for a
+            fully automatic import. The server only pauses at the steps listed here; declare
+            only steps your client can actually render.
+          items:
+            $ref: '#/components/schemas/OmrStepName'
+          default: []
+        locales:
+          type: array
+          description: |
+            Locale hints (BCP 47) to improve text and lyric detection, for example
+            `["ja", "en"]`. The first entry drives the OCR reader. This is the input hint; the
+            detected main language is confirmed later at the `details` step.
+          items:
+            type: string
+        collection:
+          type: string
+          description: Target collection ID. Only used when `output` is `library`.
+        idempotencyKey:
+          type: string
+          description: |
+            Optional client-supplied key. A retry with the same key returns the existing job
+            instead of creating a duplicate, for safe retries on flaky networks.
+        files:
+          type: array
+          description: Optional inline inputs for a one-shot import. For multi-image or mobile capture, omit this and use `addOmrJobFile`.
+          items:
+            $ref: '#/components/schemas/OmrJobInputFile'
+        autoStart:
+          type: boolean
+          description: Start processing immediately. Only valid when `files` is provided.
+    OmrJobFileUpload:
+      type: object
+      description: One image or PDF added to a draft job.
+      required:
+      - file
+      properties:
+        file:
+          type: string
+          format: byte
+          description: File data, base64-encoded.
+        filename:
+          type: string
+          description: Optional original filename, used for display and extension detection.
+        mimeType:
+          type: string
+          description: MIME type of the file (e.g. `application/pdf`, `image/jpeg`). Inferred from `filename` when omitted.
+    OmrJob:
+      type: object
+      required:
+      - id
+      - status
+      - output
+      - interactiveSteps
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the OMR job.
+        status:
+          $ref: '#/components/schemas/OmrJobStatus'
+        output:
+          $ref: '#/components/schemas/OmrJobOutput'
+        interactiveSteps:
+          type: array
+          description: Steps this job pauses at for client input, echoing the value set at creation.
+          items:
+            $ref: '#/components/schemas/OmrStepName'
+        locales:
+          type: array
+          description: |
+            Locale hints (BCP 47) the job was created with, used for OCR and as the default
+            main language at the `details` step.
+          items:
+            type: string
+        currentStep:
+          allOf:
+          - $ref: '#/components/schemas/OmrStepName'
+          description: The pending step when `status` is `awaitingInput`. Omitted otherwise.
+        pendingStep:
+          $ref: '#/components/schemas/OmrPendingStep'
+        estimatedCredits:
+          type: integer
+          description: Credits that will be or were charged at start (page-based), so a client can show a confirmation before charging.
+        progress:
+          $ref: '#/components/schemas/OmrJobProgress'
+        originalFileMetadata:
+          $ref: '#/components/schemas/OmrJobFileMetadata'
+        importedMetadata:
+          $ref: '#/components/schemas/OmrImportedMetadata'
+        result:
+          $ref: '#/components/schemas/OmrJobResult'
+        errorCode:
+          type: string
+          description: |
+            Stable, engine-agnostic failure code, present when `status` is `error`. Branch on
+            this for custom handling, and render `errorMessage` for the user-facing text.
+
+            This is an open string: new codes may be added over time, so keep a generic
+            fallback and never hardcode an exhaustive switch. Current values:
+
+            * `NO_MUSIC_DETECTED`: no musical content found (poor scan, rotated page, or tablature).
+            * `CORRUPTED_FILE`: the input file is corrupted and could not be read.
+            * `UNSUPPORTED_FORMAT`: the file format or notation is not supported yet.
+            * `UNSUPPORTED_TABLATURE`: the file is guitar tablature, not supported yet.
+            * `ENCRYPTED_PDF`: the PDF is password-protected.
+            * `TOO_LARGE`: the document is too large or has an unusual shape to process.
+            * `ENGINE_TIMEOUT`: recognition took longer than expected and was stopped.
+            * `GENERIC`: unspecified failure.
+        errorMessage:
+          type: string
+          description: |
+            Localized, user-facing error message, present when `status` is `error`. Rendered in
+            the caller's locale and safe to display as-is. Pair with `errorCode` for branching.
+        creationDate:
+          type: string
+          format: date-time
+          description: When the job was created.
+        modificationDate:
+          type: string
+          format: date-time
+          description: When the job was last updated.
+    OmrJobProgress:
+      type: object
+      description: Live progress while the job is processing.
+      properties:
+        percent:
+          type: number
+          description: Completion percentage (0-100).
+        text:
+          type: string
+          description: Localized progress message, ready to display.
+        key:
+          type: string
+          description: |
+            Stable progress key (for example `OMR_QUEUED`, `OMR_PROCESSING_PAGE`,
+            `OMR_CREATING_SCORE`), for matching the current phase in a stepper UI
+            independent of locale.
+    OmrJobResult:
+      type: object
+      description: The outcome of a finished job. Present when `status` is `done`.
+      properties:
+        score:
+          type: string
+          description: Created score ID, when `output` is `library`.
+        exports:
+          type: array
+          description: Formats available via `getOmrJobExport`, for example `["musicxml", "mxl", "midi"]`.
+          items:
+            type: string
+    OmrJobFileMetadata:
+      type: object
+      description: Metadata about the uploaded input.
+      properties:
+        numberOfPages:
+          type: integer
+          description: Total number of pages across all input files.
+        fileCount:
+          type: integer
+          description: Number of input files attached.
+        filename:
+          type: string
+          description: Original filename of the input as uploaded (of the first file when several were combined).
+        fileSize:
+          type: integer
+          description: Combined size of the input files, in bytes.
+        mimeType:
+          type: string
+          description: MIME type of the input (of the first file when several were combined).
+        fileExtension:
+          type: string
+          description: File extension of the input, without the leading dot (for example `pdf`).
+    OmrImportedMetadata:
+      type: object
+      description: Metadata extracted from the recognized score.
+      properties:
+        instruments:
+          type: array
+          items:
+            type: string
+          description: Instrument IDs of the assembled parts.
+        numberMeasures:
+          type: integer
+          description: Number of measures in the recognized score.
+        mainTempoQpm:
+          type: number
+          description: Main tempo, in quarter notes per minute.
+        mainKeySignature:
+          type: integer
+          description: Main key signature as a fifths count (negative for flats, positive for sharps, 0 for C major / A minor).
+    OmrPendingStep:
+      type: object
+      description: The step currently awaiting client input. The `data` shape is keyed by `step`.
+      required:
+      - step
+      - data
+      properties:
+        step:
+          $ref: '#/components/schemas/OmrStepName'
+        data:
+          oneOf:
+          - $ref: '#/components/schemas/OmrDetailsStepData'
+          discriminator:
+            propertyName: step
+            mapping:
+              details: '#/components/schemas/OmrDetailsStepData'
+    OmrDetailsStepData:
+      type: object
+      description: |
+        Detected score details for review (the "Check your score details" screen). The worker
+        produces `title` and `instruments` from assembly; the language is not detected and is
+        not part of this payload (the client reads the job's `locales`, set at creation).
+      required:
+      - step
+      - instruments
+      properties:
+        step:
+          type: string
+          description: Discriminator for `OmrPendingStep.data`; always `details` for this payload.
+          enum:
+          - details
+        title:
+          type: string
+          description: OCR-detected work title.
+        instruments:
+          type: array
+          items:
+            $ref: '#/components/schemas/OmrDetectedInstrument'
+    OmrDetectedInstrument:
+      type: object
+      description: One detected part.
+      required:
+      - index
+      properties:
+        index:
+          type: integer
+          description: 0-based position of the part in the score.
+        partName:
+          type: string
+          description: Verbatim part name read from the score.
+        instrumentId:
+          type: string
+          description: Flat instrument ID, for example `brass.horn`. See the [Instrument IDs reference](https://flat.io/developers/docs/api/instruments). Normalized to the canonical (non-premium) ID when `output` is `musicxml`.
+        instrumentName:
+          type: string
+          description: Localized display name, resolved server-side so the client needs no instruments dictionary.
+        midiProgram:
+          type: integer
+          description: General MIDI program number.
+        transposeKey:
+          type: string
+          description: Transposition or written key shown in the UI, for example `F` for Horn in F.
+        resolvedConfidence:
+          type: string
+          description: Server confidence in the resolved instrument match.
+          enum:
+          - high
+          - medium
+          - low
+    OmrStepSubmission:
+      oneOf:
+      - $ref: '#/components/schemas/OmrDetailsSubmission'
+      discriminator:
+        propertyName: step
+        mapping:
+          details: '#/components/schemas/OmrDetailsSubmission'
+    OmrDetailsSubmission:
+      type: object
+      additionalProperties: false
+      description: Overrides for the `details` step. Omitted fields keep the server's detected values.
+      required:
+      - step
+      properties:
+        step:
+          type: string
+          description: Discriminator for `OmrStepSubmission`; always `details` for this submission.
+          enum:
+          - details
+        title:
+          type: string
+          description: Override the detected work title.
+          maxLength: 500
+        mainLanguage:
+          type: string
+          description: |
+            Override the main language (BCP 47) used for lyric and text reading on resume.
+            Defaults to the job locale (`locales`); set this to correct it on the review screen.
+          minLength: 1
+          maxLength: 35
+        instruments:
+          type: array
+          description: Per-part overrides, each matched to a detected part by `index`.
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/OmrInstrumentOverride'
+    OmrInstrumentOverride:
+      type: object
+      additionalProperties: false
+      description: |
+        Override for a single detected part, matched by `index`. Omitted fields keep the
+        detected value.
+
+        To set the instrument you may use **either** `instrumentId` (Flat's instrument id)
+        **or** `midiProgram` (a standard General MIDI program) — whichever your integration
+        prefers; you do not need both. If both are sent, `instrumentId` wins; otherwise
+        `midiProgram` is resolved to the matching instrument; otherwise the detected
+        instrument is kept. `transposeKey` and `partName` apply independently on top.
+      required:
+      - index
+      properties:
+        index:
+          type: integer
+          description: 0-based position of the part to override, matching the `index` of the detected part.
+          minimum: 0
+        instrumentId:
+          type: string
+          description: |
+            Override the resolved instrument with this Flat instrument id, for example
+            `brass.horn`. See the [Instrument IDs reference](https://flat.io/developers/docs/api/instruments)
+            for valid values. Use this or `midiProgram`. Takes precedence over `midiProgram` when both are set.
+          minLength: 1
+          maxLength: 100
+        partName:
+          type: string
+          description: Override the part name.
+          maxLength: 200
+        transposeKey:
+          type: string
+          description: |
+            Override the transposition / written key: a pitch class as a letter `A`-`G` with an
+            optional ASCII accidental `b` (flat) or `#` (sharp). For example `F` for Horn in F or
+            `Bb` for a B flat clarinet.
+          pattern: ^[A-G][b#]?$
+        midiProgram:
+          type: integer
+          description: |
+            Override the instrument with a standard General MIDI program number (0-127),
+            resolved server-side to the matching Flat instrument. Use this when you do not want
+            to map Flat instrument ids. Ignored if `instrumentId` is also set.
+          minimum: 0
+          maximum: 127
+    OmrJobFileUploadResult:
+      type: object
+      description: Result of adding a file to a draft job.
+      properties:
+        fileIndex:
+          type: integer
+          description: 0-based index assigned to the uploaded file.
+        fileCount:
+          type: integer
+          description: Total number of files now attached to the job.
+    OmrCapabilities:
+      type: object
+      description: What the account or app can do, for client feature-detection.
+      properties:
+        steps:
+          type: array
+          description: Interactive steps this server supports.
+          items:
+            $ref: '#/components/schemas/OmrStepName'
+        formats:
+          type: array
+          description: Export formats available via `getOmrJobExport`.
+          items:
+            type: string
+        outputs:
+          type: array
+          description: Output destinations the account can use when creating a job.
+          items:
+            $ref: '#/components/schemas/OmrJobOutput'
+        maxFiles:
+          type: integer
+          description: Maximum number of input files that can be added to a single job.
+        maxPages:
+          type: integer
+          description: Maximum number of pages allowed across all input files of a single job.
+        maxParallelJobs:
+          type: integer
+          description: Maximum number of OMR jobs that can run in parallel for this account.
+        maxFileSize:
+          type: integer
+          description: Maximum size of a single file, in bytes.
+        acceptedMimeTypes:
+          type: array
+          description: MIME types accepted for input files (PDF and image formats).
+          items:
+            type: string
+        costPerPage:
+          type: integer
+          description: Credits charged per page.
+        remainingCredits:
+          type: integer
+          description: OMR credits remaining for the account.
+        locales:
+          type: array
+          description: Locales selectable for OCR. Clients should default to the user's own locale.
+          items:
+            type: string
     OrganizationRoles:
       type: string
       description: User's Organization Role (for Edu users only)
@@ -8567,7 +9498,7 @@ components:
                     type: array
                     description: |
                       The list of instruments to add to the score.
-                      See https://prod.flat-cdn.com/fixtures/instruments_en.json for the possible values for `group` and `instrument`.
+                      See the [Instrument IDs reference](https://flat.io/developers/docs/api/instruments) for the possible values for `group` and `instrument` (also available as the [`@flat/instruments`](https://www.npmjs.com/package/@flat/instruments) package).
                     items:
                       required:
                       - group
@@ -9352,6 +10283,7 @@ components:
           - user
           - teacher
           - admin
+          - accountAdmin
       description: User creation
     UserAdminUpdate:
       type: object
@@ -9632,6 +10564,21 @@ components:
         enum:
         - exclude
         - only
+    xFlatLocale:
+      name: X-Flat-Locale
+      in: header
+      required: false
+      description: |
+        Preferred locale for localized content in the response (translated error messages, emails, etc.).
+
+        Accepts any IETF language tag. The API best-matches the value to a supported locale and never rejects an unknown one (it falls back to the closest match, then to `en`).
+
+        Supported normalized locales: `da`, `de`, `en`, `en-GB`, `es`, `fi`, `fil`, `fr`, `fr-CA`, `hi`, `id`, `it`, `ja`, `ko`, `ms`, `nl`, `nb`, `pl`, `pt`, `pt-BR`, `ro`, `ru`, `sv`, `tr`, `zh-Hans`, `zh-HK`, `zh-TW`.
+
+        Precedence (highest first): this `X-Flat-Locale` header, the authenticated user's account locale, the `Accept-Language` header, then `en`.
+      schema:
+        type: string
+      example: fr
   headers:
     X-Flat-Score-Revision:
       description: The unique identifier of the score revision
