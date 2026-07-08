@@ -31,6 +31,7 @@ def walk_tree(base, in_inheritance=False):
 				if k == 'allOf' or k == 'oneOf':
 					children_props = {}
 					required = []
+					scalar_ref = None
 					for children_set in base[k]:
 						# $ref to another schema
 						if '$ref' in children_set:
@@ -39,15 +40,23 @@ def walk_tree(base, in_inheritance=False):
 							children_ref = walk_tree(data['components']['schemas'][schema_key], in_inheritance=True)
 
 							if children_ref != 'remove':
-								# Properties from children
-								children_props.update(deepcopy(walk_tree(children_ref['properties'])))
-								# Combine required arrays
-								if 'required' in children_ref and children_ref['required'] is not None:
-									required.extend(children_ref['required'])
+								# A branch may be a scalar (e.g. an enum wrapped in allOf just
+								# to attach a description); it has no properties to merge.
+								if 'properties' in children_ref:
+									children_props.update(deepcopy(walk_tree(children_ref['properties'])))
+									# Combine required arrays
+									if 'required' in children_ref and children_ref['required'] is not None:
+										required.extend(children_ref['required'])
+								else:
+									scalar_ref = deepcopy(children_ref)
 
 						# direct children props
-						else:
+						elif 'properties' in children_set:
 							children_props.update(deepcopy(walk_tree(children_set['properties'])))
+
+					# Single scalar branch (allOf/oneOf around one non-object schema): inline it as-is
+					if not children_props and scalar_ref is not None:
+						return scalar_ref
 
 					result = {
 						'type': 'object',
