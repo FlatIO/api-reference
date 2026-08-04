@@ -2,8 +2,6 @@
 
 ## Links
 
-- Documentation(ReDoc): https://flat.io/developers/api/reference/
-- Look full spec:
-    + JSON https://flat.io/developers/api/reference/swagger.json
-    + YAML https://flat.io/developers/api/reference/swagger.yaml
+- Documentation (ReDoc): https://flat.io/developers/docs/api/reference
+- Full spec (YAML): https://flat.io/developers/docs/openapi.yaml
 
