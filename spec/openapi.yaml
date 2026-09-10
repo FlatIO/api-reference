@@ -2,7 +2,7 @@
 #
 # https://flat.io/developers/docs/api/
 #
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: Flat API
   description: |
@@ -30,7 +30,7 @@ info:
     name: Flat
     url: https://flat.io/developers/docs/api/
     email: developers@flat.io
-  version: 2.25.0
+  version: 2.26.0
   x-logo:
     url: https://prod.flat-cdn.com/img/logo-flat.svg
 servers:
@@ -90,11 +90,53 @@ tags:
   x-displayName: Optical Music Recognition
   description: |
     Import sheet music images and PDFs through Optical Music Recognition.
-
-    **Beta:** this API is in beta and may change. Endpoints, fields, and behavior can evolve
-    before the stable release, so pin to a generic fallback for open-ended values and expect
-    breaking changes to be announced.
 paths:
+  /billing/credits/history:
+    get:
+      tags:
+      - OMR
+      summary: List credit history
+      description: |
+        The credit ledger of the authenticated account, sorted by creation date descending
+        (most recent entry first).
+
+        Every entry that moved the balance is listed: the deductions taken when an import
+        runs, and the top-ups added by a credit pack.
+
+        Reversing a deduction does not add an entry, it flips the original one's `state` to
+        `canceled`. Canceled entries stay in the list, so an import that was charged and then
+        failed still shows its deduction rather than disappearing. Read `state` to tell the two
+        apart, and sum only `active` entries. A refund can additionally add a positive entry
+        when cancelling alone could not restore the full cost, for instance because the plan's
+        allowance has since reset.
+
+        The current balance is not computed from this list: read it from `getOmrCapabilities`.
+      operationId: listBillingCreditsHistory
+      parameters:
+      - $ref: '#/components/parameters/limit'
+      - $ref: '#/components/parameters/next'
+      - $ref: '#/components/parameters/previous'
+      responses:
+        '200':
+          description: List of credit transactions
+          headers:
+            Link:
+              description: Pagination links (next, previous)
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditTransactionList'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - omr
   /classes:
     get:
       tags:
@@ -457,6 +499,110 @@ paths:
         - edu.classes
         - edu.assignments
       x-codegen-request-body-name: body
+  /classes/{class}/assignments/{assignment}:
+    parameters:
+    - $ref: '#/components/parameters/class'
+    - $ref: '#/components/parameters/assignment'
+    get:
+      tags:
+      - Class
+      summary: Get an assignment
+      description: |
+        Retrieve a single assignment, including its attachments, its toolset and its grading
+        settings. Use `listAssignments` to enumerate the assignments of a class.
+
+        A teacher of the class sees the assignment as authored. A student sees the same document
+        with the teacher-only fields omitted, `teacherInstructions` among them.
+      operationId: getAssignment
+      parameters: []
+      responses:
+        '200':
+          description: The assignment has been retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assignment'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.classes
+        - edu.classes.readonly
+        - edu.assignments
+        - edu.assignments.readonly
+    put:
+      tags:
+      - Class
+      summary: Update an assignment
+      description: |
+        Update an assignment. Only the properties present in the request body are modified, so a
+        partial body leaves everything else as it was. `attachments` is the exception: when present
+        it replaces the whole list.
+
+        Requires the teacher role on the class. The class must not be archived, and an assignment
+        that is already `active` cannot be moved back to `draft`.
+
+        Editing an assignment that students have already started does not reset their submissions.
+        To take an assignment out of circulation while keeping the work, use `archiveAssignment`.
+      operationId: updateClassAssignment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClassAssignmentUpdate'
+        required: true
+      responses:
+        '200':
+          description: The assignment has been updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assignment'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.classes
+        - edu.assignments
+      x-codegen-request-body-name: body
+    delete:
+      tags:
+      - Class
+      summary: Delete an assignment
+      description: |
+        Delete an assignment. This cannot be undone, and it removes a good deal more than the
+        assignment itself: every submission made against it, the students' dedicated copies of the
+        attached scores, the related class stream posts and notifications, and the editor toolset.
+
+        When the class is synchronized with Google Classroom or Microsoft Teams, the assignment is
+        deleted there too.
+
+        Requires the teacher role on the class, and the class must not be archived.
+
+        `archiveAssignment` is almost always what you want instead: it takes the assignment out of
+        the class stream and keeps the submissions and their grades.
+      operationId: deleteAssignment
+      responses:
+        '204':
+          description: The assignment has been deleted
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlatErrorResponse'
+      security:
+      - OAuth2:
+        - edu.classes
+        - edu.assignments
   /classes/{class}/assignments/{assignment}/copy:
     parameters:
     - $ref: '#/components/parameters/class'
@@ -739,10 +885,6 @@ paths:
       description: |
         Use this method as a teacher to reset a submission and allow student to start over the assignment
       operationId: deleteSubmission
-      parameters:
-      - $ref: '#/components/parameters/class'
-      - $ref: '#/components/parameters/assignment'
-      - $ref: '#/components/parameters/submission'
       responses:
         '200':
           description: The submission object once reset
@@ -3017,16 +3159,22 @@ paths:
       parameters:
       - name: sort
         in: query
-        description: The order to sort the user list
+        description: |
+          The order to sort the user list.
+
+          * `creationDate`: Order by account creation.
+          * `firstname`, `lastname`, `username`: Order by the user identity.
+          * `lastActivityDate`: Order by the last recorded activity.
+          * `licenseExpirationDate`: Order by the expiration of the active license.
         schema:
           type: string
-          items:
-            type: string
-            enum:
-            - firstname
-            - lastname
-            - lastActivityDate
-            - licenseExpirationDate
+          enum:
+          - creationDate
+          - firstname
+          - lastname
+          - username
+          - lastActivityDate
+          - licenseExpirationDate
       - $ref: '#/components/parameters/sortDirection'
       - $ref: '#/components/parameters/next'
       - $ref: '#/components/parameters/previous'
@@ -3123,8 +3271,6 @@ paths:
             application/json:
               schema:
                 type: integer
-                items:
-                  $ref: '#/components/schemas/UserDetailsAdmin'
         default:
           description: Error
           content:
@@ -3654,6 +3800,7 @@ paths:
           **Also supported** (converted to MusicXML on import, some notation details may be lost):
           * **Guitar Pro**: `.gp`, `.gp3`, `.gp4`, `.gp5`, `.gpx`, `.gtp`
           * **MuseScore**: `.mscz`, `.mscx`
+          * **Finale**: `.musx`
           * **ABC notation**: `.abc` — MIME: `text/vnd.abc`
           * **PowerTab**: `.ptb`
           * **Capella**: `.cap`, `.capx`
@@ -3666,6 +3813,17 @@ paths:
           * **Score Writer**: `.scw`
           * **Bagpipe Music Writer**: `.bmw`, `.bww`
           * **Encore**: `.enc`
+
+          **Scanned music** (requires `supportsTasks`, runs our music recognition and spends
+          credits):
+          * **PDF**: `.pdf`
+          * **Images**: `.jpg`, `.png`, `.webp`, `.tiff`, `.gif`, `.avif`, `.heic`, `.heif`
+
+          The file is identified by its own content, so its extension and any declared type do
+          not have to match. **One file per request**: a multi-page PDF or a multi-frame TIFF is
+          fine, but several separate images of the same score (a page photographed at a time)
+          need `createOmrJob`, which takes many inputs in one job and bills them as a single
+          document. Its live limits are served by `getOmrCapabilities`.
         * `ScoreCreationGoogleDriveImport`: Import an existing Google Drive file from the connected Google Drive account.
 
         This API call will automatically create the first revision of the document, the score can be modified by the using our web application or by uploading a new revision of this file (`POST /v2/scores/{score}/revisions/{revision}`).
@@ -4849,13 +5007,6 @@ paths:
       - Score
       summary: Mark the comment as unresolved
       operationId: markScoreCommentUnresolved
-      parameters:
-      - name: sharingKey
-        in: query
-        description: |
-          This sharing key must be specified to access to a score or collection with a `privacy` mode set to `privateLink` and the current user is not a collaborator of the document.
-        schema:
-          type: string
       responses:
         '204':
           description: The comment has been unmarked as resolved
@@ -5621,7 +5772,8 @@ components:
           type: string
           description: |
             HTML version of student instructions with rich text formatting.
-            Supports the following HTML tags: p, br, strong, b, em, i, u, a, ul, ol, li, h1, h2, h3.
+            Supports the following HTML tags: p, br, strong, b, em, i, u, a, ul, ol, li, h1, h2, h3, img.
+            Images are served as absolute http(s) URLs.
         teacherInstructions:
           type: string
           description: |
@@ -5632,7 +5784,8 @@ components:
           type: string
           description: |
             HTML version of teacher-only instructions with rich text formatting.
-            Supports the following HTML tags: p, br, strong, b, em, i, u, a, ul, ol, li, h1, h2, h3.
+            Supports the following HTML tags: p, br, strong, b, em, i, u, a, ul, ol, li, h1, h2, h3, img.
+            Images are served as absolute http(s) URLs.
         cover:
           type: string
           description: The URL of the cover to display
@@ -5641,6 +5794,9 @@ components:
           description: The id of the cover to display
         attachments:
           type: array
+          description: |
+            Reference material handed to the students with the assignment: scores, videos, links and
+            Drive files. A score attached here is the one each student receives their own copy of.
           items:
             $ref: '#/components/schemas/MediaAttachment'
         useDedicatedAttachments:
@@ -5760,9 +5916,11 @@ components:
           description: Student instructions and content of the assignment (plain text)
         descriptionHtml:
           type: string
-          maxLength: 100000
+          maxLength: 20000000
           description: |
             HTML version of student instructions.
+            Pasted images may be sent as inline base64 `data:` URIs; they are uploaded to storage
+            and rewritten to hosted URLs on save. The final HTML is limited to 100000 characters.
             When provided, the plain text version will be automatically extracted for compatibility.
         teacherInstructions:
           type: string
@@ -5770,17 +5928,28 @@ components:
           description: Teacher-only instructions (plain text)
         teacherInstructionsHtml:
           type: string
-          maxLength: 100000
+          maxLength: 20000000
           description: |
             HTML version of teacher-only instructions.
+            Pasted images may be sent as inline base64 `data:` URIs; they are uploaded to storage
+            and rewritten to hosted URLs on save. The final HTML is limited to 100000 characters.
             When provided, the plain text version will be automatically extracted for compatibility.
         attachments:
           type: array
+          description: |
+            The complete attachment list. Omitting this property on an update leaves the existing
+            attachments alone; sending it replaces them.
+
+            Dropping a dedicated score from the list deletes the students' copies of it, so send the
+            full set you want to keep rather than only the additions. Duplicates, judged by `url`,
+            `score`, `worksheet` or `googleDriveFileId`, are discarded silently, and exceeding the
+            per-assignment limit fails with `ASSIGNMENT_ATTACHMENTS_LIMIT`.
           items:
             $ref: '#/components/schemas/ClassAttachmentCreation'
         nbPlaybackAuthorized:
-          type: number
-          nullable: true
+          type:
+          - number
+          - 'null'
           description: The number of playback authorized on the scores of the assignment.
         restrictPlayNote:
           type: boolean
@@ -5789,23 +5958,27 @@ components:
           type: boolean
           description: Restrict the audio source to provided audio tracks on a score. Students won't be able to use the editor playback.
         toolset:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: |
             The id of the toolset to apply to this assignment.
             The toolset will be copied to the assignment as a dedicated object to prevent unexpected changes when making modifications to the template toolset.
             This property can be set to null to delete the linked toolset and switch back to all the tools available for this assignment.
         coverFile:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: The id of the cover to display
         cover:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: The URL of the cover to display
         maxPoints:
-          type: number
-          nullable: true
+          type:
+          - number
+          - 'null'
           minimum: 0
           maximum: 10000
           description: |
@@ -5909,8 +6082,9 @@ components:
       - members
       description: A group assigned to an assignment for shared writing assignments
     ClassGroupIdsToApplyToAssignment:
-      type: array
-      nullable: true
+      type:
+      - array
+      - 'null'
       items:
         type: string
       description: |
@@ -6020,12 +6194,14 @@ components:
           description: |
             The User unique identifier of the teacher who returned the submission
         grade:
-          type: number
-          nullable: true
+          type:
+          - number
+          - 'null'
           description: Optional grade. If unset, no grade was set.
         draftGrade:
-          type: number
-          nullable: true
+          type:
+          - number
+          - 'null'
           description: Optional grade. If unset, no grade was set. This value is only visible by the teacher, and we will be set to `grade` once the teacher returns the submission
         maxPoints:
           type: number
@@ -6103,20 +6279,23 @@ components:
           type: boolean
           description: If `true`, the submission will be marked as done
         draftGrade:
-          type: number
-          nullable: true
+          type:
+          - number
+          - 'null'
           minimum: 0
           maximum: 10000
           description: Optional grade. If unset, no grade was set. This value is only visible by the teacher, and we will be set to `grade` once the teacher returns the submission
         grade:
-          type: number
-          nullable: true
+          type:
+          - number
+          - 'null'
           minimum: 0
           maximum: 10000
           description: Optional grade. If unset, no grade was set.
         exercisesIds:
-          type: array
-          nullable: true
+          type:
+          - array
+          - 'null'
           items:
             type: string
           description: The ids of exercises when they need to be in a specific order
@@ -6391,14 +6570,16 @@ components:
             - draft
             - active
           dueDate:
-            type: string
-            nullable: true
+            type:
+            - string
+            - 'null'
             description: |
               The due date of this assignment, late submissions will be marked as paste due. If not set, the assignment won't have a due date.
             format: date-time
           scheduledDate:
-            type: string
-            nullable: true
+            type:
+            - string
+            - 'null'
             description: |
               The publication (scheduled) date of the assignment.
               If this one is specified, the assignment will only be listed to the teachers of the class.
@@ -6408,8 +6589,9 @@ components:
             description: Google Classroom options for this assignment
             properties:
               topicId:
-                type: string
-                nullable: true
+                type:
+                - string
+                - 'null'
                 description: Identifier of the topic where the assignment is created
           microsoftGraph:
             type: object
@@ -6417,8 +6599,9 @@ components:
             properties:
               categories:
                 description: List of categories this assignment belongs to
-                type: array
-                nullable: true
+                type:
+                - array
+                - 'null'
                 items:
                   type: string
           assigneeMode:
@@ -6508,9 +6691,10 @@ components:
         skillsFocused:
           $ref: '#/components/schemas/EduSkillsFocused'
         size:
-          type: number
+          type:
+          - number
+          - 'null'
           minimum: 0
-          nullable: true
           description: Number of students in the classroom
       description: Creation of a classroom
       example:
@@ -6532,9 +6716,10 @@ components:
         skillsFocused:
           $ref: '#/components/schemas/EduSkillsFocused'
         size:
-          type: number
+          type:
+          - number
+          - 'null'
           minimum: 0
-          nullable: true
           description: Number of students in the classroom
       description: Update of a classroom
       example:
@@ -6724,8 +6909,9 @@ components:
         skillsFocused:
           $ref: '#/components/schemas/EduSkillsFocused'
         size:
-          type: number
-          nullable: true
+          type:
+          - number
+          - 'null'
           description: Number of students in the classroom
       description: A classroom
       example:
@@ -6902,8 +7088,9 @@ components:
           type: string
           description: Absolute link to this coursework in the Classroom web UI
         topicId:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: Identifier of the topic where the assignment is created
       description: A coursework on Google Classroom
       example:
@@ -7178,6 +7365,87 @@ components:
         code: CLIENT_ERROR
         message: Invalid request
         id: '123456789'
+    CreditTransaction:
+      description: A single credit ledger entry
+      required:
+      - id
+      - type
+      - amount
+      - source
+      - state
+      - creationDate
+      - modificationDate
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the credit transaction
+        type:
+          type: string
+          description: Credit category. `ai` covers every AI-powered feature.
+          enum:
+          - ai
+        feature:
+          type: string
+          description: |
+            Which product the credits relate to. Set on deductions and on the credits a refund
+            returns, absent on credit-pack top-ups, which are not tied to a single feature.
+          enum:
+          - omr
+        amount:
+          type: integer
+          description: |
+            How many credits this entry moved, signed: positive for top-ups
+            (`+30` from a credit pack), negative for deductions (`-2` for a two-page import).
+            Sum only entries whose `state` is `active`.
+        source:
+          type: string
+          description: |
+            Which pool the credits came from:
+
+            * `subscription`: the plan's periodic allowance
+            * `purchase`: credits bought as a pack, which do not expire with the billing period
+            * `free_tier`: promotional grants
+            * `support`: a manual adjustment made by Flat's support team
+
+            A single import can produce two entries when it spans two pools: the plan
+            allowance is drawn down first, and the remainder comes from `purchase`.
+          enum:
+          - subscription
+          - purchase
+          - free_tier
+          - support
+        state:
+          type: string
+          description: |
+            Whether the entry still counts:
+
+            * `active`: in effect
+            * `canceled`: reversed, and no longer affecting the balance. Deductions are
+              canceled when the import they paid for fails or is refunded.
+          enum:
+          - active
+          - canceled
+        job:
+          type: string
+          description: |
+            Identifier of the import this entry belongs to, when it relates to one.
+
+            Present on an import's deduction, on its reversal, and on credits returned when an
+            import is refunded. Absent on credit-pack top-ups and manual adjustments.
+        creationDate:
+          type: string
+          format: date-time
+          description: When the transaction was created
+        modificationDate:
+          type: string
+          format: date-time
+          description: When the transaction was last modified
+    CreditTransactionList:
+      description: Paginated list of credit transactions
+      type: array
+      items:
+        $ref: '#/components/schemas/CreditTransaction'
     EduSkillsFocused:
       type: array
       description: Specific skills that will be focused in classroom
@@ -7684,9 +7952,10 @@ components:
           format: date-time
           description: Configuration creation date
         lastUsedDate:
-          type: string
+          type:
+          - string
+          - 'null'
           format: date-time
-          nullable: true
           description: Last time this configuration was used
         status:
           type: string
@@ -7744,25 +8013,11 @@ components:
                 type: string
                 description: Instance root domain
     LtiConfiguration1p3:
-      allOf:
-      - $ref: '#/components/schemas/LtiConfigurationBase'
-      - type: object
-        properties:
-          ltiVersion:
-            type: string
-            enum:
-            - 1p3
-            description: LTI version (1.3)
-        oneOf:
-        - $ref: '#/components/schemas/LtiConfiguration1p3Manual'
-        - $ref: '#/components/schemas/LtiConfiguration1p3Deployment'
-        - $ref: '#/components/schemas/LtiConfiguration1p3Dynamic'
-        discriminator:
-          propertyName: mode
-          mapping:
-            1p3-manual: '#/components/schemas/LtiConfiguration1p3Manual'
-            1p3-deployment: '#/components/schemas/LtiConfiguration1p3Deployment'
-            1p3-dynamic: '#/components/schemas/LtiConfiguration1p3Dynamic'
+      description: LTI 1.3 configuration details
+      oneOf:
+      - $ref: '#/components/schemas/LtiConfiguration1p3Manual'
+      - $ref: '#/components/schemas/LtiConfiguration1p3Deployment'
+      - $ref: '#/components/schemas/LtiConfiguration1p3Dynamic'
     LtiConfiguration1p3Base:
       type: object
       properties:
@@ -7894,9 +8149,15 @@ components:
             This is useful for cases like siblings sharing a parent email in the LMS.
     LtiConfiguration1p3Manual:
       allOf:
+      - $ref: '#/components/schemas/LtiConfigurationBase'
       - $ref: '#/components/schemas/LtiConfiguration1p3Base'
       - type: object
         properties:
+          ltiVersion:
+            type: string
+            enum:
+            - 1p3
+            description: LTI version (1.3)
           mode:
             type: string
             enum:
@@ -7904,9 +8165,15 @@ components:
             description: Manual LTI 1.3 configuration mode
     LtiConfiguration1p3Deployment:
       allOf:
+      - $ref: '#/components/schemas/LtiConfigurationBase'
       - $ref: '#/components/schemas/LtiConfiguration1p3Base'
       - type: object
         properties:
+          ltiVersion:
+            type: string
+            enum:
+            - 1p3
+            description: LTI version (1.3)
           mode:
             type: string
             enum:
@@ -7928,9 +8195,15 @@ components:
         - deploymentId
     LtiConfiguration1p3Dynamic:
       allOf:
+      - $ref: '#/components/schemas/LtiConfigurationBase'
       - $ref: '#/components/schemas/LtiConfiguration1p3Base'
       - type: object
         properties:
+          ltiVersion:
+            type: string
+            enum:
+            - 1p3
+            description: LTI version (1.3)
           mode:
             type: string
             enum:
@@ -7947,9 +8220,10 @@ components:
             type: boolean
             description: Whether dynamic registration token has been used
           registrationCompletionDate:
-            type: string
+            type:
+            - string
+            - 'null'
             format: date-time
-            nullable: true
             description: Date when dynamic registration completed (null when not completed)
     LtiConfigurationCreate:
       description: Request to create a new LTI configuration (unified 1.1 and 1.3)
@@ -8486,13 +8760,13 @@ components:
         file:
           type: string
           format: byte
-          description: File data, base64-encoded.
+          description: |
+            File data, base64-encoded. The type is read from the content itself, so no
+            declared MIME type or filename extension is needed. Accepted types are listed by
+            `getOmrCapabilities` in `acceptedMimeTypes`.
         filename:
           type: string
-          description: Optional original filename, used for display and extension detection.
-        mimeType:
-          type: string
-          description: MIME type of the file (e.g. `application/pdf`, `image/jpeg`). Inferred from `filename` when omitted.
+          description: Optional original filename, kept for display.
     OmrJobCreation:
       type: object
       description: |
@@ -8544,13 +8818,13 @@ components:
         file:
           type: string
           format: byte
-          description: File data, base64-encoded.
+          description: |
+            File data, base64-encoded. The type is read from the content itself, so no
+            declared MIME type or filename extension is needed. Accepted types are listed by
+            `getOmrCapabilities` in `acceptedMimeTypes`.
         filename:
           type: string
-          description: Optional original filename, used for display and extension detection.
-        mimeType:
-          type: string
-          description: MIME type of the file (e.g. `application/pdf`, `image/jpeg`). Inferred from `filename` when omitted.
+          description: Optional original filename, kept for display.
     OmrJobRetention:
       type: object
       description: |
@@ -8902,6 +9176,7 @@ components:
       - maxParallelJobs
       - maxFileSize
       - acceptedMimeTypes
+      - acceptedExtensions
       - locales
       - localesDetails
       properties:
@@ -8934,7 +9209,32 @@ components:
           description: Maximum size of a single file, in bytes.
         acceptedMimeTypes:
           type: array
-          description: MIME types accepted for input files (PDF and image formats).
+          description: |
+            MIME types accepted for input files: PDF, plus the raster image formats.
+
+            Drive the file picker from this list rather than hardcoding it, so newly
+            supported formats need no client release. A file is identified by its content,
+            so its declared type and its extension do not have to match.
+
+            A multi-page input counts as several pages against `maxPages` and is charged
+            accordingly. That covers PDFs and, among the image formats, multi-page TIFF and
+            animated GIF/WebP.
+          items:
+            type: string
+        acceptedExtensions:
+          type: array
+          description: |
+            Filename extensions the accepted types appear under, for building a file picker.
+
+            Use these alongside `acceptedMimeTypes` in an `accept` attribute: browsers and native
+            file dialogs filter unreliably on some of the image types, so a valid file can be
+            greyed out when only its MIME type is offered.
+
+            Longer than `acceptedMimeTypes`, because one type arrives under several extensions
+            (`.jpg` and `.jpeg`, `.tif` and `.tiff`, `.heic` and `.heif`).
+
+            Picker metadata only. A file is identified by its content, so its extension never
+            decides whether an upload is accepted.
           items:
             type: string
         costPerPage:
@@ -9033,8 +9333,9 @@ components:
         organizationRole:
           $ref: '#/components/schemas/OrganizationRoles'
         customCode:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: Enrollment code to use when joining this organization
         email:
           type: string
@@ -9103,8 +9404,9 @@ components:
           picture: https://flat.io/img/logo_flat.svg
         htmlUrl: https://flat.io/score/000000000000000000000000
     ScoreLicense:
-      type: string
-      nullable: true
+      type:
+      - string
+      - 'null'
       description: |
         License of the creation. Read more about the Creative Commons licenses on https://creativecommons.org/licenses/
       enum:
@@ -9118,8 +9420,9 @@ components:
       - cc-by-nc-nd
       - null
     ScoreCreationType:
-      type: string
-      nullable: true
+      type:
+      - string
+      - 'null'
       description: The type of creation (an orginal, an arrangement)
       enum:
       - original
@@ -9643,7 +9946,7 @@ components:
             type: boolean
             description: |
               Set this to `true` if the client supports asynchronous task flows.
-              When importing a score that requires OMR processing (e.g., a PDF), the API will return a 202 Accepted response along with a task reference. The client can then check the task status using the endpoint `GET /v2/tasks/{task}`.
+              When importing a score that requires OMR processing (a PDF or a page image), the API will return a 202 Accepted response along with a task reference. The client can then check the task status using the endpoint `GET /v2/tasks/{task}`.
         description: A newly created score from an imported file
         example:
           title: My new score
@@ -9783,8 +10086,9 @@ components:
       type: object
       properties:
         collection:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: |
             Unique identifier of a collection where the score will be copied.
 
@@ -9806,20 +10110,24 @@ components:
           type: string
           description: The title of the score
         subtitle:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: The subtitle of the score
         composer:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: The composer of the score
         lyricist:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: The lyricist of the score
         arranger:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: The arranger of the score
         privacy:
           $ref: '#/components/schemas/ScorePrivacy'
@@ -9828,9 +10136,10 @@ components:
           type: string
           description: When using the `privacy` mode `privateLink`, this property can be used to set a custom sharing key, otherwise a new key will be generated.
         description:
-          type: string
+          type:
+          - string
+          - 'null'
           maxLength: 2000
-          nullable: true
           description: Description of the creation
         tags:
           type: array
@@ -9842,8 +10151,9 @@ components:
         license:
           $ref: '#/components/schemas/ScoreLicense'
         licenseText:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: The rights info written on the score
       description: Edit the score metadata
       example:
@@ -10317,8 +10627,9 @@ components:
           type: string
           description: A displayable name for the user (for consumer users)
         picture:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: The URL of the picture to display
         badges:
           type: array
@@ -10393,9 +10704,10 @@ components:
             type: integer
             description: Number of plays on the user published scores
           coverPicture:
-            type: string
+            type:
+            - string
+            - 'null'
             description: Cover picture (backgroud) for the profile
-            nullable: true
           profileTheme:
             type: string
             description: Theme (background) for the profile
@@ -10552,12 +10864,14 @@ components:
               type: string
               description: Unique group identifier
           pictureFile:
-            type: string
-            nullable: true
+            type:
+            - string
+            - 'null'
             description: The ID of the user profile picture
           coverPictureFile:
-            type: string
-            nullable: true
+            type:
+            - string
+            - 'null'
             description: The ID of the user profile cover picture
     UserSigninLinkCreation:
       type: object
@@ -10605,28 +10919,34 @@ components:
       description: Social networks links
       properties:
         spotifyUrl:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: Spotify Profile URL
         youtubeUrl:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: YouTube channel URL
         soundcloudUrl:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: SoundCloud Profile URL
         tiktokUrl:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: TikTok profile URL. For updates, also accepts TikTok usernames
         instagramUrl:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: Instagram profile URL. For updates, also accepts Instagram usernames
         websiteUrl:
-          type: string
-          nullable: true
+          type:
+          - string
+          - 'null'
           description: Personnal website URL
   parameters:
     limit:
