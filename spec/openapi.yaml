@@ -30,7 +30,7 @@ info:
     name: Flat
     url: https://flat.io/developers/docs/api/
     email: developers@flat.io
-  version: 2.26.0
+  version: 2.26.1
   x-logo:
     url: https://prod.flat-cdn.com/img/logo-flat.svg
 servers:
@@ -383,7 +383,7 @@ paths:
       - Class
       summary: Remove a user from the class
       description: |
-        This method can be used by a teacher to remove a user from the class, or by a student to leave the classroom.
+        This method can be used by a teacher of the class to remove another user from it. Removing your own account is not allowed.
 
         Warning: Removing a user from the class will remove the associated resources, including the submissions and feedback related to these submissions.
       operationId: deleteClassUser
@@ -3711,13 +3711,7 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                - $ref: '#/components/schemas/LtiConfiguration'
-                - type: object
-                  properties:
-                    registrationUrl:
-                      type: string
-                      description: One-time registration URL (only for dynamic registration)
+                $ref: '#/components/schemas/LtiConfiguration'
         default:
           description: Error
           content:
