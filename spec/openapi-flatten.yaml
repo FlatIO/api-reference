@@ -12,11 +12,11 @@ info:
     * Browsing, updating, copying, exporting the user's scores (for example in MP3, WAV or MIDI)
     * Managing educational resources with Flat for Education: creating & updating the organization accounts, the classes, rosters and assignments.
 
-    The Flat API is built on HTTP. Our API is RESTful It has predictable resource URLs. It returns HTTP response codes to indicate errors. It also accepts and returns JSON in the HTTP body.
+    The Flat API is built on HTTP. Our API is RESTful: it has predictable resource URLs. It returns HTTP response codes to indicate errors. It also accepts and returns JSON in the HTTP body.
     The [schema](/swagger.yaml) of this API follows the [OpenAPI Initiative (OAI) specification](https://www.openapis.org/), you can use and work with [compatible Swagger tools](http://swagger.io/open-source-integrations/).
     This API features Cross-Origin Resource Sharing (CORS) implemented in compliance with [W3C spec](https://www.w3.org/TR/cors/).
 
-    You can use your favorite HTTP/REST library for your programming language to use Flat's API. This specification and reference is [available on Github](https://github.com/FlatIO/api-reference).
+    You can use your favorite HTTP/REST library for your programming language to use Flat's API. This specification and reference are [available on GitHub](https://github.com/FlatIO/api-reference).
 
     Getting Started and learn more:
 
@@ -30,7 +30,7 @@ info:
     name: Flat
     url: https://flat.io/developers/docs/api/
     email: developers@flat.io
-  version: 2.26.1
+  version: 2.26.2
   x-logo:
     url: https://prod.flat-cdn.com/img/logo-flat.svg
 servers:
@@ -44,13 +44,13 @@ tags:
   description: |
     Sheet music is the main API object type available for all Flat account.
     Here is a typical lifecycle for a music score document on Flat:
-      - An end user can **create a music score** or **import a document** using our [web interface](https://flat.io) or a third-party website/app (e.g. Google Drive) using this API (see [`POST /v2/scores`](#operation/createScore). The creation and import of music scores can be done with this single API endpoint. This one currently supports the [MusicXML](http://www.musicxml.com/) (compressed or not) and [MIDI](https://www.midi.org/specifications).
+      - An end user can **create a music score** or **import a document** using our [web interface](https://flat.io) or a third-party website/app (e.g. Google Drive) using this API (see [`POST /v2/scores`](#operation/createScore)). The creation and import of music scores can be done with this single API endpoint, which supports [MusicXML](http://www.musicxml.com/) (compressed or not), [MIDI](https://www.midi.org/specifications) and many other formats listed in its documentation.
       - **List scores**:
         - The **owned scores** can be listed using the [collections API methods](#tag/Collection), especially [`GET /collections/{collection}/scores`](#operation/listCollectionScores).
         - The scores from a public account can be listed with [`GET /users/{user}/scores`](#operation/getUserScores).
         - Scores shared with a specific group can be listed with [`GET /groups/{group}/scores`](#operation/getGroupScores).
       - The metadata of a single score can be retrieved with [`GET /scores/{score}`](#operation/getScore).
-      - Scores on Flat have **one or multiple revisions**: creating a new score will create a first revision. These **revisions can be listed** using [`GET /scores/{score}/revisions`](#operation/getScoreRevisions) and a specific **revision data can be downloaded** with [`GET /scores/{score}/revisions/{revision}/{format}`](#operation/getScoreRevisionData). New revisions can be created using our [sheet music editor](https://flat.io) or using [`POST /scores/{score}/revisions`](#operation/createScoreRevision) (this endpoint has similar parameters than during the score creation). The last revision of a document may not directly reflect the really last version of a music score: recent modifications can be made offline or not yet consolidated into a new revision. In average, a new revision is created every 100 modifications made with our editor.
+      - Scores on Flat have **one or multiple revisions**: creating a new score will create a first revision. These **revisions can be listed** using [`GET /scores/{score}/revisions`](#operation/getScoreRevisions) and a specific **revision data can be downloaded** with [`GET /scores/{score}/revisions/{revision}/{format}`](#operation/getScoreRevisionData). New revisions can be created using our [sheet music editor](https://flat.io) or using [`POST /scores/{score}/revisions`](#operation/createScoreRevision) (this endpoint has parameters similar to the score creation). The last revision of a document may not reflect its very latest state: recent modifications can be made offline or not yet consolidated into a new revision. On average, a new revision is created every 100 modifications made with our editor.
       - Scores can be **shared publicly** by changing the privacy option with [`POST /scores/{score}`](#operation/editScore), or **individually shared** using the different collaborators API endpoints (see [`POST /scores/{score}/collaborators`](#operation/addScoreCollaborator)).
   x-displayName: Music scores
 - name: Collection
@@ -65,7 +65,7 @@ tags:
     By default, when using an OAuth2 access token or a personal token, all the new scores will be added to a dedicated app collection created in the user account.
     This collection has an alias `app`. For example, you can use `GET /v2/collections/app/scores` to list all the scores created by your app.
 
-    At this time, only `private` privacy mode is widely available. Privacy modes `public`, `organizationPublic` and `privateLink`, and 1:1 sharing will be available in an upcoming update later this year.
+    At this time, only the `private` privacy mode is available for collections.
   x-displayName: Collections of music scores
 - name: User
   x-displayName: Users profiles
@@ -182,9 +182,9 @@ paths:
 
         When creating a class, Flat automatically creates two groups: one for the teachers of the course, one for the students. The creator of this class is automatically added to the teachers group.
 
-        If the classsroom is synchronized with another application like Google Classroom, some of the meta information will automatically be updated.
+        If the classroom is synchronized with another application like Google Classroom, some of the meta information will automatically be updated.
 
-        You can add users to this class using `PUT /classes/{class}/users/{user}`, they will automatically added to the group based on their role on Flat. Users can also enroll themselves to this class using `POST /classes/enroll/{enrollmentCode}` and the `enrollmentCode` returned in the `ClassDetails` response.
+        You can add users to this class using `PUT /classes/{class}/users/{user}`, they will automatically be added to the group based on their role on Flat. Users can also enroll themselves to this class using `POST /classes/enroll/{enrollmentCode}` and the `enrollmentCode` returned in the `ClassDetails` response.
       operationId: createClass
       requestBody:
         content:
@@ -279,7 +279,7 @@ paths:
       - Class
       summary: Archive the class
       description: |
-        Mark the class as `archived`. When this course is synchronized with another app, like Google Classroom, this state will be automatically be updated.
+        Mark the class as `archived`. When this course is synchronized with another app, like Google Classroom, this state will automatically be updated.
       operationId: archiveClass
       responses:
         '200':
@@ -302,7 +302,7 @@ paths:
       - Class
       summary: Unarchive the class
       description: |
-        Mark the class as `active`. When this course is synchronized with another app, like Google Classroom, this state will be automatically be updated.
+        Mark the class as `active`. When this course is synchronized with another app, like Google Classroom, this state will automatically be updated.
       operationId: unarchiveClass
       responses:
         '200':
@@ -364,7 +364,7 @@ paths:
 
         Only users that are part of your Organization can be enrolled in a class of this same Organization.
 
-        When enrolling a user in the class, Flat will automatically add this user to the corresponding Class group, based on this role in the Organization.
+        When enrolling a user in the class, Flat will automatically add this user to the corresponding Class group, based on their role in the Organization.
       operationId: addClassUser
       responses:
         '204':
@@ -730,7 +730,7 @@ paths:
       summary: Create or edit a submission
       description: |
         Use this method as a student to create, update and submit a submission related to an assignment.
-        Students can only set `attachments` and `submit`.
+        Students can only set `attachments`, `playback`, `exercisesIds` and `submit`.
         Teachers can use `PUT /classes/{class}/assignments/{assignment}/submissions/{submission}` to update a submission by id.
       operationId: createSubmission
       requestBody:
@@ -851,8 +851,8 @@ paths:
       - Class
       summary: Edit a submission
       description: |
-        Use this method as a teacher to update the different submission and give feedback.
-        Teachers can only set `return`, `draftGrade` and `grade`
+        Use this method as a teacher to update a submission and give feedback.
+        Teachers can only set `return`, `draftGrade` and `grade`.
       operationId: editSubmission
       requestBody:
         content:
@@ -883,7 +883,7 @@ paths:
       - Class
       summary: Reset a submission
       description: |
-        Use this method as a teacher to reset a submission and allow student to start over the assignment
+        Use this method as a teacher to reset a submission and allow the student to start the assignment over
       operationId: deleteSubmission
       responses:
         '200':
@@ -962,7 +962,7 @@ paths:
         - edu.assignments.readonly
       responses:
         '200':
-          description: The comments of the score
+          description: The comments of the submission
           content:
             application/json:
               schema:
@@ -1096,7 +1096,7 @@ paths:
       - Class
       summary: Create a test student account
       description: |
-        Test students account can be created by teachers an admin and be used to experiment the assignments.
+        Test student accounts can be created by teachers and admins to try out the assignments.
 
         - They are automatically added to the class.
         - They can be reset using this API endpoint (a new account will be created and the previous one scheduled for deletion).
@@ -1141,9 +1141,9 @@ paths:
       - Class
       summary: Join a class
       description: |
-        Use this method to join a class using an enrollment code given one of the teacher of this class. This code is also available in the `ClassDetails` returned to the teachers when creating the class or listing / fetching a specific class.
+        Use this method to join a class using an enrollment code given by one of the teachers of this class. This code is also available in the `ClassDetails` returned to the teachers when creating the class or listing / fetching a specific class.
 
-        Flat will automatically add the user to the corresponding class group based on this role in the organization.
+        Flat will automatically add the user to the corresponding class group based on their role in the organization.
       operationId: enrollClass
       responses:
         '200':
@@ -1612,7 +1612,7 @@ paths:
       - Collection
       summary: Delete a score from the collection
       description: |
-        This method will delete a score from the collection. Unlike [`DELETE /scores/{score}`](#operation/deleteScore), this score will not remove the score from your account, but only from the collection.
+        This method will delete a score from the collection. Unlike [`DELETE /scores/{score}`](#operation/deleteScore), this will not remove the score from your account, but only from the collection.
         This can be used to *move* a score from one collection to another, or simply remove a score from one collection when this one is contained in multiple collections.
       operationId: deleteScoreFromCollection
       responses:
@@ -1672,7 +1672,7 @@ paths:
         in: query
         description: |
           For the `parent` = `organization`, do not include resources from subfolders.
-          By default in the Resource Library UI, we include resources from subfolders, but for example in a picker like LTI, we don't want to include them.
+          Resources from subfolders are included by default; set this to `true` to list only the direct children, for example in a picker.
         schema:
           type: boolean
       - name: type
@@ -1854,7 +1854,7 @@ paths:
       operationId: updateEduResource
       summary: Update an education resource metadata
       description: |
-        Update any resources metadata (e.g. title).
+        Update the metadata of a resource (e.g. its title).
 
         Use this method to rename education resources folders or assignments.
       requestBody:
@@ -2378,7 +2378,7 @@ paths:
           - clever
       responses:
         '200':
-          description: The list of users member of the group
+          description: The users who are members of the group
           content:
             application/json:
               schema:
@@ -2517,7 +2517,7 @@ paths:
       parameters:
       - name: parent
         in: query
-        description: Filter the score forked from the score id `parent`
+        description: Only return the scores forked from the score `parent`
         schema:
           type: string
       responses:
@@ -2657,6 +2657,10 @@ paths:
         runs fully automatically and only pauses at the steps you list. Steps you do not list,
         including ones added in the future, are auto-resolved with server defaults, so older
         clients never break.
+
+        Pages are recognized in the orientation they are uploaded in. If your client does not
+        let the user rotate pages before upload, set `autoRotate: true` and the server corrects
+        pages uploaded sideways or upside down.
       operationId: createOmrJob
       parameters:
       - $ref: '#/components/parameters/xFlatLocale'
@@ -2800,7 +2804,7 @@ paths:
         Erase a job's uploaded files and recognition results now, instead of waiting for its
         retention deadline. Use this to serve a deletion request from your own end user.
 
-        Reaches the same end state as the scheduled cleanup: the files are gone, the job keeps
+        Reaches the same end state as retention expiry: the files are gone, the job keeps
         the `status` it finished with, stays listable, and reports `retention.expiredDate`.
         Downloads then fail with `OMR_JOB_EXPIRED`.
 
@@ -3335,7 +3339,7 @@ paths:
         description: |
           If `true`, the account will be only removed from the organization and converted into an individual account on our public website, https://flat.io.
           This operation will remove the education-related data from the account.
-          Before realizing this operation, you need to be sure that the user is at least 13 years old and that this one has read and agreed to the Individual Terms of Services of Flat available on https://flat.io/legal.
+          Before performing this operation, you need to be sure that the user is at least 13 years old and has read and agreed to the Individual Terms of Service of Flat available on https://flat.io/legal.
         schema:
           type: boolean
       responses:
@@ -3491,11 +3495,11 @@ paths:
       - Organization
       summary: Create a new invitation to join the organization
       description: |
-        This method creates and sends invitation for teachers and admins.
+        This method creates and sends an invitation for teachers and admins.
 
         Invitations can only be used by new Flat users or users who are not part of the organization yet.
 
-        If the email of the user is already associated to a user of your organization, the API will simply update the role of the existing user and won't send an invitation. In this case, the property `usedBy` will be directly filled with the uniquer identifier of the corresponding user.
+        If the email of the user is already associated to a user of your organization, the API will simply update the role of the existing user and won't send an invitation. In this case, the property `usedBy` will be directly filled with the unique identifier of the corresponding user.
       operationId: createOrganizationInvitation
       requestBody:
         content:
@@ -3586,7 +3590,7 @@ paths:
     post:
       tags:
       - Organization
-      summary: Create a new couple of LTI 1.x credentials
+      summary: Create a new pair of LTI 1.1 credentials
       description: |
         DEPRECATED. Use the unified endpoints under `/organizations/lti/configurations`.
         Note: Teachers may be restricted by the organization privacy setting `lti1p1AllowTeachersCredentials`.
@@ -3782,7 +3786,7 @@ paths:
       - Score
       summary: Create a new score
       description: |
-        Use this API method to **create a new music score in the current User account**. This API endpoints provides 3 ways to create scores:
+        Use this API method to **create a new music score in the current User account**. This endpoint provides 3 ways to create scores:
 
         * `ScoreCreationBuilderData` : Create a blank score by providing the list of instruments to use. You can optionally customize the initial key signature, time signature, enable TABs, Chord grids, as well as the page layout.
         * `ScoreCreationFileImport`: Import a file to create the new Flat document.
@@ -3820,9 +3824,9 @@ paths:
           document. Its live limits are served by `getOmrCapabilities`.
         * `ScoreCreationGoogleDriveImport`: Import an existing Google Drive file from the connected Google Drive account.
 
-        This API call will automatically create the first revision of the document, the score can be modified by the using our web application or by uploading a new revision of this file (`POST /v2/scores/{score}/revisions/{revision}`).
+        This API call will automatically create the first revision of the document, the score can then be modified using our web application or by uploading a new revision of this file (`POST /v2/scores/{score}/revisions`).
 
-        The currently authenticated user will be granted owner of the file and will be able to add other collaborators (users and groups).
+        The currently authenticated user will be the owner of the file and will be able to add other collaborators (users and groups).
 
         If no `collection` is specified, the API will create the score in the most appropriate collection. When using an OAuth2 access token or a personal token, the score will be automatically added to your dedicated app collection in the account (`/v2/collections/app`).
 
@@ -4012,10 +4016,10 @@ paths:
       description: |
         This API method allows you to change the metadata of a score document (e.g. its `title` or `privacy`), all the properties are optional.
 
-        To edit the file itself, create a new revision using the appropriate method (`POST /v2/scores/{score}/revisions/{revision}`).
+        To edit the file itself, create a new revision using the appropriate method (`POST /v2/scores/{score}/revisions`).
 
-        When editing the `title`, `subtitle`, `composer`, `lyricist`, `arranger` or `licenseText`, the metadatas will be instantly be updated, and a real-time action will be pushed to update the document lazily.
-        This pending document modification will be automatically be saved as a new version by either a connected client or our internal versioning service.
+        When editing the `title`, `subtitle`, `composer`, `lyricist`, `arranger` or `licenseText`, the metadata is updated immediately, and a real-time action is pushed to update the document lazily.
+        This pending document modification is automatically saved as a new revision, either by a connected client or by Flat.
       operationId: editScore
       requestBody:
         content:
@@ -4067,12 +4071,12 @@ paths:
 
         - When called by an owner/admin, it will schedule the deletion of the score, its revisions, and complete history. The score won't be accessible anymore after calling this method and the user's quota will directly be updated.
         - When called by a collaborator, the score will be unshared (i.e. removed from the account & own collections).
-        - When called by another user that has the score in its collections, the score will be removed from all the user collections.
+        - When called by another user that has the score in its collections, the score will be removed from all the user's collections.
       operationId: deleteScore
       parameters:
       - name: now
         in: query
-        description: If `true`, the score deletion will be scheduled to be done ASAP
+        description: If `true`, the score deletion will be scheduled as soon as possible
         schema:
           type: boolean
           default: false
@@ -4155,7 +4159,7 @@ paths:
       - Class
       summary: List submissions related to the score
       description: |
-        This API call will list the different assignments submissions where the score is attached. This method can be used by anyone that are part of the organization and have at least read access to the document.
+        This API call will list the different assignments submissions where the score is attached. This method can be used by anyone who is part of the organization and has at least read access to the document.
       operationId: getScoreSubmissions
       responses:
         '200':
@@ -4309,9 +4313,9 @@ paths:
       - Score
       summary: Add a new collaborator
       description: |
-        Share a score with a single user or a group. This API call allows to add, invite and update the collaborators of a resource.
-        - To add an existing Flat user to the resource, specify its unique identifier in the `user` property.
-        - To invite an external user to the resource, specify its email in the `userEmail` property.
+        Share a score with a single user or a group. This API call allows you to add, invite and update the collaborators of a resource.
+        - To add an existing Flat user to the resource, specify their unique identifier in the `user` property.
+        - To invite an external user to the resource, specify their email in the `userEmail` property.
         - To add a Flat group to the resource, specify its unique identifier in the `group` property.
         - To update an existing collaborator, process the same request with different rights.
       operationId: addScoreCollaborator
@@ -4493,13 +4497,13 @@ paths:
       - name: assignment
         in: query
         description: |
-          An assignment id with which all the tracks returned will be related to
+          Only return the tracks related to this assignment
         schema:
           type: string
       - name: listAutoTrack
         in: query
         description: |
-          If true, and if available, return last automatically synchronized Flat's mp3 export as an additional track
+          If `true`, and when available, also return the latest MP3 export automatically generated by Flat as an additional track
         schema:
           type: boolean
       responses:
@@ -4538,8 +4542,8 @@ paths:
       - Score
       summary: Add a new video or audio track to the score
       description: |
-        Use this method to add new track to the score. This track can then be played on flat.io or in an embedded score.
-        This API method support medias hosted on SoundCloud, YouTube and Vimeo.
+        Use this method to add a new track to the score. This track can then be played on flat.io or in an embedded score.
+        This API method supports media hosted on SoundCloud, YouTube and Vimeo.
       operationId: addScoreTrack
       parameters: []
       requestBody:
@@ -4794,7 +4798,7 @@ paths:
       description: |
         Post a document or a contextualized comment on a document.
 
-        Please note that this method includes an anti-spam system for public scores. We don't guarantee that your comments will be accepted and displayed to end-user. Comments are be blocked by returning a `403` HTTP error and hidden from other users when the `spam` property is `true`.
+        Please note that this method includes an anti-spam system for public scores. We don't guarantee that your comments will be accepted and displayed to end users. Comments can be blocked by returning a `403` HTTP error and hidden from other users when the `spam` property is `true`.
       operationId: postScoreComment
       requestBody:
         content:
@@ -5042,7 +5046,7 @@ paths:
       description: |
         When creating a score or saving a new version of a score, a revision is created in our storage. This method allows you to list all of them, sorted by last modification.
 
-        Depending the plan of the account, this list can be trunked to the few last revisions.
+        Depending on the plan of the account, this list may be truncated to the most recent revisions.
       operationId: getScoreRevisions
       parameters:
       - name: sharingKey
@@ -5240,11 +5244,11 @@ paths:
       - Score
       summary: Get a score revision data
       description: |
-        Retrieve the file corresponding to a score revision (the following formats are available): Flat JSON/Adagio JSON `json`, MusicXML
-        `mxl`/`xml`, ABC notation `abc`, MP3 `mp3`, WAV `wav`, MIDI `midi`, Flat `flat`, a tumbnail of the first page `thumbnail.png` or auto sync points `synchronizationPoints`.
+        Retrieve the file corresponding to a score revision (the following formats are available): Flat JSON `json`, MusicXML
+        `mxl`/`xml`, ABC notation `abc`, MP3 `mp3`, WAV `wav`, MIDI `midi`, Flat `flat`, a thumbnail of the first page `thumbnail.png` or auto sync points `synchronizationPoints`.
 
         ABC notation is a text format that cannot express everything a score
-        contains. Like MIDI, the export is lossy: notation ABC has no equivalent
+        contains. Like MIDI, the export is lossy: notation that ABC has no equivalent
         for is approximated or dropped rather than failing the request.
       operationId: getScoreRevisionData
       parameters:
@@ -5257,7 +5261,7 @@ paths:
       - name: parts
         in: query
         description: |
-          An optional a set of parts uuid to be exported. This parameter must be composed of parts uuids
+          An optional set of part UUIDs to export. This parameter must be composed of part UUIDs
           separated by commas. For example "59df645f-bb1c-f1b4-b573-d2afc4491f94,34ef645f-1aef-f3bc-1564-34cca4492b87".
         schema:
           type: string
@@ -5348,7 +5352,7 @@ paths:
       - Score
       summary: Create a new score export task
       description: |
-        Some of the exports of a score takes are longer to process than a simple API requests.
+        Some score exports take longer to process than a single API request allows.
         Use this endpoint to launch a new export of one score hosted on Flat.
       operationId: createExportTask
       parameters:
@@ -5435,9 +5439,9 @@ paths:
     get:
       tags:
       - Task
-      summary: Get a task details
+      summary: Get task details
       description: |
-        This method can be used to follow a task progression, for example while a score is being exported.
+        This method can be used to follow the progress of a task, for example while a score is being exported.
       operationId: getTask
       responses:
         '200':
@@ -5460,7 +5464,7 @@ paths:
     - name: user
       in: path
       description: |
-        This route parameter is the unique identifier of the user. You can specify an email instead of an unique identifier. If you are executing this request authenticated, you can use `me` as a value instead of the current User unique identifier to work on the current authenticated user.
+        This route parameter is the unique identifier of the user. You can specify an email instead of a unique identifier. If you are executing this request authenticated, you can use `me` as a value instead of the current User unique identifier to work on the current authenticated user.
       required: true
       schema:
         type: string
@@ -5553,7 +5557,7 @@ paths:
       summary: List user's scores
       description: |
         Get the list of public scores owned by a User.
-        If you want to access to private scores, please use the [Collections API](#tag/Collection).
+        If you want to access private scores, please use the [Collections API](#tag/Collection).
         For example `GET /v2/collections/allScores/scores` to list all recently updated scores.
       operationId: getUserScores
       parameters:
@@ -5629,26 +5633,26 @@ components:
     OAuth2:
       type: oauth2
       description: |
-        OAuth 2.0 authentication for your app or. Please only request the most restrictive and needed scopes. Using some of the scopes may require an additional review from our team. The Flat API supports **authorization code** and **implicit** flows.
+        OAuth 2.0 authentication for your app. Please only request the most restrictive and needed scopes. Using some of the scopes may require an additional review from our team. The Flat API supports **authorization code** and **implicit** flows.
       flows:
         authorizationCode:
           authorizationUrl: https://flat.io/auth/oauth
           tokenUrl: https://api.flat.io/oauth/access_token
           scopes:
             account.public_profile: |
-              Provides access to the basic person's public profile. Education profiles may be anonymized with this scope, you can request the scope `education_profile` to access to the a basic education account profile.
+              Provides access to the person's basic public profile. Education profiles may be anonymized with this scope; request the scope `account.education_profile` to access a basic education account profile.
             account.email: |
-              Provices access to the person's email.
+              Provides access to the person's email.
             account.education_profile: |
-              Provides access to the basic person's education profile and public organization information.
+              Provides access to the person's basic education profile and public organization information.
             scores.readonly: |
               Allows read-only access to all a user's scores. You won't need this scope to read public scores.
             scores.social: |
-              Allow to post comments and like scores
+              Allows posting comments and liking scores
             scores: |
               Full, permissive scope to access all of a user's scores.
             collections.readonly: Allow read-only access to a user's collections.
-            collections.add_scores: Allow to add scores to a user's collections.
+            collections.add_scores: Allows adding scores to a user's collections.
             collections: Full, permissive scope to access all of a user's collections.
             notifications.readonly: Read-only access to a user's notifications.
             edu.resources: Read-write access to the resource library.
@@ -5657,7 +5661,7 @@ components:
             edu.classes.readonly: Read-only access to the classes.
             edu.assignments: Read-write access to the assignments and submissions.
             edu.assignments.readonly: Read-only access to the assignments and submissions.
-            edu.admin: Full, permissive scope to manage all the admin of an organization.
+            edu.admin: Full, permissive scope to administer an organization.
             edu.admin.lti: Access and manage the LTI Credentials for an organization.
             edu.admin.lti.readonly: Read-only access to the LTI Credentials of an organization.
             edu.admin.users: Access and manage the users and invitations of the organization.
@@ -5801,7 +5805,7 @@ components:
         maxPoints:
           type: number
           description: |
-            If set, the grading will be enabled for the assignement
+            If set, the grading will be enabled for the assignment
         releaseGrades:
           type: string
           enum:
@@ -5813,13 +5817,13 @@ components:
             - If set to `manual`, the grades will only be set as `draftGrade` and will be released when the teacher returns the submissions
         shuffleExercises:
           type: boolean
-          description: Mixing worksheets exercises for each student
+          description: Shuffle the worksheet exercises for each student
         toolset:
           type: string
           description: The id of the associated toolset
         nbPlaybackAuthorized:
           type: number
-          description: The number of playback authorized on the scores of the assignment.
+          description: The number of playbacks authorized on the scores of the assignment.
         restrictPlayNote:
           type: boolean
           description: Restrict the ability to get an audio feedback every time a student adds or selects a note.
@@ -5944,7 +5948,7 @@ components:
           type:
           - number
           - 'null'
-          description: The number of playback authorized on the scores of the assignment.
+          description: The number of playbacks authorized on the scores of the assignment.
         restrictPlayNote:
           type: boolean
           description: Restrict the ability to get an audio feedback every time a student adds or selects a note.
@@ -5976,7 +5980,7 @@ components:
           minimum: 0
           maximum: 10000
           description: |
-            If set, the grading will be enabled for the assignement with this value as the maximum of points
+            If set, the grading will be enabled for the assignment with this value as the maximum of points
         releaseGrades:
           type: string
           enum:
@@ -5988,7 +5992,7 @@ components:
             - If set to `manual`, the grades will only be set as `draftGrade` and will be released when the teacher returns the submissions
         shuffleExercises:
           type: boolean
-          description: Mixing worksheets exercises for each student
+          description: Shuffle the worksheet exercises for each student
         submissionStudentsMode:
           $ref: '#/components/schemas/AssignmentSubmissionStudentsMode'
         recordingType:
@@ -6094,7 +6098,7 @@ components:
           description: The destination classroom where the assignment will be copied
         assignment:
           type: string
-          description: An optional destination assignment where the original assignement will be copied. Must be a draft.
+          description: An optional destination assignment where the original assignment will be copied. Must be a draft.
         scheduledDate:
           type: string
           description: |
@@ -6104,7 +6108,7 @@ components:
           format: date-time
         libraryParent:
           type: string
-          description: Identifier of the parent resource where the new one will created, e.g. a folder id or `root`
+          description: Identifier of the parent resource where the new one will be created, e.g. a folder id or `root`
         verifyIfNotAlreadyInResourceLibrary:
           type: boolean
           description: Option to check if the assignment is already in Resource Library
@@ -6182,7 +6186,7 @@ components:
           type:
           - number
           - 'null'
-          description: Optional grade. If unset, no grade was set. This value is only visible by the teacher, and we will be set to `grade` once the teacher returns the submission
+          description: Optional grade. If unset, no grade was set. This value is only visible to the teacher, and is copied to `grade` once the teacher returns the submission
         maxPoints:
           type: number
           description: Optional max points for the grade. If set, a corresponding `draftGrade` or `grade` will be set.
@@ -6264,7 +6268,7 @@ components:
           - 'null'
           minimum: 0
           maximum: 10000
-          description: Optional grade. If unset, no grade was set. This value is only visible by the teacher, and we will be set to `grade` once the teacher returns the submission
+          description: Optional grade. If unset, no grade was set. This value is only visible to the teacher, and is copied to `grade` once the teacher returns the submission
         grade:
           type:
           - number
@@ -6281,7 +6285,7 @@ components:
           description: The ids of exercises when they need to be in a specific order
         return:
           type: boolean
-          description: If `true`, the submission will be marked as done
+          description: If `true`, the submission will be returned to the student (teachers only)
       description: Assignment Submission creation
       example:
         attachments:
@@ -6317,7 +6321,7 @@ components:
           type: boolean
           description: True if the comment is unread by the current user
     AssignmentSubmissionCommentCreation:
-      description: Creation of a assignment submission comment
+      description: Creation of an assignment submission comment
       required:
       - comment
       type: object
@@ -6492,7 +6496,7 @@ components:
         maxPoints:
           type: number
           description: |
-            If set, the grading will be enabled for the assignement
+            If set, the grading will be enabled for the assignment
         releaseGrades:
           type: string
           enum:
@@ -6504,13 +6508,13 @@ components:
             - If set to `manual`, the grades will only be set as `draftGrade` and will be released when the teacher returns the submissions
         shuffleExercises:
           type: boolean
-          description: Mixing worksheets exercises for each student
+          description: Shuffle the worksheet exercises for each student
         toolset:
           type: string
           description: The id of the associated toolset
         nbPlaybackAuthorized:
           type: number
-          description: The number of playback authorized on the scores of the assignment.
+          description: The number of playbacks authorized on the scores of the assignment.
         restrictPlayNote:
           type: boolean
           description: Restrict the ability to get an audio feedback every time a student adds or selects a note.
@@ -6591,7 +6595,7 @@ components:
           type: string
           description: |
             The due date of this assignment, late submissions will be marked as
-            paste due.
+            past due.
           format: date-time
         assigneeMode:
           type: string
@@ -6623,7 +6627,7 @@ components:
           properties:
             id:
               type: string
-              description: Unique identifier of the course on MusicFirst Task
+              description: Unique identifier of the task on MusicFirst Classroom
             alternateLink:
               type: string
               description: Link to MusicFirst Classroom task
@@ -6633,7 +6637,7 @@ components:
           properties:
             id:
               type: string
-              description: Unique identifier of the course on Canvas assignment
+              description: Unique identifier of the assignment on Canvas
             alternateLink:
               type: string
               description: Link to Canvas assignment
@@ -6703,7 +6707,7 @@ components:
           type:
           - number
           - 'null'
-          description: The number of playback authorized on the scores of the assignment.
+          description: The number of playbacks authorized on the scores of the assignment.
         restrictPlayNote:
           type: boolean
           description: Restrict the ability to get an audio feedback every time a student adds or selects a note.
@@ -6735,7 +6739,7 @@ components:
           minimum: 0
           maximum: 10000
           description: |
-            If set, the grading will be enabled for the assignement with this value as the maximum of points
+            If set, the grading will be enabled for the assignment with this value as the maximum of points
         releaseGrades:
           type: string
           enum:
@@ -6747,7 +6751,7 @@ components:
             - If set to `manual`, the grades will only be set as `draftGrade` and will be released when the teacher returns the submissions
         shuffleExercises:
           type: boolean
-          description: Mixing worksheets exercises for each student
+          description: Shuffle the worksheet exercises for each student
         submissionStudentsMode:
           $ref: '#/components/schemas/AssignmentSubmissionStudentsMode'
         recordingType:
@@ -6805,7 +6809,7 @@ components:
           - string
           - 'null'
           description: |
-            The due date of this assignment, late submissions will be marked as paste due. If not set, the assignment won't have a due date.
+            The due date of this assignment, late submissions will be marked as past due. If not set, the assignment won't have a due date.
           format: date-time
         scheduledDate:
           type:
@@ -6864,12 +6868,12 @@ components:
         issuedDate:
           type: string
           description: |
-            The date then this token was issued
+            The date when this token was issued
           format: date-time
         expirationDate:
           type: string
           description: |
-            The date then this token will expire
+            The date when this token will expire
           format: date-time
         scopes:
           type: array
@@ -6965,7 +6969,7 @@ components:
           description: The section of the class
         description:
           type: string
-          description: An optionnal description for this class
+          description: An optional description for this class
         organization:
           type: string
           description: The unique identifier of the Organization owning this class
@@ -6974,7 +6978,7 @@ components:
           description: The unique identifier of the User owning this class
         creationDate:
           type: string
-          description: The date when the class was create
+          description: The date when the class was created
           format: date-time
         modificationDate:
           type: string
@@ -6986,7 +6990,7 @@ components:
             [Teachers only] The enrollment code that can be used by the students to join the class
         theme:
           type: string
-          description: The theme identifier using in Flat User Interface
+          description: The theme identifier used in the Flat user interface
         assignmentsCount:
           type: number
           description: The number of assignments created in the class
@@ -7071,7 +7075,7 @@ components:
             domain:
               type: string
               description: Canvas instance domain (e.g. "canvas.instructure.com")
-          description: Meta information provided by Canvs LMS
+          description: Meta information provided by Canvas LMS
         mfc:
           type: object
           properties:
@@ -7081,7 +7085,7 @@ components:
             alternateLink:
               type: string
               description: Link to MusicFirst Classroom class
-          description: Meta information provided by Canvs LMS
+          description: Meta information provided by MusicFirst Classroom
         clever:
           type: object
           properties:
@@ -7181,10 +7185,10 @@ components:
             teachers and students of the class.
         worksheet:
           type: string
-          description: An unique worksheet identifier
+          description: A unique worksheet identifier
         revision:
           type: string
-          description: An unique revision identifier of a score
+          description: A unique revision identifier of a score
         partUuid:
           type: string
           description: The UUID of the instrument part selected for this attachment (for performance submissions)
@@ -7205,7 +7209,7 @@ components:
           default: false
       description: |
         Attachment creation for an assignment or stream post.
-        This attachment must contain a `score` or an `url`, all the details of this one will be resolved and returned as `ClassAttachment` once the assignment or stream post is created.
+        This attachment must contain a `score` or a `url`; its details are resolved and returned as a `MediaAttachment` once the assignment or stream post is created.
       example:
         type: flat
         score: '000000000000000001'
@@ -7230,7 +7234,7 @@ components:
           description: The destination classroom where the resource will be copied.
         assignment:
           type: string
-          description: An optional destination assignment where the original assignement will be copied. Must be a draft.
+          description: An optional destination assignment where the original assignment will be copied. Must be a draft.
     MicrosoftGraphAssignment:
       type: object
       description: A Microsoft Teams assignment
@@ -7455,7 +7459,7 @@ components:
           description: Capabilities the current user has on this collection. Each capability corresponds to a fine-grained action that a user may take.
         collections:
           type: array
-          description: The List of parent collections, which includes all the collections this score is included. Please note that you might not have access to all of them.
+          description: The list of parent collections this score is included in. Please note that you might not have access to all of them.
           items:
             type: string
       description: Collection of scores
@@ -7487,7 +7491,7 @@ components:
       type: string
       description: |
         Type of the collection.
-        The type will influence the capabilitied available on the collections and how this collection is/can be populated.
+        The type will influence the capabilities available on the collections and how this collection is/can be populated.
 
         - `root`: **Deprecated.** Previously the root collection of the user. The `allScores` virtual collection should be used instead.
         - `regular`: A regular collection created by the user. This collection can be deleted and modified by the user.
@@ -7636,7 +7640,7 @@ components:
         maxPoints:
           type: number
           description: |
-            If set, the grading will be enabled for the assignement
+            If set, the grading will be enabled for the assignment
         releaseGrades:
           type: string
           enum:
@@ -7648,13 +7652,13 @@ components:
             - If set to `manual`, the grades will only be set as `draftGrade` and will be released when the teacher returns the submissions
         shuffleExercises:
           type: boolean
-          description: Mixing worksheets exercises for each student
+          description: Shuffle the worksheet exercises for each student
         toolset:
           type: string
           description: The id of the associated toolset
         nbPlaybackAuthorized:
           type: number
-          description: The number of playback authorized on the scores of the assignment.
+          description: The number of playbacks authorized on the scores of the assignment.
         restrictPlayNote:
           type: boolean
           description: Restrict the ability to get an audio feedback every time a student adds or selects a note.
@@ -7731,7 +7735,7 @@ components:
           description: A printable message for this error
         id:
           type: string
-          description: An unique error identifier generated for the request
+          description: A unique error identifier generated for the request
         param:
           type: string
           description: The related parameter that caused the error
@@ -7862,7 +7866,7 @@ components:
             `GET /v2/eduResources?parent={library-id}`
         name:
           type: string
-          description: Name of the lirbary
+          description: Name of the library
         type:
           type: string
           description: Type of the library
@@ -8029,7 +8033,7 @@ components:
             maxPoints:
               type: number
               description: |
-                If set, the grading will be enabled for the assignement
+                If set, the grading will be enabled for the assignment
             releaseGrades:
               type: string
               enum:
@@ -8041,13 +8045,13 @@ components:
                 - If set to `manual`, the grades will only be set as `draftGrade` and will be released when the teacher returns the submissions
             shuffleExercises:
               type: boolean
-              description: Mixing worksheets exercises for each student
+              description: Shuffle the worksheet exercises for each student
             toolset:
               type: string
               description: The id of the associated toolset
             nbPlaybackAuthorized:
               type: number
-              description: The number of playback authorized on the scores of the assignment.
+              description: The number of playbacks authorized on the scores of the assignment.
             restrictPlayNote:
               type: boolean
               description: Restrict the ability to get an audio feedback every time a student adds or selects a note.
@@ -8101,7 +8105,7 @@ components:
 
                 Only set when type is 'performance'.
             assignmentsTypes:
-              description: The assignment type of the resources that are included in the folder,
+              description: The assignment types of the resources included in the folder
               type: array
               items:
                 $ref: '#/components/schemas/AssignmentType'
@@ -8155,7 +8159,7 @@ components:
         parent:
           type: string
           default: root
-          description: Identifier of the parent resource where the new one will created, e.g. a folder id or `root`
+          description: Identifier of the parent resource where the new one will be created, e.g. a folder id or `root`
         sharingDescription:
           type: string
           description: Sharing description of the resource
@@ -8219,7 +8223,7 @@ components:
         destination:
           type: string
           description: |
-            Unique identifier of the destination of the folder where to move this resource.
+            Unique identifier of the destination folder for this resource.
             This can also be `root` to move the resource at the root of the user resource library.
     EduResourceCopy:
       description: Copy an education resource
@@ -8230,7 +8234,7 @@ components:
         destination:
           type: string
           description: |
-            Unique identifier of the destination of the folder where to copy this resource.
+            Unique identifier of the destination folder for the copy.
             This can also be `root` to copy the resource at the root of the user resource library.
     EduResourceLtiLink:
       description: LTI Link details for the class
@@ -8240,7 +8244,7 @@ components:
       properties:
         ltiUrl:
           type: string
-          description: An URL that can be used to launch LTI with this resource in a classroom.
+          description: A URL that can be used to launch LTI with this resource in a classroom.
     EduResourceSubjects:
       description: The subjects of this resource, or the subjects of the resources included in the folder
       type: array
@@ -8310,7 +8314,7 @@ components:
         id: '0000000000000000000000043'
         name: 5th grade
         type: classTeachers
-        userCount: 24
+        usersCount: 24
         readOnly: true
         organization: '0000000000000000000000042'
     GroupDetails:
@@ -8337,7 +8341,7 @@ components:
           description: The unique identifier of the Organization owning the group
         classroom:
           type: string
-          description: The unique identifier of the classroom owning the group. Only available for groups of type 'classromStudentsSubGroup' or 'assignmentStudentsSubGroup'
+          description: The unique identifier of the classroom owning the group. Only available for groups of type 'classStudentsSubGroup' or 'assignmentStudentsSubGroup'
         assignment:
           type: string
           description: The unique identifier of the assignment owning the group. Only available for groups of type 'assignmentStudentsSubGroup'.
@@ -8346,7 +8350,7 @@ components:
           description: The unique identifier of the parent class group. Only available for groups of type 'assignmentStudentsSubGroup'. May be null if the parent class group was deleted.
         creationDate:
           type: string
-          description: The date when the group was create
+          description: The date when the group was created
           format: date-time
         usersCount:
           type: number
@@ -8354,7 +8358,7 @@ components:
         readOnly:
           type: boolean
           description: |
-            `true` if the properties and members of this group are in in read-only
+            `true` if the properties and members of this group are read-only
         tags:
           type: array
           description: |
@@ -8376,10 +8380,10 @@ components:
       description: |
         The type of the group:
         * `generic`: A group created by a Flat user
-        * `classTeachers`: A group created automaticaly by Flat that contains
+        * `classTeachers`: A group created automatically by Flat that contains
           the teachers of a class
-        * `classStudents`: A group created automaticaly by Flat that contains
-          the studnets of a class
+        * `classStudents`: A group created automatically by Flat that contains
+          the students of a class
         * `classStudentsSubGroup`: Manually created sub-group of students of a class. 
         * `assignmentStudentsSubGroup`: Manually created Sub-group of students of a class, in relation to a specific assignment.
       enum:
@@ -8397,22 +8401,22 @@ components:
         name:
           maxLength: 300
           type: string
-          description: Name of the couple of credentials
+          description: Name of the pair of credentials
         lms:
           $ref: '#/components/schemas/LmsName'
-      description: Creation of a couple of LTI 1.x OAuth credentials
+      description: Creation of a pair of LTI 1.1 OAuth credentials
       example:
-        name: My couple of credentials for Canvas
+        name: My credentials for Canvas
         lms: canvas
     LtiCredentials:
       type: object
       properties:
         id:
           type: string
-          description: The unique identifier of this couple of credentials
+          description: The unique identifier of this pair of credentials
         name:
           type: string
-          description: Name of the couple of credentials
+          description: Name of the pair of credentials
         lms:
           $ref: '#/components/schemas/LmsName'
         organization:
@@ -8423,7 +8427,7 @@ components:
           description: Unique identifier of the user who created these credentials
         creationDate:
           type: string
-          description: The creation date of thse credentials
+          description: The creation date of these credentials
           format: date-time
         lastUsage:
           type: string
@@ -8447,10 +8451,10 @@ components:
             When false: Email matching is disabled. Only LTI ID matching is used, which means
             multiple LTI users can share the same email address and have separate Flat accounts.
             This is useful for cases like siblings sharing a parent email in the LMS.
-      description: A couple of LTI 1.x OAuth credentials
+      description: A pair of LTI 1.1 OAuth credentials
       example:
         id: 59368be5c66caf895ee02387
-        name: My couple of credentials for Canvas
+        name: My credentials for Canvas
         lms: canvas
         organization: 5832c801a4bedc05f4fb4993
         creator: 5832bf149995c4024bd6de7d
@@ -8579,7 +8583,7 @@ components:
                   description: AGS version supported (e.g., "2.0")
                 enabled:
                   type: boolean
-                  description: Whether we have AGS enabled for this platform
+                  description: Whether AGS is enabled for this platform
                 lineitemsUrl:
                   type: string
                   description: Base URL for line items operations as provided by the platform
@@ -8595,7 +8599,7 @@ components:
                   description: NRPS version supported (e.g., "2.0")
                 enabled:
                   type: boolean
-                  description: Whether we have NRPS enabled for this platform
+                  description: Whether NRPS is enabled for this platform
             deepLinking:
               type: object
               description: Deep Linking support
@@ -8700,7 +8704,7 @@ components:
           description: Optional locale code for registration URL. Input values will be automatically normalized to a supported locale code.
         deploymentType:
           type: string
-          description: Parent platform key (e.g., canvas, blackboard, schoology, classlink)
+          description: Parent platform key (e.g., blackboard, schoology, classlink, manabipocket, manabipocket-stg)
         deploymentId:
           type: string
           description: Deployment identifier provided by the platform
@@ -8976,7 +8980,7 @@ components:
         aclAdmin:
           type: boolean
           description: |
-            `True` if the related user can can manage the current document, i.e. changing the document permissions and deleting the document
+            `True` if the related user can manage the current document, i.e. changing the document permissions and deleting the document
           default: false
       description: Add a collaborator to a resource.
       example:
@@ -9004,7 +9008,7 @@ components:
         type:
           type: string
           description: |
-            The type of the assignment resolved:
+            The resolved type of the attachment:
             * `rich`, `photo`, `video` are automatically resolved as `link`
             * A `flat` attachment is a score document where the unique identifier will be specified in the `score` property. Its sharing mode will be provided in the `sharingMode` property.
           enum:
@@ -9017,13 +9021,13 @@ components:
           - worksheet
         score:
           type: string
-          description: An unique Flat score identifier
+          description: A unique Flat score identifier
         revision:
           type: string
-          description: An unique revision identifier of a score
+          description: A unique revision identifier of a score
         worksheet:
           type: string
-          description: An unique worksheet identifier
+          description: A unique worksheet identifier
         dedicated:
           type: boolean
           description: True if the resource is dedicated for the assignment (for scores and worksheets), meaning on the user-side this one is stored in the assignment
@@ -9070,7 +9074,7 @@ components:
         thumbnailHeight:
           type: integer
           description: |
-            If the `thumbnailUrl` is available, the width of the thumbnail
+            If the `thumbnailUrl` is available, the height of the thumbnail
         authorName:
           type: string
           description: The resolved author name of the attachment
@@ -9082,7 +9086,7 @@ components:
           description: The URL of the icon
         mimeType:
           type: string
-          description: The mine type of the file
+          description: The MIME type of the file
         googleDriveFileId:
           type: string
           description: The ID of the Google Drive File
@@ -9144,8 +9148,8 @@ components:
         step a client does not list (including future ones) is auto-resolved by the server.
 
         * `details`: confirm or adjust the detected title, main language and instruments
-          before assembly. Pauses after note recognition, so resuming re-runs only the
-          cheap assembly and finalize stages.
+          before the score is built. Resuming from this step is fast: note recognition is
+          already done and is not run again.
       enum:
       - details
     OmrJobOutput:
@@ -9163,7 +9167,7 @@ components:
     OmrJobStatus:
       type: string
       description: |
-        Public, client-facing status of the job, derived from the internal job and task state.
+        Status of the job.
 
         * `draft`: created, files can still be added; not yet started or charged.
         * `processing`: the pipeline is running.
@@ -9212,12 +9216,22 @@ components:
           items:
             $ref: '#/components/schemas/OmrStepName'
           default: []
+        autoRotate:
+          type: boolean
+          default: false
+          description: |
+            Let the server detect and correct pages uploaded sideways or upside down
+            (90/180/270°) before recognition. Off by default: pages are recognized in the
+            orientation they are uploaded in, which is the right choice when your client lets
+            the user rotate pages before upload. Enable it when it does not, for example a
+            server-to-server integration importing scans as they come. Small tilt correction
+            (a few degrees) always runs.
         locales:
           type: array
           description: |
             Locale hints (BCP 47) to improve text and lyric detection, for example
-            `["ja", "en"]`. The first entry drives the OCR reader. This is the input hint; the
-            detected main language is confirmed later at the `details` step.
+            `["ja", "en"]`. The first entry is the primary reading language. This is the input
+            hint; the main language can be confirmed or corrected at the `details` step.
           items:
             type: string
         collection:
@@ -9261,8 +9275,8 @@ components:
         are part of your library content, are not covered by this policy, and omit this object
         entirely.
 
-        Erasure is performed by a periodic cleanup pass, so the files are removed shortly after
-        `expiryDate` rather than exactly on it. Plan for the deadline, not the instant.
+        Erasure happens shortly after `expiryDate` rather than exactly on it. Plan for the
+        deadline, not the instant.
       required:
       - expiryDate
       properties:
@@ -9301,6 +9315,9 @@ components:
           description: Steps this job pauses at for client input, echoing the value set at creation.
           items:
             $ref: '#/components/schemas/OmrStepName'
+        autoRotate:
+          type: boolean
+          description: Whether the job was created with `autoRotate`, echoing the value set at creation.
         locales:
           type: array
           description: |
@@ -9316,8 +9333,8 @@ components:
             step a client does not list (including future ones) is auto-resolved by the server.
 
             * `details`: confirm or adjust the detected title, main language and instruments
-              before assembly. Pauses after note recognition, so resuming re-runs only the
-              cheap assembly and finalize stages.
+              before the score is built. Resuming from this step is fast: note recognition is
+              already done and is not run again.
           enum:
           - details
         pendingStep:
@@ -9744,7 +9761,7 @@ components:
           format: date-time
         organization:
           type: string
-          description: The unique identifier of the Organization owning this class
+          description: The unique identifier of the Organization this invitation belongs to
         organizationRole:
           $ref: '#/components/schemas/OrganizationRoles'
         customCode:
@@ -9800,7 +9817,7 @@ components:
       type:
       - string
       - 'null'
-      description: The type of creation (an orginal, an arrangement)
+      description: The type of creation (an original, an arrangement)
       enum:
       - original
       - arrangement
@@ -9860,7 +9877,7 @@ components:
           description: Additional license text written on the exported/printed score
         durationTime:
           type: number
-          description: In seconds, an approximative duration of the score
+          description: In seconds, an approximate duration of the score
         numberMeasures:
           type: integer
           description: The number of measures in the score
@@ -9898,7 +9915,7 @@ components:
             Schedule:
 
             * For all paying users, the scores will be definitively deleted after 90 days.
-            * For free users, the scores are no longer available after 24 hours, an can be restored with a paying account up to 90 days.
+            * For free users, the scores are no longer available after 24 hours, and can be restored with a paying account up to 90 days.
           format: date-time
         highlightedDate:
           type: string
@@ -9918,7 +9935,7 @@ components:
             type: string
           description: |
             An array of the instrument identifiers used in the last version of the score.
-            This is mainly used to display a list of the instruments in the Flat's UI or instruments icons.
+            This is mainly used to display a list of the instruments in Flat's UI or instruments icons.
             The format of the strings is `{instrument-group}.{instrument-id}`.
         instrumentsNames:
           type: array
@@ -9932,7 +9949,7 @@ components:
           items:
             type: string
           description: |
-            An array of the audio samples identifiers used the different score parts.
+            An array of the audio sample identifiers used by the different score parts.
             The format of the strings is `{instrument-group}.{sample-id}`.
         googleDriveFileId:
           type: string
@@ -9948,7 +9965,7 @@ components:
           $ref: '#/components/schemas/ScorePlaysCounts'
         collections:
           type: array
-          description: The List of parent collections, which includes all the collections this score is included. Please note that you might not have access to all of them.
+          description: The list of parent collections this score is included in. Please note that you might not have access to all of them.
           items:
             type: string
         me:
@@ -9976,14 +9993,14 @@ components:
       description: |
         The score main privacy mode.
 
-        - `public`: The score is public on the Internet. This one can be accessible at the url `https://flat.io/score/{score}` and can be modified and administred by specified collaborators users.
-        - `private`: The score is private and can be only accessed, modified and administred by specified collaborators users.
+        - `public`: The score is public on the Internet. This one can be accessible at the url `https://flat.io/score/{score}` and can be modified and administered by specified collaborators users.
+        - `private`: The score is private and can be only accessed, modified and administered by specified collaborators users.
         - `privateLink`: The score is private but can be accessed using a private link `htmlUrl` or the private key in the property `sharingKey`.
-        - `organizationPublic`: _Available only with [Flat for Education](https://flat.io/edu)._ The score is public in the organization: users of the same organization can access to this one. The score can be modified and administred by specified collaborators users.
+        - `organizationPublic`: _Available only with [Flat for Education](https://flat.io/edu)._ The score is public in the organization: users of the same organization can access it. The score can be modified and administered by specified collaborators users.
 
         The score can also be individually shared to a set of users or groups using the different collaborators API methods.
 
-        When a file is synchronized from an external source (e.g. Google Drive) and the sharing options are changed on the source, Flat will chose the best privacy mode for the file.
+        When a file is synchronized from an external source (e.g. Google Drive) and the sharing options are changed on the source, Flat will choose the best privacy mode for the file.
 
         When using a [Flat for Education](https://flat.io/edu) account, some of the modes may not be available if disabled by an administrator of the organization (e.g. by default the `public` mode is not available).
       enum:
@@ -10101,7 +10118,6 @@ components:
         Update an existing track.
       example:
         title: Rick Astley - Never Gonna Give You Up
-        url: https://www.youtube.com/watch?v=dQw4w9WgXcQ
         default: true
         state: draft
         synchronizationPoints:
@@ -10281,7 +10297,7 @@ components:
         googleDrive:
           type: string
           description: |
-            If the score is a file on Google Drive, this field property must contain its identifier. To use this method, the Drive file must be public or the Flat Drive App must have access to the file.
+            If the score is a file on Google Drive, this property must contain its identifier. To use this method, the Drive file must be public or the Flat Drive App must have access to the file.
       example:
         googleDrive: 0B-0000000000000001
     ScoreCreation:
@@ -10306,7 +10322,7 @@ components:
         googleDriveFolder:
           type: string
           description: |
-            If the user uses Google Drive and this properties is specified, the file will be created in this directory. The currently user creating the file must be granted to write in this directory.
+            If the user uses Google Drive and this property is specified, the file will be created in this directory. The user creating the file must have write access to this directory.
         builderData:
           type: object
           required:
@@ -10345,7 +10361,7 @@ components:
                     properties:
                       group:
                         type: string
-                        description: The  of the instrument group (e.g. `keyboards`, `brass`)
+                        description: The identifier of the instrument group (e.g. `keyboards`, `brass`)
                       instrument:
                         type: string
                         description: The identifier of the instrument (e.g. `piano`, `trumpet`)
@@ -10357,7 +10373,7 @@ components:
                         description: The abbreviation of the name of the instrument
                       hasQuarterTone:
                         type: boolean
-                        description: True if the part can use quarter tone (prevent the part to have a TAB/chord grid)
+                        description: True if the part can use quarter tones (prevents the part from having a TAB staff or chord grid)
             layoutData:
               type: object
               description: Control the appearance of the score. If missing, default values are used.
@@ -10507,8 +10523,8 @@ components:
           items:
             type: string
             description: |
-              The list of user identifier or collaborators who worked on this
-              revision. This is list is built from the history of the revision
+              The user identifiers of the collaborators who worked on this
+              revision. This list is built from the history of the revision
               specified during the creation of the revision.
         date:
           type: string
@@ -10543,7 +10559,7 @@ components:
         data:
           type: string
           description: |
-            The data of the score file. It must be a MusicXML 3 file (`vnd.recordare.musicxml` or `vnd.recordare.musicxml+xml`), a MIDI file (`audio/midi`) or a Flat.json (aka Adagio.json) file.
+            The data of the score file. It must be a MusicXML 3 file (`vnd.recordare.musicxml` or `vnd.recordare.musicxml+xml`), a MIDI file (`audio/midi`) or a Flat JSON file.
             Binary payloads (`vnd.recordare.musicxml` and `audio/midi`) can be encoded in Base64, in this case the `dataEncoding` property must match the encoding used for the API request.
           example: <score-partwise version="3.0"></score-partwise>
         dataEncoding:
@@ -10561,13 +10577,6 @@ components:
       description: A new created revision
       example:
         data: <score-partwise version="3.0"></score-partwise>
-        history:
-        - id: b278ad43-2e99-4e60-a782-ac119b294ab8
-          userId: '000000000000000000000010'
-          fnc: action.AddMeasure
-          args:
-            previousUuid: 888cb742-2110-a050-ba71-28300ba6d61f
-            measureUuid: 0be9f739-3213-f312-bb0a-00ad0c787ef7
         autosave: true
         description: New revision
     ScoreCommentContext:
@@ -10585,14 +10594,14 @@ components:
           description: The unique identifier (UUID) of the score part
         staffIdx:
           type: number
-          description: (Deprecated, use `staffUuid`) The identififer of the staff
+          description: (Deprecated, use `staffUuid`) The identifier of the staff
           deprecated: true
         staffUuid:
           type: string
-          description: The unique identififer (UUID) of the staff
+          description: The unique identifier (UUID) of the staff
         measureUuids:
           type: array
-          description: The list of measure UUIds
+          description: The list of measure UUIDs
           items:
             type: string
         startTimePos:
@@ -10628,7 +10637,7 @@ components:
         comment:
           type: string
           description: |
-            The comment text that can includes mentions using the following format: `@[id:username]`.
+            The comment text that can include mentions using the following format: `@[id:username]`.
         rawComment:
           type: string
           description: |
@@ -10675,7 +10684,7 @@ components:
           minLength: 1
           type: string
           description: |
-            The comment text that can includes mentions using the following format: `@[id:username]`.
+            The comment text that can include mentions using the following format: `@[id:username]`.
         rawComment:
           maxLength: 10000
           minLength: 1
@@ -10731,7 +10740,7 @@ components:
           description: The unique identifier of the score where the comment was posted
         revision:
           type: string
-          description: The unique identifier of revision the comment was posted
+          description: The unique identifier of the revision where the comment was posted
         replyTo:
           type: string
           description: |
@@ -10747,7 +10756,7 @@ components:
         comment:
           type: string
           description: |
-            The comment text that can includes mentions using the following
+            The comment text that can include mentions using the following
             format: `@[id:username]`.
         rawComment:
           type: string
@@ -10758,7 +10767,7 @@ components:
           $ref: '#/components/schemas/ScoreCommentContext'
         mentions:
           type: array
-          description: The list of user identifier mentioned on the score
+          description: The list of user identifiers mentioned in this comment
           items:
             type: string
         resolved:
@@ -10768,7 +10777,7 @@ components:
         resolvedBy:
           type: string
           description: |
-            If the user is marked as resolved, this will contain the unique identifier of the User who marked this comment as resolved
+            If the comment is marked as resolved, this will contain the unique identifier of the User who marked this comment as resolved
         moderation:
           type: object
           description: Information about the comment being moderated
@@ -10785,7 +10794,7 @@ components:
         spam:
           type: boolean
           description: |
-            `true  if the message has been detected as spam and hidden from other users
+            `true` if the message has been detected as spam and hidden from other users
       description: Comment added on a sheet music
       example:
         id: '000000000000000000000010'
@@ -10898,10 +10907,10 @@ components:
           description: Optional result information about this task
           properties:
             url:
-              description: URL returned by the task worker
+              description: URL of the generated file, when the task produces one
               type: string
             error:
-              description: Error returned by task worker
+              description: Error message, when the task failed
               type: string
         errorHistory:
           type: array
@@ -11051,13 +11060,13 @@ components:
           description: Number of the scores liked by the user
         followersCount:
           type: integer
-          description: Number of followers the user have
+          description: Number of followers the user has
         followingCount:
           type: integer
-          description: Number of people the user follow
+          description: Number of people the user follows
         ownedPublicScoresCount:
           type: integer
-          description: Number of public scores the user have
+          description: Number of public scores the user owns
         allPublicScoresCount:
           type: integer
           description: Total number of public scores the user participates in (owned + joined)
@@ -11071,7 +11080,7 @@ components:
           type:
           - string
           - 'null'
-          description: Cover picture (backgroud) for the profile
+          description: Cover picture (background) for the profile
         profileTheme:
           type: string
           description: Theme (background) for the profile
@@ -11164,7 +11173,7 @@ components:
               $ref: '#/components/schemas/LicenseMode'
             active:
               type: boolean
-              description: ID of the current license
+              description: Whether the license is currently active
           description: Current active license of the user
         groups:
           description: For Flat for Education accounts, list of Group identifiers the user is part of.
@@ -11337,13 +11346,13 @@ components:
           description: Number of the scores liked by the user
         followersCount:
           type: integer
-          description: Number of followers the user have
+          description: Number of followers the user has
         followingCount:
           type: integer
-          description: Number of people the user follow
+          description: Number of people the user follows
         ownedPublicScoresCount:
           type: integer
-          description: Number of public scores the user have
+          description: Number of public scores the user owns
         allPublicScoresCount:
           type: integer
           description: Total number of public scores the user participates in (owned + joined)
@@ -11357,7 +11366,7 @@ components:
           type:
           - string
           - 'null'
-          description: Cover picture (backgroud) for the profile
+          description: Cover picture (background) for the profile
         profileTheme:
           type: string
           description: Theme (background) for the profile
@@ -11370,7 +11379,7 @@ components:
           $ref: '#/components/schemas/UserAzureDetails'
         privateProfile:
           type: boolean
-          description: Tell either this user profile is private or not (individual accounts only)
+          description: Whether this user profile is private (individual accounts only)
         locale:
           $ref: '#/components/schemas/FlatLocalesString'
         groups:
@@ -11469,7 +11478,7 @@ components:
           type:
           - string
           - 'null'
-          description: Personnal website URL
+          description: Personal website URL
   parameters:
     limit:
       name: limit
@@ -11500,7 +11509,7 @@ components:
       name: eventProperties
       in: query
       description: |
-        Optional analytics properties merged into XP tracking for this request.
+        Optional analytics properties merged into the analytics events recorded for this request.
 
         JSON-encoded string representing event properties. Example:
 
